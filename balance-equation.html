@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chemical Equation Practice</title>
+  <style>
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --surface-2: #f1efe8;
+      --text: #25231d;
+      --muted: #6f6b62;
+      --primary: #01696f;
+      --primary-2: #0c4e54;
+      --success: #2f6b18;
+      --error: #9a2f44;
+      --border: #d8d2c8;
+      --shadow: 0 8px 24px rgba(0,0,0,.08);
+      --r: 14px;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .app {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: var(--space-8) var(--space-4) var(--space-10);
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      padding: var(--space-6);
+    }
+    h1 {
+      margin: 0 0 var(--space-3);
+      font-size: clamp(1.8rem, 1.3rem + 2vw, 2.6rem);
+      line-height: 1.1;
+    }
+    p.lead {
+      margin: 0 0 var(--space-6);
+      color: var(--muted);
+      max-width: 70ch;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      align-items: center;
+      margin-bottom: var(--space-6);
+    }
+    select, button {
+      font: inherit;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      background: white;
+    }
+    button {
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    button.secondary {
+      background: var(--surface-2);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    button:hover { background: var(--primary-2); }
+    button.secondary:hover { background: #e9e4d8; }
+    .equation-wrap {
+      margin: var(--space-5) 0 var(--space-6);
+      padding: var(--space-5);
+      background: var(--surface-2);
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    .equation {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 60px;
+    }
+    .species {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 4px 0;
+    }
+    .coeff {
+      width: 58px;
+      padding: 8px 6px;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 1rem;
+    }
+    .chem {
+      font-size: 1.25rem;
+      white-space: nowrap;
+    }
+    .plus, .arrow {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--muted);
+      padding: 0 2px;
+    }
+    .status {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--space-3);
+      margin: var(--space-5) 0;
+    }
+    .stat {
+      padding: var(--space-4);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+    }
+    .stat .label {
+      color: var(--muted);
+      font-size: .92rem;
+      margin-bottom: 4px;
+    }
+    .stat .value {
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+    .feedback {
+      margin: var(--space-4) 0;
+      padding: var(--space-4);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: white;
+    }
+    .ok { color: var(--success); }
+    .bad { color: var(--error); }
+    .counts {
+      margin-top: var(--space-4);
+      display: none;
+    }
+    .counts.visible { display: block; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+    th {
+      background: var(--surface-2);
+      font-weight: 700;
+    }
+    tr:last-child td { border-bottom: none; }
+    .eq { color: var(--success); font-weight: 700; }
+    .neq { color: var(--error); font-weight: 700; }
+    .tiny {
+      font-size: .92rem;
+      color: var(--muted);
+    }
+    .session-status {
+      font-size: .92rem;
+      margin-left: 6px;
+    }
+    .session-status.locked {
+      color: var(--success);
+      font-weight: 600;
+    }
+    .session-status.unlocked {
+      color: var(--muted);
+    }
+    @media (max-width: 640px) {
+      .card { padding: var(--space-4); }
+      .coeff { width: 50px; }
+      .chem, .plus, .arrow { font-size: 1.05rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>Chemical equation practice</h1>
+      <p class="lead">Students adjust coefficients and inspect atom counts without seeing the answer. Showing current atom totals supports conservation-of-mass reasoning without giving away the target coefficients.</p>
+
+      <div class="controls">
+        <label>
+          Level
+          <select id="levelSelect" aria-label="Choose difficulty level">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </label>
+
+        <label>
+          Progress mode
+          <select id="progressMode" aria-label="Choose progress mode">
+            <option value="beginner">Beginner counts only</option>
+            <option value="standard" selected>Standard counts + balanced tally</option>
+            <option value="hintlite">Hint-lite counts + mismatch size</option>
+          </select>
+        </label>
+
+        <label>
+          Session length
+          <select id="sessionLength" aria-label="Choose session length">
+            <option value="10">10 checks</option>
+            <option value="20" selected>20 checks</option>
+            <option value="30">30 checks</option>
+          </select>
+          <span id="sessionStatus" class="tiny session-status unlocked"></span>
+        </label>
+
+        <button id="newBtn" type="button">New problem</button>
+        <button id="progressBtn" class="secondary" type="button">Show progress</button>
+        <button id="checkBtn" type="button">Check balance</button>
+      </div>
+
+      <div class="tiny" id="problemMeta"></div>
+
+      <div class="equation-wrap">
+        <div class="equation" id="equation"></div>
+      </div>
+
+      <div class="status">
+        <div class="stat">
+          <div class="label">Elements balanced</div>
+          <div class="value" id="balancedCount">0 / 0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Visible guidance</div>
+          <div class="value" id="guidanceLabel">Standard</div>
+        </div>
+        <div class="stat">
+          <div class="label">Game score</div>
+          <div class="value">
+            <span id="scoreTotal">0</span> pts •
+            <span id="scoreQuestions">0 / 20</span> checks •
+            <span id="scoreCorrect">0</span> correct
+          </div>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback">Enter coefficients, then choose <strong>Show progress</strong> to inspect atom counts without revealing the answer.</div>
+      <div class="counts" id="countsPanel" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script>
+    const PROBLEMS = [
+      { level: 'easy', type: 'synthesis', eq: 'H2 + Cl2 = HCl' },
+      { level: 'easy', type: 'combustion', eq: 'CH4 + O2 = CO2 + H2O' },
+      { level: 'easy', type: 'decomposition', eq: 'KClO3 = KCl + O2' },
+      { level: 'easy', type: 'neutralization', eq: 'Ba(OH)2 + HCl = BaCl2 + H2O' },
+      { level: 'easy', type: 'single replacement', eq: 'Zn + HCl = ZnCl2 + H2' },
+      { level: 'easy', type: 'synthesis', eq: 'N2 + H2 = NH3' },
+      { level: 'easy', type: 'combustion', eq: 'C2H6 + O2 = CO2 + H2O' },
+      { level: 'easy', type: 'decomposition', eq: 'H2O2 = H2O + O2' },
+      { level: 'easy', type: 'neutralization', eq: 'Mg(OH)2 + HNO3 = Mg(NO3)2 + H2O' },
+      { level: 'easy', type: 'single replacement', eq: 'Fe + CuSO4 = Fe2(SO4)3 + Cu' },
+      { level: 'easy', type: 'synthesis', eq: 'Na + Cl2 = NaCl' },
+      { level: 'easy', type: 'combustion', eq: 'C3H8 + O2 = CO2 + H2O' },
+      { level: 'easy', type: 'decomposition', eq: 'KClO4 = KCl + O2' },
+      { level: 'easy', type: 'single replacement', eq: 'Al + Fe2O3 = Al2O3 + Fe' },
+      { level: 'easy', type: 'single replacement', eq: 'AgNO3 + SrCl2 = AgCl + Sr(NO3)2' },
+      { level: 'easy', type: 'synthesis', eq: 'Mg + O2 = MgO' },
+      { level: 'easy', type: 'synthesis', eq: 'Fe + O2 = Fe2O3' },
+      { level: 'easy', type: 'decomposition', eq: 'HgO = Hg + O2' },
+      { level: 'easy', type: 'decomposition', eq: 'NaClO3 = NaCl + O2' },
+      { level: 'easy', type: 'combustion', eq: 'C2H2 + O2 = CO2 + H2O' },
+      { level: 'medium', type: 'double replacement', eq: 'Fe(NO3)3 + MgO = Fe2O3 + Mg(NO3)2' },
+      { level: 'medium', type: 'double replacement', eq: 'Fe2(SO4)3 + KOH = K2SO4 + Fe(OH)3' },
+      { level: 'medium', type: 'combustion', eq: 'C4H10 + O2 = CO2 + H2O' },
+      { level: 'medium', type: 'redox', eq: 'FeS2 + O2 = Fe2O3 + SO2' },
+      { level: 'medium', type: 'neutralization', eq: 'KOH + H2SO4 = K2SO4 + H2O' },
+      { level: 'medium', type: 'double replacement', eq: 'Cu3(PO4)2 + Na2SO4 = Na3PO4 + CuSO4' },
+      { level: 'medium', type: 'neutralization', eq: 'Ca(OH)2 + H2SO4 = CaSO4 + H2O' },
+      { level: 'medium', type: 'combustion', eq: 'C5H12 + O2 = CO2 + H2O' },
+      { level: 'medium', type: 'redox', eq: 'K2Cr2O7 + HCl = KCl + CrCl3 + H2O + Cl2' },
+      { level: 'medium', type: 'redox', eq: 'NH4NO3 = N2O + H2O' },
+      { level: 'medium', type: 'double replacement', eq: '(NH4)3N) + Ni(CrO4)2 = (NH4)2CrO4 + Ni3N4' },
+      { level: 'medium', type: 'combustion', eq: 'C8H18 + O2 = CO2 + H2O' },
+      { level: 'medium', type: 'redox', eq: 'Cu + HNO3 = Cu(NO3)2 + NO2 + H2O' },
+      { level: 'medium', type: 'double replacement', eq: 'AlCl3 + H2O = Al(OH)3 + HCl' },
+      { level: 'medium', type: 'redox', eq: 'Ca3(PO4)2 + SiO2 + C = CaSiO3 + CO + P4' },
+      { level: 'medium', type: 'double replacement', eq: 'Al2(CO3)3 + Na3PO4 = AlPO4 + Na2CO3' },
+      { level: 'medium', type: 'combustion', eq: 'C3H8O + O2 = CO2 + H2O' },
+      { level: 'medium', type: 'double replacement', eq: 'Al2(SO4)3 + Ca(OH)2 = Al(OH)3 + CaSO4' },
+      { level: 'medium', type: 'neutralization', eq: 'Ca(OH)2 + H3PO4 = Ca3(PO4)2 + H2O' },
+      { level: 'medium', type: 'double replacement', eq: 'AgNO3 + K3PO4 = Ag3PO4 + KNO3' },
+      { level: 'medium', type: 'double replacement', eq: 'Na2CO3 + HCl = NaCl + H2O + CO2' },
+      { level: 'medium', type: 'double replacement', eq: 'Na2SO3 + HCl = NaCl + H2O + SO2' },
+      { level: 'medium', type: 'combustion', eq: 'C2H5OH + O2 = CO2 + H2O' },
+      { level: 'medium', type: 'redox', eq: 'NaClO3 + P4O10 = NaCl + H3PO4' },
+      { level: 'medium', type: 'redox', eq: 'Na + H2O = NaOH + H2' },
+      { level: 'medium', type: 'double replacement', eq: 'Na2S2O3 + HCl = NaCl + H2O + SO2 + S' },
+      { level: 'medium', type: 'combustion', eq: 'C6H6O + O2 = CO2 + H2O' },
+      { level: 'medium', type: 'redox', eq: 'Al + H2SO4 = Al2(SO4)3 + H2' },
+      { level: 'medium', type: 'double replacement', eq: 'Fe2(SO4)3 + KOH = K2SO4 + Fe(OH)3' },
+      { level: 'medium', type: 'single replacement', eq: 'AlBr3 + Cl2 = AlCl3 + Br2' },
+      { level: 'medium', type: 'single replacement', eq: 'NaI + Cl2 = NaCl + I2' },
+      { level: 'medium', type: 'single replacement', eq: 'Fe + H3PO4 = FePO4 + H2' },
+      { level: 'medium', type: 'double replacement', eq: '(NH4)2CrO4 + BaCl2 = BaCrO4 + NH4Cl' },
+      { level: 'hard', type: 'redox', eq: 'KMnO4 + HCl = KCl + MnCl2 + H2O + Cl2' },
+      { level: 'hard', type: 'redox', eq: 'Cu + HNO3 = Cu(NO3)2 + NO2 + H2O' },
+      { level: 'hard', type: 'combustion', eq: 'C6H12O6 + O2 = CO2 + H2O' },
+      { level: 'hard', type: 'redox', eq: 'C + Ca3(PO4)2 = Ca3P2 + CO' },
+      { level: 'hard', type: 'decomposition', eq: 'NaN3 = Na + N2' },
+      { level: 'hard', type: 'redox', eq: 'Al + Fe2O3 = Al2O3 + Fe' },
+      { level: 'hard', type: 'redox', eq: 'Na2Cr2O7 + HCl = NaCl + CrCl3 + H2O + Cl2' },
+      { level: 'hard', type: 'combustion', eq: 'C3H6O2 + O2 = CO2 + H2O' },
+      { level: 'hard', type: 'decomposition', eq: 'Cu(NO3)2 = CuO + NO2 + O2' },
+      { level: 'hard', type: 'decomposition', eq: 'MgNH4PO4 = Mg2P2O7 + NH3 + H2O' },
+      { level: 'hard', type: 'redox', eq: 'K2Cr2O7 + H2SO3 = K2SO4 + Cr2(SO4)3 + H2O' },
+      { level: 'hard', type: 'redox', eq: 'Cu + H2SO4 = CuSO4 + SO2 + H2O' },
+      { level: 'hard', type: 'combustion', eq: 'C2H5OH + O2 = CO2 + H2O' },
+      { level: 'hard', type: 'complex polyatomic', eq: 'Mg3Si2O5(OH)4 + CO2 = MgCO3 + SiO2 + H2O' },
+      { level: 'hard', type: 'decomposition', eq: 'AgN3 = Ag + N2' },
+      { level: 'hard', type: 'redox', eq: 'KMnO4 + HCl = KCl + MnCl2 + H2O + Cl2' },
+      { level: 'hard', type: 'redox', eq: 'Cu + HNO3 = Cu(NO3)2 + NO2 + H2O' },
+      { level: 'hard', type: 'combustion', eq: 'C6H12O6 + O2 = CO2 + H2O' },
+      { level: 'hard', type: 'redox', eq: 'C + Ca3(PO4)2 = Ca3P2 + CO' },
+      { level: 'hard', type: 'decomposition', eq: 'NaN3 = Na + N2' },
+      { level: 'hard', type: 'redox', eq: 'FeS2 + O2 = Fe2O3 + SO2' },
+      { level: 'hard', type: 'redox', eq: 'MoS2 + O2 = MoO3 + SO2' },
+      { level: 'hard', type: 'combustion', eq: 'C7H6O2 + O2 = CO2 + H2O' },
+      { level: 'hard', type: 'redox', eq: 'S + HNO3 = H2SO4 + NO2 + H2O' },
+      { level: 'hard', type: 'redox', eq: 'CuS + HNO3 = CuSO4 + NO2 + H2O' },
+      { level: 'hard', type: 'redox', eq: 'PbS + O2 = PbO + SO2' },
+      { level: 'hard', type: 'decomposition', eq: 'C3H5N3O9 = CO2 + N2 + O2 + H2O' },
+      { level: 'hard', type: 'combustion', eq: 'C12H22O11 + KNO3 = N2 + CO2 + H2O + K2CO3' },
+      { level: 'hard', type: 'redox', eq: 'C + Ca3(PO4)2 = Ca3P2 + CO' },
+      { level: 'hard', type: 'decomposition', eq: 'NaN3 = Na + N2' },
+      { level: 'hard', type: 'redox', eq: 'Na2O2 + H2O = NaOH + O2' },
+      { level: 'hard', type: 'redox', eq: 'K + B2O3 = K2O + B' },
+      { level: 'hard', type: 'redox', eq: 'Na + NH3 = NaNH2 + H2' },
+      { level: 'hard', type: 'redox', eq: 'K2MnF6 + SbF5 = KSbF6 + MnF3 + F2' },
+      { level: 'hard', type: 'redox', eq: 'LuCl3 + Ca = Lu + CaCl2' },
+      { level: 'hard', type: 'redox', eq: 'Ba2XeO6 + H2SO4 = BaSO4 + XeO4 + H2O' },
+      { level: 'hard', type: 'double replacement', eq: 'XeF6 + H2O = XeO3 + HF' },
+      { level: 'hard', type: 'combination', eq: 'P4O10 + H2O2 = H3PO4' },
+      { level: 'hard', type: 'combination', eq: 'Na2O + CO2 + H2O = NaHCO3' },
+      { level: 'hard', type: 'double replacement', eq: 'Mg3N2 + H2O = Mg(OH)2 + NH3' },
+      { level: 'hard', type: 'redox', eq: 'Pt + HNO3 + HCl = H2PtCl6 + NO2 + H2O' },
+      { level: 'hard', type: 'redox', eq: 'NaBr + NaBrO3 + H2SO4 = Br2 + Na2SO4 + H2O' },
+      { level: 'hard', type: 'redox', eq: 'KNO2 + HClO = KCl + NO3 + HCl' },
+      { level: 'hard', type: 'redox', eq: 'Fe2O3 + H2 = Fe + H2O' },
+      { level: 'hard', type: 'redox', eq: 'HCl + HNO3 = NOCl + Cl2 + H2O' },
+      { level: 'hard', type: 'redox', eq: 'Fe2O3 + CO = Fe + CO2' },
+      { level: 'hard', type: 'redox', eq: 'Cu(CN)2 = CuCN + C2N2' },
+      { level: 'hard', type: 'combustion', eq: 'C3H6 + O2 = CO2 + H2O' },
+      { level: 'hard', type: 'redox', eq: 'BaO + Al = BaAl4 + Al2O3' },
+      { level: 'hard', type: 'redox', eq: 'HCl + MnO2 = MnCl2 + H2O + Cl2' }
+    ];
+
+    let current = null;
+    let gameMode = true;
+    let MAX_CHECKS_PER_SESSION = 20;
+
+    const SCORE_VALUES = {
+      easy: 20,
+      medium: 30,
+      hard: 50
+    };
+
+    const gameState = {
+      totalScore: 0,
+      questionsTried: 0,
+      checksCorrect: 0,
+      perLevel: {
+        easy: { tried: 0, correct: 0, points: 0 },
+        medium: { tried: 0, correct: 0, points: 0 },
+        hard: { tried: 0, correct: 0, points: 0 }
+      },
+      perType: {},
+      currentProblemDone: false
+    };
+
+    function ensureTypeEntry(type) {
+      if (!gameState.perType[type]) {
+        gameState.perType[type] = { tried: 0, correct: 0, points: 0 };
+      }
+    }
+
+    function resetGameState() {
+      gameState.totalScore = 0;
+      gameState.questionsTried = 0;
+      gameState.checksCorrect = 0;
+      gameState.perLevel = {
+        easy: { tried: 0, correct: 0, points: 0 },
+        medium: { tried: 0, correct: 0, points: 0 },
+        hard: { tried: 0, correct: 0, points: 0 }
+      };
+      gameState.perType = {};
+      gameState.currentProblemDone = false;
+      updateScoreUI();
+    }
+
+    function updateScoreUI() {
+      const totalEl = document.getElementById('scoreTotal');
+      const qEl = document.getElementById('scoreQuestions');
+      const cEl = document.getElementById('scoreCorrect');
+      if (!totalEl || !qEl || !cEl) return;
+
+      totalEl.textContent = gameState.totalScore;
+      qEl.textContent = `${gameState.questionsTried} / ${MAX_CHECKS_PER_SESSION}`;
+      cEl.textContent = gameState.checksCorrect;
+    }
+
+    function updateSessionStatusLocked(locked) {
+      const statusEl = document.getElementById('sessionStatus');
+      if (!statusEl) return;
+
+      statusEl.classList.remove('locked', 'unlocked');
+
+      if (locked) {
+        statusEl.classList.add('locked');
+        const levelSelect = document.getElementById('levelSelect');
+        const level = levelSelect ? levelSelect.value : '';
+        const levelLabel = level ? level.charAt(0).toUpperCase() + level.slice(1) : '';
+        statusEl.textContent = `Session length locked at ${MAX_CHECKS_PER_SESSION} checks • level: ${levelLabel}.`;
+      } else {
+        statusEl.classList.add('unlocked');
+        statusEl.textContent = 'Choose session length, then start/check.';
+      }
+    }
+
+    function splitEquation(eq) {
+      const parts = eq.split('=');
+      return {
+        reactants: parts[0].split('+').map(s => s.trim()).filter(Boolean),
+        products: parts[1].split('+').map(s => s.trim()).filter(Boolean)
+      };
+    }
+
+    function formatChemical(formula) {
+      return formula
+        .replace(/\^([0-9]*[+-])/g, '<sup>$1</sup>')
+        .replace(/([0-9]+)/g, '<sub>$1</sub>');
+    }
+
+    function parseFormula(formula) {
+      let i = 0;
+
+      function parseSegment() {
+        const counts = {};
+        while (i < formula.length) {
+          const ch = formula[i];
+          if (ch === '(') {
+            i++;
+            const inner = parseSegment();
+            if (formula[i] !== ')') throw new Error('Missing )');
+            i++;
+            const mult = parseNumber();
+            for (const el in inner) counts[el] = (counts[el] || 0) + inner[el] * mult;
+          } else if (ch === ')') {
+            break;
+          } else if (/[A-Z]/.test(ch)) {
+            let el = formula[i++];
+            if (i < formula.length && /[a-z]/.test(formula[i])) el += formula[i++];
+            const mult = parseNumber();
+            counts[el] = (counts[el] || 0) + mult;
+          } else if (/[ \t]/.test(ch) || ch === '^' || ch === '+' || ch === '-') {
+            i++;
+          } else {
+            i++;
+          }
+        }
+        return counts;
+      }
+
+      function parseNumber() {
+        let start = i;
+        while (i < formula.length && /[0-9]/.test(formula[i])) i++;
+        return start === i ? 1 : parseInt(formula.slice(start, i), 10);
+      }
+
+      return parseSegment();
+    }
+
+    function countSideAtoms(species, coeffs) {
+      const totals = {};
+      species.forEach((sp, idx) => {
+        const c = Number(coeffs[idx] || 0);
+        if (!c) return;
+        const parsed = parseFormula(sp);
+        Object.keys(parsed).forEach(el => {
+          totals[el] = (totals[el] || 0) + parsed[el] * c;
+        });
+      });
+      return totals;
+    }
+
+    function pickProblem(level) {
+      const set = PROBLEMS.filter(p => p.level === level);
+      return set[Math.floor(Math.random() * set.length)];
+    }
+
+    function renderProblem(problem) {
+      const parts = splitEquation(problem.eq);
+      current = { ...problem, ...parts };
+      gameState.currentProblemDone = false;
+
+      const root = document.getElementById('equation');
+      root.innerHTML = '';
+
+      const makeSpecies = (sp, idx, side) => {
+        const wrapper = document.createElement('span');
+        wrapper.className = 'species';
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = '0';
+        input.step = '1';
+        input.value = '1';
+        input.className = 'coeff';
+        input.dataset.side = side;
+        input.dataset.index = idx;
+        input.setAttribute('aria-label', `Coefficient for ${sp}`);
+
+        const chem = document.createElement('span');
+        chem.className = 'chem';
+        chem.innerHTML = formatChemical(sp);
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(chem);
+        return wrapper;
+      };
+
+      current.reactants.forEach((sp, i) => {
+        root.appendChild(makeSpecies(sp, i, 'react'));
+        if (i < current.reactants.length - 1) {
+          const plus = document.createElement('span');
+          plus.className = 'plus';
+          plus.textContent = '+';
+          root.appendChild(plus);
+        }
+      });
+
+      const arrow = document.createElement('span');
+      arrow.className = 'arrow';
+      arrow.textContent = '→';
+      root.appendChild(arrow);
+
+      current.products.forEach((sp, i) => {
+        root.appendChild(makeSpecies(sp, i, 'prod'));
+        if (i < current.products.length - 1) {
+          const plus = document.createElement('span');
+          plus.className = 'plus';
+          plus.textContent = '+';
+          root.appendChild(plus);
+        }
+      });
+
+      document.getElementById('problemMeta').textContent = `Level: ${problem.level.toUpperCase()} • Type: ${problem.type}`;
+      document.getElementById('feedback').innerHTML = 'Enter coefficients, then choose <strong>Show progress</strong> to inspect atom counts without revealing the answer.';
+      document.getElementById('countsPanel').classList.remove('visible');
+      document.getElementById('countsPanel').innerHTML = '';
+      updateSummary();
+    }
+
+    function readCoeffs() {
+      const react = new Array(current.reactants.length).fill(0);
+      const prod = new Array(current.products.length).fill(0);
+      document.querySelectorAll('.coeff').forEach(inp => {
+        const value = Math.max(0, parseInt(inp.value || '0', 10) || 0);
+        if (inp.dataset.side === 'react') react[Number(inp.dataset.index)] = value;
+        else prod[Number(inp.dataset.index)] = value;
+      });
+      return { react, prod };
+    }
+
+    function computeProgress() {
+      const { react, prod } = readCoeffs();
+      const left = countSideAtoms(current.reactants, react);
+      const right = countSideAtoms(current.products, prod);
+      const els = Array.from(new Set([...Object.keys(left), ...Object.keys(right)])).sort();
+      let balanced = 0;
+      const rows = els.map(el => {
+        const L = left[el] || 0;
+        const R = right[el] || 0;
+        const equal = L === R;
+        if (equal) balanced++;
+        return { el, L, R, equal, delta: Math.abs(L - R) };
+      });
+      return { rows, balanced, total: els.length };
+    }
+
+    function updateSummary() {
+      const mode = document.getElementById('progressMode').value;
+      const labels = {
+        beginner: 'Beginner',
+        standard: 'Standard',
+        hintlite: 'Hint-lite'
+      };
+      const p = computeProgress();
+      document.getElementById('balancedCount').textContent = `${p.balanced} / ${p.total}`;
+      document.getElementById('guidanceLabel').textContent = labels[mode];
+    }
+
+    function renderProgress() {
+      const mode = document.getElementById('progressMode').value;
+      const panel = document.getElementById('countsPanel');
+      const p = computeProgress();
+      let html = '<table><thead><tr><th>Element</th><th>Reactants</th><th>Products</th>';
+      if (mode === 'standard') html += '<th>Status</th>';
+      if (mode === 'hintlite') html += '<th>Mismatch</th>';
+      html += '</tr></thead><tbody>';
+
+      p.rows.forEach(r => {
+        html += `<tr><td><strong>${r.el}</strong></td><td class="${r.equal ? 'eq' : 'neq'}">${r.L}</td><td class="${r.equal ? 'eq' : 'neq'}">${r.R}</td>`;
+        if (mode === 'standard') html += `<td class="${r.equal ? 'eq' : 'neq'}">${r.equal ? 'Balanced' : 'Not yet'}</td>`;
+        if (mode === 'hintlite') html += `<td class="${r.equal ? 'eq' : 'neq'}">${r.delta}</td>`;
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      panel.innerHTML = html;
+      panel.classList.add('visible');
+
+      if (mode === 'beginner') {
+        document.getElementById('feedback').innerHTML = 'Current atom totals are shown. Use them to decide what to change next without revealing any target coefficients.';
+      } else if (mode === 'standard') {
+        document.getElementById('feedback').innerHTML = `Progress: <strong>${p.balanced} of ${p.total}</strong> elements are currently balanced.`;
+      } else {
+        document.getElementById('feedback').innerHTML = 'Mismatch sizes are shown, but the app still does not reveal which coefficient to change.';
+      }
+      updateSummary();
+    }
+
+    function endGameSession() {
+      gameMode = false;
+
+      const correct = gameState.checksCorrect;
+      const tried = gameState.questionsTried;
+      const pct = tried > 0 ? Math.round((correct / tried) * 100) : 0;
+
+      let html = '<h3>Session summary</h3>';
+      html += `<p>Total score: <strong>${gameState.totalScore}</strong></p>`;
+      html += `<p>Questions (Check clicks): ${tried} of ${MAX_CHECKS_PER_SESSION}</p>`;
+      html += `<p>Correct checks: <strong>${correct}</strong> (${pct}% accuracy)</p>`;
+
+      html += '<h4>By level</h4>';
+      html += '<table><thead><tr><th>Level</th><th>Tried</th><th>Correct</th><th>Points</th></tr></thead><tbody>';
+      ['easy', 'medium', 'hard'].forEach(level => {
+        const s = gameState.perLevel[level];
+        html += `<tr><td>${level}</td><td>${s.tried}</td><td>${s.correct}</td><td>${s.points}</td></tr>`;
+      });
+      html += '</tbody></table>';
+
+      html += '<h4>By reaction type</h4>';
+      html += '<table><thead><tr><th>Type</th><th>Tried</th><th>Correct</th><th>Points</th></tr></thead><tbody>';
+      Object.keys(gameState.perType).sort().forEach(type => {
+        const s = gameState.perType[type];
+        html += `<tr><td>${type}</td><td>${s.tried}</td><td>${s.correct}</td><td>${s.points}</td></tr>`;
+      });
+      html += '</tbody></table>';
+
+      html += '<p><button type="button" id="restartGameBtn">Start new session</button></p>';
+
+      document.getElementById('feedback').innerHTML = html;
+
+      const restartBtn = document.getElementById('restartGameBtn');
+      if (restartBtn) restartBtn.addEventListener('click', startNewSession);
+    }
+
+    function handleScoring(done) {
+      if (!gameMode || !current) return;
+
+      const level = current.level;
+      const type = current.type;
+      ensureTypeEntry(type);
+
+      gameState.questionsTried += 1;
+      if (gameState.perLevel[level]) gameState.perLevel[level].tried += 1;
+      gameState.perType[type].tried += 1;
+
+      const sessionLengthSelect = document.getElementById('sessionLength');
+      if (gameState.questionsTried === 1 && sessionLengthSelect) {
+        sessionLengthSelect.disabled = true;
+        updateSessionStatusLocked(true);
+      }
+
+      if (done) gameState.checksCorrect += 1;
+
+      if (done && !gameState.currentProblemDone) {
+        const pts = SCORE_VALUES[level] || 0;
+        gameState.totalScore += pts;
+        if (gameState.perLevel[level]) {
+          gameState.perLevel[level].correct += 1;
+          gameState.perLevel[level].points += pts;
+        }
+        gameState.perType[type].correct += 1;
+        gameState.perType[type].points += pts;
+        gameState.currentProblemDone = true;
+      }
+
+      updateScoreUI();
+
+      if (gameState.questionsTried >= MAX_CHECKS_PER_SESSION) {
+        endGameSession();
+      }
+    }
+
+    function checkBalanced() {
+      const p = computeProgress();
+      const done = p.total > 0 && p.balanced === p.total;
+      document.getElementById('feedback').innerHTML = done
+        ? '<span class="ok"><strong>Balanced correctly.</strong></span> All element totals match on both sides.'
+        : '<span class="bad"><strong>Not balanced yet.</strong></span> Use Show progress to inspect the current atom totals without revealing the answer.';
+      updateSummary();
+      handleScoring(done);
+    }
+
+    function startNewSession() {
+      const sessionLengthSelect = document.getElementById('sessionLength');
+      if (sessionLengthSelect) {
+        sessionLengthSelect.disabled = false;
+        MAX_CHECKS_PER_SESSION = Number(sessionLengthSelect.value) || 20;
+      }
+      resetGameState();
+      gameMode = true;
+      updateSessionStatusLocked(false);
+      renderProblem(pickProblem(document.getElementById('levelSelect').value));
+    }
+
+    const levelSelect = document.getElementById('levelSelect');
+    const sessionLengthSelect = document.getElementById('sessionLength');
+
+    document.getElementById('newBtn').addEventListener('click', () => {
+      renderProblem(pickProblem(levelSelect.value));
+    });
+
+    document.getElementById('progressBtn').addEventListener('click', renderProgress);
+    document.getElementById('checkBtn').addEventListener('click', checkBalanced);
+
+    document.getElementById('progressMode').addEventListener('change', () => {
+      updateSummary();
+      const panel = document.getElementById('countsPanel');
+      if (panel.classList.contains('visible')) renderProgress();
+    });
+
+    document.addEventListener('input', e => {
+      if (e.target.classList.contains('coeff')) {
+        updateSummary();
+        const panel = document.getElementById('countsPanel');
+        if (panel.classList.contains('visible')) renderProgress();
+      }
+    });
+
+    levelSelect.addEventListener('change', () => {
+      renderProblem(pickProblem(levelSelect.value));
+    });
+
+    if (sessionLengthSelect) {
+      sessionLengthSelect.addEventListener('change', () => {
+        if (gameState.questionsTried > 0) {
+          sessionLengthSelect.value = String(MAX_CHECKS_PER_SESSION);
+          return;
+        }
+        MAX_CHECKS_PER_SESSION = Number(sessionLengthSelect.value) || 20;
+        resetGameState();
+        gameMode = true;
+        updateSessionStatusLocked(false);
+        document.getElementById('feedback').textContent = `Game mode: session length set to ${MAX_CHECKS_PER_SESSION} checks.`;
+      });
+    }
+
+    MAX_CHECKS_PER_SESSION = sessionLengthSelect ? Number(sessionLengthSelect.value) || 20 : 20;
+    resetGameState();
+    gameMode = true;
+    updateSessionStatusLocked(false);
+    renderProblem(pickProblem('easy'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gas Laws Master Practice App</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col items-center justify-center p-6">
+
+    <div class="max-w-xl w-full bg-white rounded-xl shadow-md p-8 border border-gray-100">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2 text-center">Gas Laws Master Practice</h1>
+        <p class="text-gray-500 text-center mb-6 text-sm">Select a concept, solve the problem, and check your answer.</p>
+
+        <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Choose Problem Type:</label>
+            <select id="lawSelect" class="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="boyle">Boyle's Law (P & V)</option>
+                <option value="charles">Charles' Law (V & T)</option>
+                <option value="gaylussac">Gay-Lussac's Law (P & T)</option>
+                <option value="avogadro">Avogadro's Law (V & n)</option>
+                <option value="combined">Combined Gas Law (P, V, & T)</option>
+                <option value="ideal">Ideal Gas Law (PV = nRT)</option>
+                <option value="dalton">Dalton's Law (Partial Pressures)</option>
+                <option value="density">Gas Density (d = PM/RT)</option>
+                <option value="rmsspeed">RMS Speed / KMT (v_rms = √3RT/M)</option>
+                <option value="grahams">Graham's Law (Effusion Rate)</option>
+            </select>
+        </div>
+
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-6">
+            <span class="font-bold text-blue-700 text-xs uppercase tracking-wider">Question:</span>
+            <p id="questionText" class="text-gray-700 mt-1 font-medium text-lg">Loading question...</p>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Your Answer (Round to 2 decimal places):</label>
+            <div class="flex gap-2">
+                <input type="number" id="userAnswer" step="0.01" placeholder="0.00" class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <span id="unitDisplay" class="bg-gray-100 border border-gray-300 rounded-lg px-4 flex items-center text-gray-600 font-medium">L</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-6">
+            <button id="checkBtn" class="col-span-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition shadow">Check Answer</button>
+            <button id="nextBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-lg transition">Next</button>
+        </div>
+
+        <div id="feedback" class="mt-4 text-center font-semibold text-lg hidden"></div>
+
+        <div class="mt-6 border-t border-gray-200 pt-6">
+            <button id="toggleSolutionBtn" class="w-full text-sm font-semibold text-blue-600 hover:text-blue-800 transition flex items-center justify-center gap-1 focus:outline-none">
+                <span>View Step-by-Step Solution</span>
+                <span id="arrowIcon">▼</span>
+            </button>
+            
+            <div id="solutionContainer" class="hidden mt-4 bg-gray-50 border border-gray-200 rounded-lg p-5 text-sm text-gray-700 leading-relaxed">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // App State
+        let currentAnswer = 0;
+        let currentSteps = "";
+        const R = 0.0821; 
+        const R_SI = 8.314; // Gas constant for energy & velocity calculations
+
+        // DOM Elements
+        const lawSelect = document.getElementById('lawSelect');
+        const questionText = document.getElementById('questionText');
+        const userAnswer = document.getElementById('userAnswer');
+        const unitDisplay = document.getElementById('unitDisplay');
+        const checkBtn = document.getElementById('checkBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const feedback = document.getElementById('feedback');
+        const toggleSolutionBtn = document.getElementById('toggleSolutionBtn');
+        const solutionContainer = document.getElementById('solutionContainer');
+        const arrowIcon = document.getElementById('arrowIcon');
+
+        // Helpers
+        const rand = (min, max) => parseFloat((Math.random() * (max - min) + min).toFixed(2));
+        const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+        // Question Generator Engine
+        function generateQuestion() {
+            const law = lawSelect.value;
+            
+            // Reset UI States
+            feedback.classList.add('hidden');
+            solutionContainer.classList.add('hidden');
+            arrowIcon.innerText = "▼";
+            userAnswer.value = '';
+            
+            if (law === 'boyle') {
+                const unknown = pickRandom(['P1', 'V1', 'P2', 'V2']);
+                let p1 = rand(1.0, 5.0);
+                let v1 = rand(2.0, 10.0);
+                let p2 = rand(1.0, 5.0);
+                let v2 = rand(2.0, 10.0);
+
+                if (unknown === 'P1') {
+                    p1 = (p2 * v2) / v1;
+                    currentAnswer = p1;
+                    unitDisplay.innerText = "atm";
+                    questionText.innerText = `A gas sample occupies a volume of ${v1} L at an unknown pressure. When the pressure is adjusted to ${p2} atm, the volume becomes ${v2} L. What was the initial pressure (in atm)?`;
+                } else if (unknown === 'V1') {
+                    v1 = (p2 * v2) / p1;
+                    currentAnswer = v1;
+                    unitDisplay.innerText = "L";
+                    questionText.innerText = `A gas sample at ${p1} atm occupies an unknown volume. When the pressure changes to ${p2} atm, the volume becomes ${v2} L. What was the initial volume (in Liters)?`;
+                } else if (unknown === 'P2') {
+                    p2 = (p1 * v1) / v2;
+                    currentAnswer = p2;
+                    unitDisplay.innerText = "atm";
+                    questionText.innerText = `A gas sample at ${p1} atm occupies a volume of ${v1} L. If the volume is changed to ${v2} L at constant temperature, what is the new pressure (in atm)?`;
+                } else if (unknown === 'V2') {
+                    v2 = (p1 * v1) / p2;
+                    currentAnswer = v2;
+                    unitDisplay.innerText = "L";
+                    questionText.innerText = `A gas sample at ${p1} atm occupies a volume of ${v1} L. If the pressure is changed to ${p2} atm at constant temperature, what will be the new volume (in Liters)?`;
+                }
+
+                currentSteps = `
+                    <p class="font-bold mb-2 text-blue-800">Boyle's Law Formula:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">P₁V₁ = P₂V₂</p>
+                    <p class="font-bold mb-1">1. Identify variables:</p>
+                    <ul class="list-disc list-inside space-y-1 mb-3">
+                        <li>P₁ = ${unknown === 'P1' ? 'Unknown (x)' : p1.toFixed(2) + ' atm'}</li>
+                        <li>V₁ = ${unknown === 'V1' ? 'Unknown (x)' : v1.toFixed(2) + ' L'}</li>
+                        <li>P₂ = ${unknown === 'P2' ? 'Unknown (x)' : p2.toFixed(2) + ' atm'}</li>
+                        <li>V₂ = ${unknown === 'V2' ? 'Unknown (x)' : v2.toFixed(2) + ' L'}</li>
+                    </ul>
+                    <p class="font-bold mb-1">2. Rearrange formula to solve for ${unknown}:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">
+                        ${unknown} = ${
+                            unknown === 'P1' ? '(P₂ × V₂) / V₁' :
+                            unknown === 'V1' ? '(P₂ × V₂) / P₁' :
+                            unknown === 'P2' ? '(P₁ × V₁) / V₂' :
+                            '(P₁ × V₁) / P₂'
+                        }
+                    </p>
+                    <p class="font-bold mb-1">3. Calculate:</p>
+                    <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">${unknown} ≈ ${currentAnswer.toFixed(2)} ${unitDisplay.innerText}</p>
+                `;
+            
+            } else if (law === 'charles') {
+                const unknown = pickRandom(['V1', 'T1', 'V2', 'T2']);
+                let v1 = rand(2.0, 15.0);
+                let t1_c = rand(10, 50);
+                let t2_c = rand(60, 150);
+                let v2 = rand(2.0, 15.0);
+
+                let t1_k = t1_c + 273.15;
+                let t2_k = t2_c + 273.15;
+
+                if (unknown === 'V1') {
+                    v1 = (v2 * t1_k) / t2_k;
+                    currentAnswer = v1;
+                    unitDisplay.innerText = "L";
+                    questionText.innerText = `A container of gas has an unknown initial volume at ${t1_c}°C. If the temperature is raised to ${t2_c}°C at constant pressure and the final volume becomes ${v2} L, what was the initial volume (in Liters)?`;
+                } else if (unknown === 'V2') {
+                    v2 = (v1 * t2_k) / t1_k;
+                    currentAnswer = v2;
+                    unitDisplay.innerText = "L";
+                    questionText.innerText = `A container of gas has a volume of ${v1} L at ${t1_c}°C. If the temperature is raised to ${t2_c}°C at constant pressure, what is the final volume (in Liters)?`;
+                } else if (unknown === 'T1') {
+                    t1_k = (v1 * t2_k) / v2;
+                    currentAnswer = t1_k - 273.15;
+                    unitDisplay.innerText = "°C";
+                    questionText.innerText = `A container of gas occupies ${v1} L at an unknown temperature. When heated to ${t2_c}°C, the volume increases to ${v2} L. What was the initial temperature in °C?`;
+                } else if (unknown === 'T2') {
+                    t2_k = (v2 * t1_k) / v1;
+                    currentAnswer = t2_k - 273.15;
+                    unitDisplay.innerText = "°C";
+                    questionText.innerText = `A container of gas has a volume of ${v1} L at ${t1_c}°C. If the gas expands to ${v2} L at constant pressure, what is the final temperature in °C?`;
+                }
+
+                currentSteps = `
+                    <p class="font-bold mb-2 text-blue-800">Charles' Law Formula:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">V₁ / T₁ = V₂ / T₂</p>
+                    <p class="font-bold mb-1 text-red-600">⚠️ Step 1: Convert known temperatures to Kelvin:</p>
+                    <ul class="list-disc list-inside space-y-1 mb-3">
+                        ${unknown !== 'T1' ? `<li>T₁ = ${t1_c}°C + 273.15 = ${t1_k.toFixed(2)} K</li>` : ''}
+                        ${unknown !== 'T2' ? `<li>T₂ = ${t2_c}°C + 273.15 = ${t2_k.toFixed(2)} K</li>` : ''}
+                    </ul>
+                    <p class="font-bold mb-1">2. Identify variables:</p>
+                    <ul class="list-disc list-inside space-y-1 mb-3">
+                        <li>V₁ = ${unknown === 'V1' ? 'Unknown (x)' : v1.toFixed(2) + ' L'}</li>
+                        <li>T₁ = ${unknown === 'T1' ? 'Unknown (x)' : t1_k.toFixed(2) + ' K'}</li>
+                        <li>V₂ = ${unknown === 'V2' ? 'Unknown (x)' : v2.toFixed(2) + ' L'}</li>
+                        <li>T₂ = ${unknown === 'T2' ? 'Unknown (x)' : t2_k.toFixed(2) + ' K'}</li>
+                    </ul>
+                    <p class="font-bold mb-1">3. Solve for unknown:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">
+                        ${unknown === 'V1' ? 'V₁ = (V₂ × T₁) / T₂' : ''}
+                        ${unknown === 'V2' ? 'V₂ = (V₁ × T₂) / T₁' : ''}
+                        ${unknown === 'T1' ? 'T₁ = (V₁ × T₂) / V₂' : ''}
+                        ${unknown === 'T2' ? 'T₂ = (V₂ × T₁) / V₁' : ''}
+                    </p>
+                    <p class="font-mono bg-white p-2 border rounded mb-2">Result: ${unknown === 'T1' || unknown === 'T2' ? `T = ${ (unknown === 'T1' ? t1_k : t2_k).toFixed(2) } K` : `V = ${currentAnswer.toFixed(2)} L`}</p>
+                    ${unknown === 'T1' || unknown === 'T2' ? `
+                        <p class="font-bold mb-1 text-red-600">⚠️ Step 4: Convert Kelvin back to Celsius:</p>
+                        <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">${(unknown === 'T1' ? t1_k : t2_k).toFixed(2)} K - 273.15 = ${currentAnswer.toFixed(2)}°C</p>
+                    ` : ''}
+                `;
+
+            } else if (law === 'gaylussac') {
+                const unknown = pickRandom(['P1', 'T1', 'P2', 'T2']);
+                let p1 = rand(0.5, 3.5);
+                let t1_c = rand(10, 50);
+                let t2_c = rand(60, 150);
+                let p2 = rand(0.5, 3.5);
+
+                let t1_k = t1_c + 273.15;
+                let t2_k = t2_c + 273.15;
+
+                if (unknown === 'P1') {
+                    p1 = (p2 * t1_k) / t2_k;
+                    currentAnswer = p1;
+                    unitDisplay.innerText = "atm";
+                    questionText.innerText = `At an unknown initial pressure, a rigid tank of gas is at ${t1_c}°C. If the pressure is raised to ${p2} atm, the temperature rises to ${t2_c}°C. What was the initial pressure (in atm)?`;
+                } else if (unknown === 'P2') {
+                    p2 = (p1 * t2_k) / t1_k;
+                    currentAnswer = p2;
+                    unitDisplay.innerText = "atm";
+                    questionText.innerText = `A rigid container of gas is at ${p1} atm and ${t1_c}°C. If the temperature is raised to ${t2_c}°C, what is the final pressure (in atm) inside the container?`;
+                } else if (unknown === 'T1') {
+                    t1_k = (p1 * t2_k) / p2;
+                    currentAnswer = t1_k - 273.15;
+                    unitDisplay.innerText = "°C";
+                    questionText.innerText = `A rigid container holds a gas at ${p1} atm and an unknown temperature. When heated to ${t2_c}°C, the pressure becomes ${p2} atm. What was the initial temperature in °C?`;
+                } else if (unknown === 'T2') {
+                    t2_k = (p2 * t1_k) / p1;
+                    currentAnswer = t2_k - 273.15;
+                    unitDisplay.innerText = "°C";
+                    questionText.innerText = `A rigid tank contains a gas at ${p1} atm and ${t1_c}°C. If the pressure builds up to ${p2} atm, what is the new temperature inside the tank in °C?`;
+                }
+
+                currentSteps = `
+                    <p class="font-bold mb-2 text-blue-800">Gay-Lussac's Law Formula:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">P₁ / T₁ = P₂ / T₂</p>
+                    <p class="font-bold mb-1 text-red-600">⚠️ Step 1: Convert known temperatures to Kelvin:</p>
+                    <ul class="list-disc list-inside space-y-1 mb-3">
+                        ${unknown !== 'T1' ? `<li>T₁ = ${t1_c}°C + 273.15 = ${t1_k.toFixed(2)} K</li>` : ''}
+                        ${unknown !== 'T2' ? `<li>T₂ = ${t2_c}°C + 273.15 = ${t2_k.toFixed(2)} K</li>` : ''}
+                    </ul>
+                    <p class="font-bold mb-1">2. Identify variables:</p>
+                    <ul class="list-disc list-inside space-y-1 mb-3">
+                        <li>P₁ = ${unknown === 'P1' ? 'Unknown (x)' : p1.toFixed(2) + ' atm'}</li>
+                        <li>T₁ = ${unknown === 'T1' ? 'Unknown (x)' : t1_k.toFixed(2) + ' K'}</li>
+                        <li>P₂ = ${unknown === 'P2' ? 'Unknown (x)' : p2.toFixed(2) + ' atm'}</li>
+                        <li>T₂ = ${unknown === 'T2' ? 'Unknown (x)' : t2_k.toFixed(2) + ' K'}</li>
+                    </ul>
+                    <p class="font-bold mb-1">3. Solve for unknown:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">
+                        ${unknown === 'P1' ? 'P₁ = (P₂ × T₁) / T₂' : ''}
+                        ${unknown === 'P2' ? 'P₂ = (P₁ × T₂) / T₁' : ''}
+                        ${unknown === 'T1' ? 'T₁ = (P₁ × T₂) / P₂' : ''}
+                        ${unknown === 'T2' ? 'T₂ = (P₂ × T₁) / P₁' : ''}
+                    </p>
+                    <p class="font-mono bg-white p-2 border rounded mb-2">Result: ${unknown === 'T1' || unknown === 'T2' ? `T = ${ (unknown === 'T1' ? t1_k : t2_k).toFixed(2) } K` : `P = ${currentAnswer.toFixed(2)} atm`}</p>
+                    ${unknown === 'T1' || unknown === 'T2' ? `
+                        <p class="font-bold mb-1 text-red-600">⚠️ Step 4: Convert Kelvin back to Celsius:</p>
+                        <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">${(unknown === 'T1' ? t1_k : t2_k).toFixed(2)} K - 273.15 = ${currentAnswer.toFixed(2)}°C</p>
+                    ` : ''}
+                `;
+
+            } else if (law === 'avogadro') {
+                const unknown = pickRandom(['V1', 'n1', 'V2', 'n2']);
+                let v1 = rand(1.0, 10.0);
+                let n1 = rand(0.1, 1.5);
+                let n2 = rand(1.6, 3.5);
+                let v2 = rand(10.1, 20.0);
+
+                if (unknown === 'V1') {
+                    v1 = (v2 * n1) / n2;
+                    currentAnswer = v1;
+                    unitDisplay.innerText = "L";
+                    questionText.innerText = `An unknown volume of gas is occupied by ${n1} moles. If adding more gas brings it to ${n2} moles occupying ${v2} L, what was the initial volume (in Liters)?`;
+                } else if (unknown === 'V2') {
+                    v2 = (v1 * n2) / n1;
+                    currentAnswer = v2;
+                    unitDisplay.innerText = "L";
+                    questionText.innerText = `If ${n1} moles of a gas occupy ${v1} L, what volume (in Liters) will ${n2} moles of the same gas occupy under constant conditions?`;
+                } else if (unknown === 'n1') {
+                    n1 = (v1 * n2) / v2;
+                    currentAnswer = n1;
+                    unitDisplay.innerText = "moles";
+                    questionText.innerText = `A sample of gas with an unknown number of moles occupies ${v1} L. If the gas is expanded to ${v2} L, and now contains ${n2} moles, how many moles were originally present?`;
+                } else if (unknown === 'n2') {
+                    n2 = (v2 * n1) / v1;
+                    currentAnswer = n2;
+                    unitDisplay.innerText = "moles";
+                    questionText.innerText = `If ${n1} moles of a gas occupy ${v1} L, how many moles of the gas are required to expand the volume to ${v2} L?`;
+                }
+
+                currentSteps = `
+                    <p class="font-bold mb-2 text-blue-800">Avogadro's Law Formula:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">V₁ / n₁ = V₂ / n₂</p>
+                    <p class="font-bold mb-1">1. Identify variables:</p>
+                    <ul class="list-disc list-inside space-y-1 mb-3">
+                        <li>V₁ = ${unknown === 'V1' ? 'Unknown (x)' : v1.toFixed(2) + ' L'}</li>
+                        <li>n₁ = ${unknown === 'n1' ? 'Unknown (x)' : n1.toFixed(2) + ' moles'}</li>
+                        <li>V₂ = ${unknown === 'V2' ? 'Unknown (x)' : v2.toFixed(2) + ' L'}</li>
+                        <li>n₂ = ${unknown === 'n2' ? 'Unknown (x)' : n2.toFixed(2) + ' moles'}</li>
+                    </ul>
+                    <p class="font-bold mb-1">2. Rearrange and solve:</p>
+                    <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">${unknown} ≈ ${currentAnswer.toFixed(2)} ${unitDisplay.innerText}</p>
+                `;
+
+            } else if (law === 'combined') {
+                let p1 = rand(0.8, 2.5);
+                let v1 = rand(1.5, 8.0);
+                let t1_c = rand(10, 45);
+                let p2 = rand(1.0, 3.5);
+                let t2_c = rand(50, 120);
+
+                let t1_k = t1_c + 273.15;
+                let t2_k = t2_c + 273.15;
+
+                currentAnswer = (p1 * v1 * t2_k) / (p2 * t1_k);
+                unitDisplay.innerText = "L";
+
+                questionText.innerText = `A gas sample has an initial pressure of ${p1} atm, volume of ${v1} L, and temperature of ${t1_c}°C. If the pressure changes to ${p2} atm and the temperature is raised to ${t2_c}°C, what is the new volume (in Liters)?`;
+
+                currentSteps = `
+                    <p class="font-bold mb-2 text-blue-800">Combined Gas Law Formula:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">(P₁ × V₁) / T₁ = (P₂ × V₂) / T₂</p>
+                    <p class="font-bold mb-1 text-red-600">⚠️ Step 1: Convert temperatures to Kelvin:</p>
+                    <ul class="list-disc list-inside space-y-1 mb-3">
+                        <li>T₁ = ${t1_c}°C + 273.15 = ${t1_k.toFixed(2)} K</li>
+                        <li>T₂ = ${t2_c}°C + 273.15 = ${t2_k.toFixed(2)} K</li>
+                    </ul>
+                    <p class="font-bold mb-1">2. Identify variables:</p>
+                    <ul class="list-disc list-inside space-y-1 mb-3">
+                        <li>P₁ = ${p1} atm, V₁ = ${v1} L</li>
+                        <li>P₂ = ${p2} atm, V₂ = Unknown (x)</li>
+                    </ul>
+                    <p class="font-bold mb-1">3. Rearrange formula to solve for V₂:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">V₂ = (P₁ × V₁ × T₂) / (P₂ × T₁)</p>
+                    <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">V₂ ≈ ${currentAnswer.toFixed(2)} L</p>
+                `;
+
+            } else if (law === 'ideal') {
+                const unknown = pickRandom(['P', 'V', 'n', 'T']);
+                let p = rand(0.5, 5.0);
+                let v = rand(5.0, 30.0);
+                let n = rand(0.5, 4.0);
+                let t_c = rand(15, 120);
+                let t_k = t_c + 273.15;
+
+                if (unknown === 'P') {
+                    p = (n * R * t_k) / v;
+                    currentAnswer = p;
+                    unitDisplay.innerText = "atm";
+                    questionText.innerText = `Determine the pressure (in atm) exerted by ${n} moles of an ideal gas contained in a ${v} L vessel at ${t_c}°C.`;
+                } else if (unknown === 'V') {
+                    v = (n * R * t_k) / p;
+                    currentAnswer = v;
+                    unitDisplay.innerText = "L";
+                    questionText.innerText = `What volume (in Liters) is occupied by ${n} moles of an ideal gas at a pressure of ${p} atm and a temperature of ${t_c}°C?`;
+                } else if (unknown === 'n') {
+                    n = (p * v) / (R * t_k);
+                    currentAnswer = n;
+                    unitDisplay.innerText = "moles";
+                    questionText.innerText = `How many moles of an ideal gas are present in a ${v} L container if the pressure is ${p} atm and the temperature is ${t_c}°C?`;
+                } else if (unknown === 'T') {
+                    t_k = (p * v) / (n * R);
+                    currentAnswer = t_k - 273.15;
+                    unitDisplay.innerText = "°C";
+                    questionText.innerText = `What temperature (in °C) must a gas sample be if ${n} moles in a ${v} L vessel exert a pressure of ${p} atm?`;
+                }
+
+                currentSteps = `
+                    <p class="font-bold mb-2 text-blue-800">Ideal Gas Law Formula:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">PV = nRT</p>
+                    ${unknown !== 'T' ? `
+                        <p class="font-bold mb-1 text-red-600">⚠️ Step 1: Convert temperature to Kelvin:</p>
+                        <p class="mb-3">T = ${t_c}°C + 273.15 = ${t_k.toFixed(2)} K</p>
+                    ` : ''}
+                    <p class="font-bold mb-1">2. Identify variables (R = 0.0821 L·atm/(mol·K)):</p>
+                    <ul class="list-disc list-inside space-y-1 mb-3">
+                        <li>P = ${unknown === 'P' ? 'Unknown' : p.toFixed(2) + ' atm'}</li>
+                        <li>V = ${unknown === 'V' ? 'Unknown' : v.toFixed(2) + ' L'}</li>
+                        <li>n = ${unknown === 'n' ? 'Unknown' : n.toFixed(2) + ' moles'}</li>
+                        <li>T = ${unknown === 'T' ? 'Unknown' : t_k.toFixed(2) + ' K'}</li>
+                    </ul>
+                    <p class="font-bold mb-1">3. Rearrange and calculate:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-2">Result: ${unknown === 'T' ? `T = ${t_k.toFixed(2)} K` : `${unknown} = ${currentAnswer.toFixed(2)} ${unitDisplay.innerText}`}</p>
+                    ${unknown === 'T' ? `
+                        <p class="font-bold mb-1 text-red-600">⚠️ Step 4: Convert Kelvin back to Celsius:</p>
+                        <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">${t_k.toFixed(2)} K - 273.15 = ${currentAnswer.toFixed(2)}°C</p>
+                    ` : ''}
+                `;
+
+            } else if (law === 'dalton') {
+                const unknown = pickRandom(['P_total', 'P1', 'P2', 'P3']);
+                let p1 = rand(0.1, 1.2);
+                let p2 = rand(0.1, 1.2);
+                let p3 = rand(0.1, 1.2);
+                let p_total = p1 + p2 + p3;
+
+                unitDisplay.innerText = "atm";
+
+                if (unknown === 'P_total') {
+                    currentAnswer = p_total;
+                    questionText.innerText = `A gas mixture contains oxygen at ${p1} atm, nitrogen at ${p2} atm, and helium at ${p3} atm. What is the total pressure (in atm) of the gas mixture?`;
+                    
+                    currentSteps = `
+                        <p class="font-bold mb-2 text-blue-800">Dalton's Law Formula:</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-3">P_total = P₁ + P₂ + P₃</p>
+                        <p class="font-bold mb-1">1. Identify the given partial pressures:</p>
+                        <ul class="list-disc list-inside space-y-1 mb-3">
+                            <li>P₁ (Oxygen) = ${p1} atm</li>
+                            <li>P₂ (Nitrogen) = ${p2} atm</li>
+                            <li>P₃ (Helium) = ${p3} atm</li>
+                        </ul>
+                        <p class="font-bold mb-1">2. Sum the partial pressures to get the total pressure:</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-1">P_total = ${p1} + ${p2} + ${p3}</p>
+                        <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">P_total = ${currentAnswer.toFixed(2)} atm</p>
+                    `;
+                } else {
+                    const chosenUnknown = unknown; 
+                    
+                    if (chosenUnknown === 'P1') {
+                        currentAnswer = p1;
+                        questionText.innerText = `A mixture of three gases has a total pressure of ${p_total.toFixed(2)} atm. If Gas B exerts ${p2} atm and Gas C exerts ${p3} atm, what is the partial pressure (in atm) of Gas A?`;
+                    } else if (chosenUnknown === 'P2') {
+                        currentAnswer = p2;
+                        questionText.innerText = `A mixture of three gases has a total pressure of ${p_total.toFixed(2)} atm. If Gas A exerts ${p1} atm and Gas C exerts ${p3} atm, what is the partial pressure (in atm) of Gas B?`;
+                    } else if (chosenUnknown === 'P3') {
+                        currentAnswer = p3;
+                        questionText.innerText = `A mixture of three gases has a total pressure of ${p_total.toFixed(2)} atm. If Gas A exerts ${p1} atm and Gas B exerts ${p2} atm, what is the partial pressure (in atm) of Gas C?`;
+                    }
+
+                    currentSteps = `
+                        <p class="font-bold mb-2 text-blue-800">Dalton's Law Formula:</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-3">P_total = P₁ + P₂ + P₃</p>
+                        <p class="font-bold mb-1">1. Identify known values:</p>
+                        <ul class="list-disc list-inside space-y-1 mb-3">
+                            <li>P_total = ${p_total.toFixed(2)} atm</li>
+                            <li>P₁ = ${chosenUnknown === 'P1' ? 'Unknown (x)' : p1 + ' atm'}</li>
+                            <li>P₂ = ${chosenUnknown === 'P2' ? 'Unknown (x)' : p2 + ' atm'}</li>
+                            <li>P₃ = ${chosenUnknown === 'P3' ? 'Unknown (x)' : p3 + ' atm'}</li>
+                        </ul>
+                        <p class="font-bold mb-1">2. Rearrange formula to solve for the unknown partial pressure:</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-3">
+                            ${chosenUnknown} = P_total - (the sum of known partial pressures)
+                        </p>
+                        <p class="font-bold mb-1">3. Calculate:</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-1">
+                            ${chosenUnknown} = ${p_total.toFixed(2)} - (${chosenUnknown === 'P1' ? `${p2} + ${p3}` : chosenUnknown === 'P2' ? `${p1} + ${p3}` : `${p1} + ${p2}`})
+                        </p>
+                        <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">${chosenUnknown} = ${currentAnswer.toFixed(2)} atm</p>
+                    `;
+                }
+            } else if (law === 'density') {
+                const unknown = pickRandom(['d', 'P', 'M', 'T']);
+                
+                let d = rand(0.5, 4.0); 
+                let p = rand(0.5, 3.0); 
+                let m = rand(16.0, 80.0); 
+                let t_c = rand(10, 100); 
+                let t_k = t_c + 273.15;
+
+                if (unknown === 'd') {
+                    d = (p * m) / (R * t_k);
+                    currentAnswer = d;
+                    unitDisplay.innerText = "g/L";
+                    questionText.innerText = `What is the density (in g/L) of a gas with a molar mass of ${m} g/mol at ${p} atm and a temperature of ${t_c}°C?`;
+                } else if (unknown === 'P') {
+                    p = (d * R * t_k) / m;
+                    currentAnswer = p;
+                    unitDisplay.innerText = "atm";
+                    questionText.innerText = `Calculate the pressure (in atm) of a gas if its density is ${d} g/L, its molar mass is ${m} g/mol, and its temperature is ${t_c}°C.`;
+                } else if (unknown === 'M') {
+                    m = (d * R * t_k) / p;
+                    currentAnswer = m;
+                    unitDisplay.innerText = "g/mol";
+                    questionText.innerText = `A mystery gas at ${p} atm and ${t_c}°C has a measured density of ${d} g/L. What is the molar mass (in g/mol) of this gas?`;
+                } else if (unknown === 'T') {
+                    t_k = (p * m) / (d * R);
+                    currentAnswer = t_k - 273.15; 
+                    unitDisplay.innerText = "°C";
+                    questionText.innerText = `At what temperature (in °C) will a gas with a molar mass of ${m} g/mol have a density of ${d} g/L at a pressure of ${p} atm?`;
+                }
+
+                currentSteps = `
+                    <p class="font-bold mb-2 text-blue-800">Gas Density Formula:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">d = (P × M) / (R × T)</p>
+                    ${unknown !== 'T' ? `
+                        <p class="font-bold mb-1 text-red-600">⚠️ Step 1: Convert temperature to Kelvin:</p>
+                        <p class="mb-3">T = ${t_c}°C + 273.15 = ${t_k.toFixed(2)} K</p>
+                    ` : ''}
+                    <p class="font-bold mb-1">2. Identify variables (R = 0.0821 L·atm/(mol·K)):</p>
+                    <ul class="list-disc list-inside space-y-1 mb-3">
+                        <li>d (Density) = ${unknown === 'd' ? 'Unknown' : d.toFixed(2) + ' g/L'}</li>
+                        <li>P (Pressure) = ${unknown === 'P' ? 'Unknown' : p.toFixed(2) + ' atm'}</li>
+                        <li>M (Molar Mass) = ${unknown === 'M' ? 'Unknown' : m.toFixed(2) + ' g/mol'}</li>
+                        <li>T (Temperature) = ${unknown === 'T' ? 'Unknown' : t_k.toFixed(2) + ' K'}</li>
+                    </ul>
+                    <p class="font-bold mb-1">3. Rearrange formula to solve for ${unknown}:</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">
+                        ${unknown === 'd' ? 'd = (P × M) / (R × T)' : ''}
+                        ${unknown === 'P' ? 'P = (d × R × T) / M' : ''}
+                        ${unknown === 'M' ? 'M = (d × R × T) / P' : ''}
+                        ${unknown === 'T' ? 'T = (P × M) / (d × R)' : ''}
+                    </p>
+                    <p class="font-mono bg-white p-2 border rounded mb-2">Result: ${unknown === 'T' ? `T = ${t_k.toFixed(2)} K` : `${unknown} = ${currentAnswer.toFixed(2)} ${unitDisplay.innerText}`}</p>
+                    ${unknown === 'T' ? `
+                        <p class="font-bold mb-1 text-red-600">⚠️ Step 4: Convert Kelvin back to Celsius:</p>
+                        <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">${t_k.toFixed(2)} K - 273.15 = ${currentAnswer.toFixed(2)}°C</p>
+                    ` : ''}
+                `;
+            } else if (law === 'rmsspeed') {
+                const unknown = pickRandom(['v_rms', 'T']);
+                
+                const gases = [
+                    { name: "Helium (He)", m_g: 4.00, m_kg: 0.00400 },
+                    { name: "Neon (Ne)", m_g: 20.18, m_kg: 0.02018 },
+                    { name: "Nitrogen (N₂)", m_g: 28.01, m_kg: 0.02801 },
+                    { name: "Oxygen (O₂)", m_g: 32.00, m_kg: 0.03200 },
+                    { name: "Argon (Ar)", m_g: 39.95, m_kg: 0.03995 },
+                    { name: "Carbon Dioxide (CO₂)", m_g: 44.01, m_kg: 0.04401 }
+                ];
+                const selectedGas = pickRandom(gases);
+                
+                let t_c = rand(-50, 300);
+                let t_k = t_c + 273.15;
+                let v_rms = Math.sqrt((3 * R_SI * t_k) / selectedGas.m_kg);
+
+                if (unknown === 'v_rms') {
+                    currentAnswer = v_rms;
+                    unitDisplay.innerText = "m/s";
+                    questionText.innerText = `Calculate the root-mean-square (RMS) speed (in m/s) of a molecule of ${selectedGas.name} gas at ${t_c}°C.`;
+                } else if (unknown === 'T') {
+                    currentAnswer = t_c;
+                    unitDisplay.innerText = "°C";
+                    questionText.innerText = `At what temperature (in °C) will molecules of ${selectedGas.name} gas achieve a root-mean-square (RMS) speed of ${v_rms.toFixed(2)} m/s?`;
+                }
+
+                currentSteps = `
+                    <p class="font-bold mb-2 text-blue-800">RMS Speed Formula (Kinetic Molecular Theory):</p>
+                    <p class="font-mono bg-white p-2 border rounded mb-3">v_rms = √(3RT / M)</p>
+                    <p class="font-bold mb-1 text-red-600">⚠️ Step 1: Convert Molar Mass to kilograms per mole (kg/mol):</p>
+                    <p class="mb-3">${selectedGas.name} molar mass = ${selectedGas.m_g} g/mol ÷ 1000 = <strong class="text-blue-700">${selectedGas.m_kg} kg/mol</strong></p>
+                    
+                    ${unknown === 'v_rms' ? `
+                        <p class="font-bold mb-1 text-red-600">⚠️ Step 2: Convert Temperature to Kelvin:</p>
+                        <p class="mb-3">T = ${t_c}°C + 273.15 = ${t_k.toFixed(2)} K</p>
+                    ` : ''}
+
+                    <p class="font-bold mb-1">3. Identify variables (using R = ${R_SI} J/(mol·K)):</p>
+                    <ul class="list-disc list-inside space-y-1 mb-3">
+                        <li>v_rms = ${unknown === 'v_rms' ? 'Unknown' : v_rms.toFixed(2) + ' m/s'}</li>
+                        <li>M = ${selectedGas.m_kg} kg/mol</li>
+                        <li>T = ${unknown === 'T' ? 'Unknown' : t_k.toFixed(2) + ' K'}</li>
+                    </ul>
+
+                    <p class="font-bold mb-1">4. Solve for ${unknown}:</p>
+                    ${unknown === 'v_rms' ? `
+                        <p class="font-mono bg-white p-2 border rounded mb-2">v_rms = √( (3 × 8.314 × ${t_k.toFixed(2)}) / ${selectedGas.m_kg} )</p>
+                        <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">v_rms ≈ ${currentAnswer.toFixed(2)} m/s</p>
+                    ` : `
+                        <p class="font-mono bg-white p-2 border rounded mb-1">T_kelvin = (v_rms² × M) / (3 × R)</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-2">T_kelvin = (${v_rms.toFixed(2)}² × ${selectedGas.m_kg}) / (3 × 8.314) = ${t_k.toFixed(2)} K</p>
+                        <p class="font-bold mb-1 text-red-600">⚠️ Step 5: Convert Kelvin back to Celsius:</p>
+                        <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">${t_k.toFixed(2)} K - 273.15 = ${currentAnswer.toFixed(2)}°C</p>
+                    `}
+                `;
+            } else if (law === 'grahams') {
+                const unknown = pickRandom(['ratio', 'molar_mass']);
+
+                const gases = [
+                    { name: "Helium (He)", m: 4.00 },
+                    { name: "Neon (Ne)", m: 20.18 },
+                    { name: "Nitrogen (N₂)", m: 28.01 },
+                    { name: "Oxygen (O₂)", m: 32.00 },
+                    { name: "Argon (Ar)", m: 39.95 },
+                    { name: "Carbon Dioxide (CO₂)", m: 44.01 },
+                    { name: "Sulfur Dioxide (SO₂)", m: 64.07 }
+                ];
+
+                // Pick two distinct random gases
+                let gas1 = pickRandom(gases);
+                let gas2 = pickRandom(gases);
+                while (gas1.name === gas2.name) {
+                    gas2 = pickRandom(gases);
+                }
+
+                // Order them so Gas 1 is the lighter gas (faster rate)
+                if (gas1.m > gas2.m) {
+                    const temp = gas1;
+                    gas1 = gas2;
+                    gas2 = temp;
+                }
+
+                // Rate ratio (Rate1 / Rate2) = sqrt(M2 / M1)
+                const ratio = Math.sqrt(gas2.m / gas1.m);
+
+                if (unknown === 'ratio') {
+                    currentAnswer = ratio;
+                    unitDisplay.innerText = "times faster";
+                    questionText.innerText = `At a constant temperature, how many times faster does ${gas1.name} gas effuse compared to ${gas2.name} gas?`;
+
+                    currentSteps = `
+                        <p class="font-bold mb-2 text-blue-800">Graham's Law Formula:</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-3">Rate₁ / Rate₂ = √(M₂ / M₁)</p>
+                        <p class="font-bold mb-1">1. Identify given molar masses:</p>
+                        <ul class="list-disc list-inside space-y-1 mb-3">
+                            <li>M₁ (${gas1.name}) = ${gas1.m.toFixed(2)} g/mol (lighter gas)</li>
+                            <li>M₂ (${gas2.name}) = ${gas2.m.toFixed(2)} g/mol (heavier gas)</li>
+                        </ul>
+                        <p class="font-bold mb-1">2. Set up the ratio:</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-2">Rate₁ / Rate₂ = √(${gas2.m.toFixed(2)} / ${gas1.m.toFixed(2)})</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-3">Rate₁ / Rate₂ = √(${(gas2.m / gas1.m).toFixed(4)})</p>
+                        <p class="font-bold mb-1">3. Calculate:</p>
+                        <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">Ratio ≈ ${currentAnswer.toFixed(2)} times faster</p>
+                    `;
+                } else if (unknown === 'molar_mass') {
+                    // We present gas1 as the "known" gas and ask for the molar mass of an unknown gas (gas2)
+                    currentAnswer = gas2.m;
+                    unitDisplay.innerText = "g/mol";
+                    questionText.innerText = `An unknown gas effuses at a rate of 1.00, while ${gas1.name} gas effuses ${ratio.toFixed(2)} times faster under identical conditions. What is the molar mass (in g/mol) of the unknown gas?`;
+
+                    currentSteps = `
+                        <p class="font-bold mb-2 text-blue-800">Graham's Law Formula:</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-3">Rate₁ / Rate₂ = √(M₂ / M₁)</p>
+                        <p class="font-bold mb-1">1. Identify variables:</p>
+                        <ul class="list-disc list-inside space-y-1 mb-3">
+                            <li>Gas 1 (lighter) = ${gas1.name} with M₁ = ${gas1.m.toFixed(2)} g/mol</li>
+                            <li>Gas 2 (heavier) = Unknown Gas with M₂ = x</li>
+                            <li>Rate ratio (Rate₁ / Rate₂) = ${ratio.toFixed(2)}</li>
+                        </ul>
+                        <p class="font-bold mb-1">2. Set up the equation and square both sides:</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-2">${ratio.toFixed(2)} = √(x / ${gas1.m.toFixed(2)})</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-3">${ratio.toFixed(2)}² = x / ${gas1.m.toFixed(2)}</p>
+                        <p class="font-bold mb-1">3. Solve for x (M₂):</p>
+                        <p class="font-mono bg-white p-2 border rounded mb-2">x = ${ratio.toFixed(2)}² × ${gas1.m.toFixed(2)}</p>
+                        <p class="font-mono bg-white p-2 border rounded font-semibold text-blue-700">M₂ ≈ ${currentAnswer.toFixed(2)} g/mol</p>
+                    `;
+                }
+            }
+            
+            currentAnswer = parseFloat(currentAnswer.toFixed(2));
+            solutionContainer.innerHTML = currentSteps;
+        }
+
+        // Toggle Solution Box Visibility
+        function toggleSolution() {
+            if (solutionContainer.classList.contains('hidden')) {
+                solutionContainer.classList.remove('hidden');
+                arrowIcon.innerText = "▲";
+            } else {
+                solutionContainer.classList.add('hidden');
+                arrowIcon.innerText = "▼";
+            }
+        }
+
+        // Check Answer Logic
+        function checkAnswer() {
+            const userNum = parseFloat(userAnswer.value);
+            feedback.classList.remove('hidden', 'text-green-600', 'text-red-600');
+            
+            if (isNaN(userNum)) {
+                feedback.innerText = "Please enter a valid number!";
+                feedback.classList.add('text-red-600');
+                return;
+            }
+
+            if (Math.abs(userNum - currentAnswer) <= 0.05) {
+                feedback.innerText = `🎉 Correct! The answer is ${currentAnswer} ${unitDisplay.innerText}.`;
+                feedback.classList.add('text-green-600');
+            } else {
+                feedback.innerText = `❌ Incorrect. Try again or check the step-by-step solution!`;
+                feedback.classList.add('text-red-600');
+            }
+        }
+
+        // Event Listeners
+        lawSelect.addEventListener('change', generateQuestion);
+        nextBtn.addEventListener('click', generateQuestion);
+        checkBtn.addEventListener('click', checkAnswer);
+        toggleSolutionBtn.addEventListener('click', toggleSolution);
+
+        // Initialize App
+        generateQuestion();
+    </script>
+</body>
+</html>

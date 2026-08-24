@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Stoichiometry, Precipitation & Titration Suite</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #0ea5e9;
+            --background: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --success: #10b981;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        h1 { text-align: center; color: var(--primary); margin-top: 0; }
+        h2 { color: var(--secondary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-top: 2rem; }
+        .instruction { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        button {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background 0.2s;
+        }
+        button:hover { background: #4338ca; }
+        .btn-secondary { background: var(--secondary); }
+        .btn-secondary:hover { background: #0284c7; }
+        .results {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #f1f5f9;
+            border-radius: 8px;
+            border-left: 5px solid var(--primary);
+        }
+        .step {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed #cbd5e1;
+        }
+        .step:last-child { border: none; margin: 0; padding: 0; }
+        .math { font-family: monospace; background: #e2e8f0; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 1.05rem; display: block; margin-top: 0.25rem;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🧪 Advanced Stoichiometry Suite</h1>
+    <p class="instruction">An all-in-one assistant featuring automated balancing, molar mass lookups, and dimensional analysis steps.</p>
+    
+    <h2>1. Reaction Balancer & Formula Finder</h2>
+    <p class="instruction">Enter your unbalanced equation (e.g., <code>HCl + NaOH -> NaCl + H2O</code> or <code>H2SO4 + NaOH -> Na2SO4 + H2O</code>).</p>
+    <div class="form-group">
+        <label for="rawEquation">Unbalanced Chemical Equation:</label>
+        <input type="text" id="rawEquation" placeholder="e.g., H2SO4 + NaOH -> Na2SO4 + H2O">
+        <button class="btn-secondary" onclick="processEquation()">Parse & Balance Equation</button>
+    </div>
+    <div id="balancerOutput" class="results" style="display:none; border-left-color: var(--secondary);"></div>
+
+    <h2>2. Calculation Configuration</h2>
+    
+    <div class="form-group">
+        <label for="calcMode">Select Calculation Type:</label>
+        <select id="calcMode" onchange="toggleInputs()">
+            <option value="massToMass">1. Mass-to-Mass Calculation</option>
+            <option value="solutionToMass">2. Solution (Molarity + Volume) to Product Mass</option>
+            <option value="titrationMode">3. Titration (Find Molarity of Unknown)</option>
+        </select>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label id="labelSubA" for="substanceA">Starting Substance / Known Reagent (A):</label>
+            <select id="substanceA" onchange="updateLabels()"></select>
+        </div>
+        <div class="form-group">
+            <label id="labelSubB" for="substanceB">Target Product / Unknown Solution (B):</label>
+            <select id="substanceB" onchange="updateLabels()"></select>
+        </div>
+    </div>
+
+    <div id="massInputs" class="grid-2">
+        <div class="form-group" id="massAGroup">
+            <label id="labelMassA" for="massA">Mass of A (grams):</label>
+            <input type="number" id="massA" placeholder="e.g., 10.0" step="any">
+        </div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Molar Mass A:</label>
+                <input type="text" id="mmA" disabled style="background: #e2e8f0;">
+            </div>
+            <div class="form-group">
+                <label>Molar Mass B:</label>
+                <input type="text" id="mmB" disabled style="background: #e2e8f0;">
+            </div>
+        </div>
+    </div>
+
+    <div id="solutionInputs" class="grid-2" style="display: none;">
+        <div class="form-group">
+            <label id="labelVolA" for="volA">Volume of Solution A (Liters):</label>
+            <input type="number" id="volA" placeholder="e.g., 0.025" step="any">
+        </div>
+        <div class="form-group" id="molarityAGroup">
+            <label id="labelMolarityA" for="molarityA">Molarity of Solution A (M):</label>
+            <input type="number" id="molarityA" placeholder="e.g., 0.10" step="any">
+        </div>
+        <div class="form-group" id="volBGroup" style="display: none;">
+            <label id="labelVolB" for="volB">Volume of Unknown Solution B (Liters):</label>
+            <input type="number" id="volB" placeholder="e.g., 0.020" step="any">
+        </div>
+    </div>
+
+    <button onclick="runCalculations()">Calculate Dimensional Analysis</button>
+
+    <div id="stoichOutput" class="results" style="display:none;"></div>
+</div>
+
+<script>
+const periodicTable = {
+    'H': 1.008, 'He': 4.003, 'Li': 6.941, 'Be': 9.012, 'B': 10.811, 'C': 12.011,
+    'N': 14.007, 'O': 15.999, 'F': 18.998, 'Ne': 20.180, 'Na': 22.990, 'Mg': 24.305,
+    'Al': 26.982, 'Si': 28.086, 'P': 30.974, 'S': 32.065, 'Cl': 35.453, 'Ar': 39.948,
+    'K': 39.098, 'Ca': 40.078, 'Fe': 55.845, 'Cu': 63.546, 'Zn': 65.380, 'Ag': 107.868
+};
+
+let currentReaction = { reactants: [], products: [], coefficients: {} };
+
+function toggleInputs() {
+    const mode = document.getElementById('calcMode').value;
+    
+    // Reset defaults
+    document.getElementById('massInputs').style.display = 'grid';
+    document.getElementById('massAGroup').style.display = 'block';
+    document.getElementById('solutionInputs').style.display = 'none';
+    document.getElementById('molarityAGroup').style.display = 'block';
+    document.getElementById('volBGroup').style.display = 'none';
+
+    if (mode === 'massToMass') {
+        document.getElementById('solutionInputs').style.display = 'none';
+    } else if (mode === 'solutionToMass') {
+        document.getElementById('solutionInputs').style.display = 'grid';
+        document.getElementById('massAGroup').style.display = 'none';
+    } else if (mode === 'titrationMode') {
+        document.getElementById('solutionInputs').style.display = 'grid';
+        document.getElementById('massInputs').style.display = 'none'; // Titration doesn't need molar masses display
+        document.getElementById('volBGroup').style.display = 'block';
+    }
+    updateLabels();
+}
+
+function parseFormulaElements(formula) {
+    const regex = /([A-Z][a-z]?)([0-9]*)/g;
+    let match; const elements = {};
+    while ((match = regex.exec(formula)) !== null) {
+        const el = match[1];
+        const count = match[2] ? parseInt(match[2]) : 1;
+        elements[el] = (elements[el] || 0) + count;
+    }
+    return elements;
+}
+
+function getMolarMass(formula) {
+    const elements = parseFormulaElements(formula);
+    let totalMass = 0;
+    for (let el in elements) totalMass += (periodicTable[el] || 12.011) * elements[el];
+    return totalMass;
+}
+
+function dynamicBalance(reactants, products) {
+    const allSubstances = [...reactants, ...products];
+    const coeffs = {}; allSubstances.forEach(s => coeffs[s] = 1);
+    const uniqueElements = new Set();
+    allSubstances.forEach(s => Object.keys(parseFormulaElements(s)).forEach(el => uniqueElements.add(el)));
+
+    for (let r1 = 1; r1 <= 4; r1++) {
+        for (let r2 = 1; r2 <= 4; r2++) {
+            for (let p1 = 1; p1 <= 4; p1++) {
+                for (let p2 = 1; p2 <= 4; p2++) {
+                    let trialCoeffs = {};
+                    if(reactants[0]) trialCoeffs[reactants[0]] = r1;
+                    if(reactants[1]) trialCoeffs[reactants[1]] = r2;
+                    if(products[0]) trialCoeffs[products[0]] = p1;
+                    if(products[1]) trialCoeffs[products[1]] = p2;
+
+                    let balanced = true;
+                    for (let el of uniqueElements) {
+                        let leftCount = 0; reactants.forEach(r => leftCount += (parseFormulaElements(r)[el] || 0) * (trialCoeffs[r] || 1));
+                        let rightCount = 0; products.forEach(p => rightCount += (parseFormulaElements(p)[el] || 0) * (trialCoeffs[p] || 1));
+                        if (leftCount !== rightCount) { balanced = false; break; }
+                    }
+                    if (balanced) return trialCoeffs;
+                }
+            }
+        }
+    }
+    return coeffs;
+}
+
+function processEquation() {
+    const clean = document.getElementById('rawEquation').value.replace(/\s+/g, '');
+    if (!clean.includes('->')) { alert("Please include '->' to separate sides."); return; }
+
+    const sides = clean.split('->');
+    currentReaction.reactants = sides[0].split('+').filter(Boolean);
+    currentReaction.products = sides[1].split('+').filter(Boolean);
+    const allSubstances = [...currentReaction.reactants, ...currentReaction.products];
+    
+    currentReaction.coefficients = dynamicBalance(currentReaction.reactants, currentReaction.products);
+
+    const selectA = document.getElementById('substanceA');
+    const selectB = document.getElementById('substanceB');
+    selectA.innerHTML = ''; selectB.innerHTML = '';
+
+    allSubstances.forEach(sub => {
+        let coeff = currentReaction.coefficients[sub];
+        selectA.add(new Option(`${coeff} ${sub}`, sub));
+        selectB.add(new Option(`${coeff} ${sub}`, sub));
+    });
+
+    const output = document.getElementById('balancerOutput');
+    output.style.display = 'block';
+    
+    let balancedString = currentReaction.reactants.map(r => `${currentReaction.coefficients[r] > 1 ? currentReaction.coefficients[r] : ''}${r}`).join(' + ')
+        + ' &rarr; ' + 
+        currentReaction.products.map(p => `${currentReaction.coefficients[p] > 1 ? currentReaction.coefficients[p] : ''}${p}`).join(' + ');
+
+    output.innerHTML = `
+        <strong>✅ Equation Automatically Balanced!</strong><br>
+        <span style="font-size: 1.2rem; color: var(--success); font-family: monospace;"> ${balancedString}</span><br><br>
+        <strong>Detected Molar Masses:</strong><br>
+        ${allSubstances.map(sub => `• <span class="math">${sub} = ${getMolarMass(sub).toFixed(3)} g/mol</span>`).join('')}
+    `;
+    updateLabels();
+}
+
+function updateLabels() {
+    const subA = document.getElementById('substanceA').value;
+    const subB = document.getElementById('substanceB').value;
+    const mode = document.getElementById('calcMode').value;
+
+    if (subA) document.getElementById('mmA').value = getMolarMass(subA).toFixed(3) + " g/mol";
+    if (subB) document.getElementById('mmB').value = getMolarMass(subB).toFixed(3) + " g/mol";
+    
+    if (mode === 'titrationMode') {
+        document.getElementById('labelSubA').textContent = "Known Reagent / Titrant (A):";
+        document.getElementById('labelSubB').textContent = "Unknown Solution / Analyte (B):";
+        document.getElementById('labelVolA').textContent = `Volume of Known ${subA} added (Liters):`;
+        document.getElementById('labelMolarityA').textContent = `Molarity of Known ${subA} (M):`;
+        document.getElementById('labelVolB').textContent = `Volume of Unknown ${subB} sample (Liters):`;
+    } else {
+        document.getElementById('labelSubA').textContent = "Starting Substance / Reactant (A):";
+        document.getElementById('labelSubB').textContent = "Target Precipitate / Product (B):";
+        document.getElementById('labelMassA').textContent = `Starting Mass of ${subA} (grams):`;
+        document.getElementById('labelVolA').textContent = `Volume of Solution ${subA} (Liters):`;
+        document.getElementById('labelMolarityA').textContent = `Molarity of Solution ${subA} (M):`;
+    }
+}
+
+function runCalculations() {
+    const mode = document.getElementById('calcMode').value;
+    const subA = document.getElementById('substanceA').value;
+    const subB = document.getElementById('substanceB').value;
+
+    if (!subA || !subB) { alert("Please set up and parse your equation first!"); return; }
+
+    const mmA = getMolarMass(subA);
+    const mmB = getMolarMass(subB);
+    const coeffA = currentReaction.coefficients[subA] || 1;
+    const coeffB = currentReaction.coefficients[subB] || 1;
+    const out = document.getElementById('stoichOutput');
+    out.style.display = 'block';
+
+    if (mode === 'massToMass') {
+        const massA = parseFloat(document.getElementById('massA').value);
+        if (isNaN(massA)) { alert("Enter a starting mass!"); return; }
+        const molesA = massA / mmA;
+        const molesB = molesA * (coeffB / coeffA);
+        const massB = molesB * mmB;
+
+        out.innerHTML = `
+            <h3>Dimensional Analysis Pathway (Mass &rarr; Mass)</h3>
+            <div class="step">
+                <strong>Step 1: Given Mass &rarr; Moles of ${subA}</strong><br>
+                <span class="math">${massA} g ${subA} &times; ( 1 mol / ${mmA.toFixed(3)} g ) = ${molesA.toFixed(4)} moles of ${subA}</span>
+            </div>
+            <div class="step">
+                <strong>Step 2: Mole-to-Mole Ratio (${subA} &rarr; ${subB})</strong><br>
+                <span class="math">${molesA.toFixed(4)} mol ${subA} &times; ( ${coeffB} mol ${subB} / ${coeffA} mol ${subA} ) = ${molesB.toFixed(4)} moles of ${subB}</span>
+            </div>
+            <div class="step">
+                <strong>Step 3: Moles &rarr; Target Mass of ${subB}</strong><br>
+                <span class="math">${molesB.toFixed(4)} mol ${subB} &times; ( ${mmB.toFixed(3)} g / 1 mol ) = <strong>${massB.toFixed(3)} grams of ${subB}</strong></span>
+            </div>
+        `;
+    } else if (mode === 'solutionToMass') {
+        const volA = parseFloat(document.getElementById('volA').value);
+        const molarityA = parseFloat(document.getElementById('molarityA').value);
+        if (isNaN(volA) || isNaN(molarityA)) { alert("Please enter Volume and Molarity."); return; }
+
+        const molesA = volA * molarityA;
+        const molesB = molesA * (coeffB / coeffA);
+        const massB = molesB * mmB;
+
+        out.innerHTML = `
+            <h3>Dimensional Analysis Pathway (Precipitation Framework)</h3>
+            <div class="step">
+                <strong>Step 1: Calculate Reactant Moles from Solution Data</strong><br>
+                <span class="math">${volA} L &times; ${molarityA} mol/L = ${molesA.toFixed(4)} moles of aqueous ${subA}</span>
+            </div>
+            <div class="step">
+                <strong>Step 2: Apply Mole-to-Mole Stoichiometric Ratio (${subA} &rarr; ${subB})</strong><br>
+                <span class="math">${molesA.toFixed(4)} mol ${subA} &times; ( ${coeffB} mol ${subB} / ${coeffA} mol ${subA} ) = ${molesB.toFixed(4)} moles of ${subB}</span>
+            </div>
+            <div class="step">
+                <strong>Step 3: Moles &rarr; Mass of Target Product / Precipitate</strong><br>
+                <span class="math">${molesB.toFixed(4)} mol ${subB} &times; ( ${mmB.toFixed(3)} g / 1 mol ) = <strong>${massB.toFixed(3)} grams of ${subB}</strong></span>
+            </div>
+        `;
+    } else if (mode === 'titrationMode') {
+        const volA = parseFloat(document.getElementById('volA').value);
+        const molarityA = parseFloat(document.getElementById('molarityA').value);
+        const volB = parseFloat(document.getElementById('volB').value);
+        if (isNaN(volA) || isNaN(molarityA) || isNaN(volB)) { alert("Please fill out Vol A, Molarity A, and Vol B."); return; }
+
+        const molesA = volA * molarityA;
+        const molesB = molesA * (coeffB / coeffA);
+        const molarityB = molesB / volB;
+
+        out.innerHTML = `
+            <h3>Dimensional Analysis Pathway (Titration / Volumetric Analysis)</h3>
+            <div class="step">
+                <strong>Step 1: Calculate Moles of Standard Titrant Added (${subA})</strong><br>
+                <span class="math">${volA} L &times; ${molarityA} M = ${molesA.toFixed(4)} moles of ${subA}</span>
+            </div>
+            <div class="step">
+                <strong>Step 2: Convert to Moles of Analyte Using Balanced Equation Ratio (${subA} &rarr; ${subB})</strong><br>
+                <span class="math">${molesA.toFixed(4)} mol ${subA} &times; ( ${coeffB} mol ${subB} / ${coeffA} mol ${subA} ) = ${molesB.toFixed(4)} moles of ${subB}</span>
+            </div>
+            <div class="step">
+                <strong>Step 3: Calculate Molarity of the Unknown Sample (${subB})</strong><br>
+                Divide analyte moles by its sample volume:<br>
+                <span class="math">${molesB.toFixed(4)} mol / ${volB} L = <strong>${molarityB.toFixed(4)} M (mol/L) of ${subB}</strong></span>
+            </div>
+        `;
+    }
+}
+</script>
+
+</body>
+</html>

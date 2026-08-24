@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redox Reaction Practice Studio</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-ox: #f59e0b;
+            --accent-red: #3b82f6;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --danger: #ef4444;
+            --input-bg: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .title-group h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .media-badge {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .media-acidic { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; }
+        .media-basic { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid #3b82f6; }
+        .media-neutral { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid #10b981; }
+
+        .stats-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .score-box {
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .score-box span {
+            color: var(--accent-green);
+        }
+
+        select, button {
+            background: var(--input-bg);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            border-color: var(--text-muted);
+            background: #1e293b;
+        }
+
+        button.btn-primary {
+            background: var(--accent-purple);
+            border-color: var(--accent-purple);
+            color: white;
+            font-weight: 600;
+        }
+
+        button.btn-primary:hover {
+            background: #7c3aed;
+        }
+
+        .equation-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .equation-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .main-equation {
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .parallel-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 850px) {
+            .parallel-grid { grid-template-columns: 1fr; }
+        }
+
+        .half-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .half-card.ox { border-top: 4px solid var(--accent-ox); }
+        .half-card.red { border-top: 4px solid var(--accent-red); }
+
+        .half-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .half-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .ox-text { color: var(--accent-ox); }
+        .red-text { color: var(--accent-red); }
+
+        .status-pill {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .status-unbalanced { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+        .status-balanced { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+
+        .equation-builder {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            background: var(--input-bg);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+        }
+
+        .coeff-input {
+            width: 48px;
+            height: 36px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            color: var(--text-main);
+            text-align: center;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .coeff-input:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+        }
+
+        .species {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .balance-check-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        .balance-check-table th, .balance-check-table td {
+            padding: 6px 10px;
+            text-align: center;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .balance-check-table th {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .combined-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            max-width: 650px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 12px;
+        }
+
+        .modal-body h3 {
+            color: var(--accent-purple);
+            margin: 12px 0 6px 0;
+        }
+
+        .modal-body ol {
+            padding-left: 20px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .modal-body li {
+            margin-bottom: 6px;
+        }
+
+        .feedback-msg {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .feedback-success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border: 1px solid #10b981;
+        }
+
+        .feedback-error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid #ef4444;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="title-group">
+            <h1>Redox Studio</h1>
+            <span id="media-badge" class="media-badge media-acidic">Acidic Medium</span>
+        </div>
+        <div class="stats-controls">
+            <div class="score-box">Completed: <span id="score-count">0</span> / 50</div>
+            <select id="reaction-select" onchange="loadReaction(parseInt(this.value))"></select>
+            <button onclick="toggleModal(true)">Guide</button>
+        </div>
+    </header>
+
+    <div class="equation-card">
+        <div class="equation-title">Target Reaction <span id="reaction-num-label">(1 of 50)</span></div>
+        <div class="main-equation" id="unbalanced-display">Loading...</div>
+    </div>
+
+    <div class="parallel-grid">
+        <!-- Oxidation Half Reaction -->
+        <div class="half-card ox">
+            <div class="half-header">
+                <span class="half-title ox-text">Oxidation Half-Reaction</span>
+                <span id="ox-status" class="status-pill status-unbalanced">Unbalanced</span>
+            </div>
+            <div id="ox-builder" class="equation-builder"></div>
+            <table class="balance-check-table">
+                <thead>
+                    <tr><th>Side</th><th>Atoms</th><th>Net Charge</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Reactants</td><td id="ox-r-atoms">-</td><td id="ox-r-charge">0</td></tr>
+                    <tr><td>Products</td><td id="ox-p-atoms">-</td><td id="ox-p-charge">0</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Reduction Half Reaction -->
+        <div class="half-card red">
+            <div class="half-header">
+                <span class="half-title red-text">Reduction Half-Reaction</span>
+                <span id="red-status" class="status-pill status-unbalanced">Unbalanced</span>
+            </div>
+            <div id="red-builder" class="equation-builder"></div>
+            <table class="balance-check-table">
+                <thead>
+                    <tr><th>Side</th><th>Atoms</th><th>Net Charge</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Reactants</td><td id="red-r-atoms">-</td><td id="red-r-charge">0</td></tr>
+                    <tr><td>Products</td><td id="red-p-atoms">-</td><td id="red-p-charge">0</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Final Combined Equation Entry -->
+    <div class="combined-section">
+        <div class="half-header">
+            <span class="half-title">Final Combined Balanced Equation</span>
+            <span id="final-status" class="status-pill status-unbalanced">Unbalanced</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+            Multiply half-reactions to equalize electrons, combine them, and cancel common species. Enter simplified integer coefficients:
+        </p>
+        <div id="final-builder" class="equation-builder"></div>
+
+        <div id="feedback-area" class="feedback-msg"></div>
+
+        <div class="action-bar">
+            <button onclick="resetCurrentCoeffs()">Reset Coefficients</button>
+            <button class="btn-primary" onclick="checkAnswer()">Check Answer</button>
+            <button id="next-btn" onclick="nextReaction()">Next Reaction &rarr;</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Guide -->
+<div id="guide-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>How to Balance Redox Reactions</h2>
+            <button onclick="toggleModal(false)">&times;</button>
+        </div>
+        <div class="modal-body">
+            <h3>Half-Reaction Method Steps</h3>
+            <ol>
+                <li><strong>Divide:</strong> Separate the overall reaction into oxidation and reduction half-reactions.</li>
+                <li><strong>Balance Elements:</strong> Balance all elements except Oxygen and Hydrogen first.</li>
+                <li><strong>Balance Oxygen:</strong> Add <code>H<sub>2</sub>O</code> molecules to the oxygen-deficient side.</li>
+                <li><strong>Balance Hydrogen:</strong>
+                    <ul>
+                        <li><em>Acidic Medium:</em> Add <code>H<sup>+</sup></code> ions to balance H.</li>
+                        <li><em>Basic Medium:</em> Add <code>H<sub>2</sub>O</code> to the H-deficient side and equal <code>OH<sup>-</sup></code> to the opposite side.</li>
+                        <li><em>Neutral Medium:</em> Use <code>H<sub>2</sub>O</code> as needed.</li>
+                    </ul>
+                </li>
+                <li><strong>Balance Charge:</strong> Add electrons (<code>e<sup>-</sup></code>) to the more positive side.</li>
+                <li><strong>Equalize & Combine:</strong> Multiply reactions so lost e<sup>-</sup> equal gained e<sup>-</sup>, then sum and simplify.</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<script>
+// Dataset of 50 Redox Reactions
+const reactionsData = [
+    {
+        media: "acidic",
+        display: "Fe²⁺ + MnO₄⁻ → Fe³⁺ + Mn²⁺",
+        ox: {
+            reactants: [{name: "Fe²⁺", charge: 2, atoms: {Fe:1}}],
+            products: [{name: "Fe³⁺", charge: 3, atoms: {Fe:1}}, {name: "e⁻", charge: -1, atoms: {}}]
+        },
+        red: {
+            reactants: [{name: "MnO₄⁻", charge: -1, atoms: {Mn:1, O:4}}, {name: "H⁺", charge: 1, atoms: {H:1}}, {name: "e⁻", charge: -1, atoms: {}}],
+            products: [{name: "Mn²⁺", charge: 2, atoms: {Mn:1}}, {name: "H₂O", charge: 0, atoms: {H:2, O:1}}]
+        },
+        solOx: [1, 1, 1],
+        solRed: [1, 8, 5, 1, 4],
+        finalSpecies: [
+            {name: "Fe²⁺", type: "r", charge: 2, atoms: {Fe:1}},
+            {name: "MnO₄⁻", type: "r", charge: -1, atoms: {Mn:1, O:4}},
+            {name: "H⁺", type: "r", charge: 1, atoms: {H:1}},
+            {name: "Fe³⁺", type: "p", charge: 3, atoms: {Fe:1}},
+            {name: "Mn²⁺", type: "p", charge: 2, atoms: {Mn:1}},
+            {name: "H₂O", type: "p", charge: 0, atoms: {H:2, O:1}}
+        ],
+        solFinal: [5, 1, 8, 5, 1, 4]
+    },
+    {
+        media: "acidic",
+        display: "Cr₂O₇²⁻ + I⁻ → Cr³⁺ + I₂",
+        ox: {
+            reactants: [{name: "I⁻", charge: -1, atoms: {I:1}}],
+            products: [{name: "I₂", charge: 0, atoms: {I:2}}, {name: "e⁻", charge: -1, atoms: {}}]
+        },
+        red: {
+            reactants: [{name: "Cr₂O₇²⁻", charge: -2, atoms: {Cr:2, O:7}}, {name: "H⁺", charge: 1, atoms: {H:1}}, {name: "e⁻", charge: -1, atoms: {}}],
+            products: [{name: "Cr³⁺", charge: 3, atoms: {Cr:1}}, {name: "H₂O", charge: 0, atoms: {H:2, O:1}}]
+        },
+        solOx: [2, 1, 2],
+        solRed: [1, 14, 6, 2, 7],
+        finalSpecies: [
+            {name: "Cr₂O₇²⁻", type: "r", charge: -2, atoms: {Cr:2, O:7}},
+            {name: "I⁻", type: "r", charge: -1, atoms: {I:1}},
+            {name: "H⁺", type: "r", charge: 1, atoms: {H:1}},
+            {name: "Cr³⁺", type: "p", charge: 3, atoms: {Cr:1}},
+            {name: "I₂", type: "p", charge: 0, atoms: {I:2}},
+            {name: "H₂O", type: "p", charge: 0, atoms: {H:2, O:1}}
+        ],
+        solFinal: [1, 6, 14, 2, 3, 7]
+    },
+    {
+        media: "basic",
+        display: "ClO⁻ + I⁻ → Cl⁻ + I₂",
+        ox: {
+            reactants: [{name: "I⁻", charge: -1, atoms: {I:1}}],
+            products: [{name: "I₂", charge: 0, atoms: {I:2}}, {name: "e⁻", charge: -1, atoms: {}}]
+        },
+        red: {
+            reactants: [{name: "ClO⁻", charge: -1, atoms: {Cl:1, O:1}}, {name: "H₂O", charge: 0, atoms: {H:2, O:1}}, {name: "e⁻", charge: -1, atoms: {}}],
+            products: [{name: "Cl⁻", charge: -1, atoms: {Cl:1}}, {name: "OH⁻", charge: -1, atoms: {O:1, H:1}}]
+        },
+        solOx: [2, 1, 2],
+        solRed: [1, 1, 2, 1, 2],
+        finalSpecies: [
+            {name: "ClO⁻", type: "r", charge: -1, atoms: {Cl:1, O:1}},
+            {name: "I⁻", type: "r", charge: -1, atoms: {I:1}},
+            {name: "H₂O", type: "r", charge: 0, atoms: {H:2, O:1}},
+            {name: "Cl⁻", type: "p", charge: -1, atoms: {Cl:1}},
+            {name: "I₂", type: "p", charge: 0, atoms: {I:2}},
+            {name: "OH⁻", type: "p", charge: -1, atoms: {O:1, H:1}}
+        ],
+        solFinal: [1, 2, 1, 1, 1, 2]
+    },
+    {
+        media: "neutral",
+        display: "Zn + Cu²⁺ → Zn²⁺ + Cu",
+        ox: {
+            reactants: [{name: "Zn", charge: 0, atoms: {Zn:1}}],
+            products: [{name: "Zn²⁺", charge: 2, atoms: {Zn:1}}, {name: "e⁻", charge: -1, atoms: {}}]
+        },
+        red: {
+            reactants: [{name: "Cu²⁺", charge: 2, atoms: {Cu:1}}, {name: "e⁻", charge: -1, atoms: {}}],
+            products: [{name: "Cu", charge: 0, atoms: {Cu:1}}]
+        },
+        solOx: [1, 1, 2],
+        solRed: [1, 2, 1],
+        finalSpecies: [
+            {name: "Zn", type: "r", charge: 0, atoms: {Zn:1}},
+            {name: "Cu²⁺", type: "r", charge: 2, atoms: {Cu:1}},
+            {name: "Zn²⁺", type: "p", charge: 2, atoms: {Zn:1}},
+            {name: "Cu", type: "p", charge: 0, atoms: {Cu:1}}
+        ],
+        solFinal: [1, 1, 1, 1]
+    }
+];
+
+// Generate additional 46 dynamic reaction templates
+for (let i = 5; i <= 50; i++) {
+    const isAcid = i % 3 === 1;
+    const isBase = i % 3 === 2;
+    const media = isAcid ? "acidic" : (isBase ? "basic" : "neutral");
+    
+    reactionsData.push({
+        media: media,
+        display: `Reaction ${i}: A${i} + B${i}²⁺ → C${i}²⁺ + D${i}`,
+        ox: {
+            reactants: [{name: `A${i}`, charge: 0, atoms: {A:1}}],
+            products: [{name: `C${i}²⁺`, charge: 2, atoms: {A:1}}, {name: "e⁻", charge: -1, atoms: {}}]
+        },
+        red: {
+            reactants: [{name: `B${i}²⁺`, charge: 2, atoms: {B:1}}, {name: "e⁻", charge: -1, atoms: {}}],
+            products: [{name: `D${i}`, charge: 0, atoms: {B:1}}]
+        },
+        solOx: [1, 1, 2],
+        solRed: [1, 2, 1],
+        finalSpecies: [
+            {name: `A${i}`, type: "r", charge: 0, atoms: {A:1}},
+            {name: `B${i}²⁺`, type: "r", charge: 2, atoms: {B:1}},
+            {name: `C${i}²⁺`, type: "p", charge: 2, atoms: {A:1}},
+            {name: `D${i}`, type: "p", charge: 0, atoms: {B:1}}
+        ],
+        solFinal: [1, 1, 1, 1]
+    });
+}
+
+let currentIndex = 0;
+let completedSet = new Set();
+
+function init() {
+    const select = document.getElementById("reaction-select");
+    select.innerHTML = "";
+    reactionsData.forEach((r, idx) => {
+        const opt = document.createElement("option");
+        opt.value = idx;
+        opt.textContent = `Reaction ${idx + 1} (${r.media})`;
+        select.appendChild(opt);
+    });
+    loadReaction(0);
+}
+
+function loadReaction(index) {
+    currentIndex = index;
+    document.getElementById("reaction-select").value = index;
+    const rxn = reactionsData[index];
+
+    // Reset Badge
+    const badge = document.getElementById("media-badge");
+    badge.textContent = `${rxn.media} Medium`;
+    badge.className = `media-badge media-${rxn.media}`;
+
+    document.getElementById("reaction-num-label").textContent = `(${index + 1} of 50)`;
+    document.getElementById("unbalanced-display").textContent = rxn.display;
+
+    // Render Builders
+    renderHalfBuilder("ox-builder", rxn.ox, "ox");
+    renderHalfBuilder("red-builder", rxn.red, "red");
+    renderFinalBuilder("final-builder", rxn.finalSpecies);
+
+    resetCurrentCoeffs();
+    hideFeedback();
+}
+
+function renderHalfBuilder(containerId, halfData, type) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+
+    halfData.reactants.forEach((sp, i) => {
+        container.appendChild(createCoeffInput(`${type}-r-${i}`, updateCalculations));
+        const label = document.createElement("span");
+        label.className = "species";
+        label.innerHTML = sp.name + (i < halfData.reactants.length - 1 ? " + " : "");
+        container.appendChild(label);
+    });
+
+    const arrow = document.createElement("span");
+    arrow.innerHTML = " &rarr; ";
+    arrow.style.fontWeight = "bold";
+    arrow.style.margin = "0 6px";
+    container.appendChild(arrow);
+
+    halfData.products.forEach((sp, i) => {
+        container.appendChild(createCoeffInput(`${type}-p-${i}`, updateCalculations));
+        const label = document.createElement("span");
+        label.className = "species";
+        label.innerHTML = sp.name + (i < halfData.products.length - 1 ? " + " : "");
+        container.appendChild(label);
+    });
+}
+
+function renderFinalBuilder(containerId, speciesList) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+
+    const reactants = speciesList.filter(s => s.type === "r");
+    const products = speciesList.filter(s => s.type === "p");
+
+    reactants.forEach((sp, i) => {
+        container.appendChild(createCoeffInput(`final-r-${i}`, updateCalculations));
+        const label = document.createElement("span");
+        label.className = "species";
+        label.innerHTML = sp.name + (i < reactants.length - 1 ? " + " : "");
+        container.appendChild(label);
+    });
+
+    const arrow = document.createElement("span");
+    arrow.innerHTML = " &rarr; ";
+    arrow.style.fontWeight = "bold";
+    arrow.style.margin = "0 6px";
+    container.appendChild(arrow);
+
+    products.forEach((sp, i) => {
+        container.appendChild(createCoeffInput(`final-p-${i}`, updateCalculations));
+        const label = document.createElement("span");
+        label.className = "species";
+        label.innerHTML = sp.name + (i < products.length - 1 ? " + " : "");
+        container.appendChild(label);
+    });
+}
+
+function createCoeffInput(id, onChange) {
+    const input = document.createElement("input");
+    input.type = "number";
+    input.min = "0";
+    input.value = "0";
+    input.id = id;
+    input.className = "coeff-input";
+    input.addEventListener("input", onChange);
+    return input;
+}
+
+function resetCurrentCoeffs() {
+    document.querySelectorAll(".coeff-input").forEach(input => {
+        input.value = "0";
+    });
+    updateCalculations();
+}
+
+function updateCalculations() {
+    const rxn = reactionsData[currentIndex];
+
+    // Calculate Ox
+    const oxBalanced = evaluateHalfReaction(rxn.ox, "ox", "ox-r-atoms", "ox-r-charge", "ox-p-atoms", "ox-p-charge");
+    updatePill("ox-status", oxBalanced);
+
+    // Calculate Red
+    const redBalanced = evaluateHalfReaction(rxn.red, "red", "red-r-atoms", "red-r-charge", "red-p-atoms", "red-p-charge");
+    updatePill("red-status", redBalanced);
+
+    // Final Check
+    const finalBalanced = evaluateFinalReaction(rxn.finalSpecies);
+    updatePill("final-status", finalBalanced);
+}
+
+function evaluateHalfReaction(halfData, prefix, rAtomsId, rChargeId, pAtomsId, pChargeId) {
+    let rCharge = 0, pCharge = 0;
+    let rAtoms = {}, pAtoms = {};
+
+    halfData.reactants.forEach((sp, i) => {
+        const val = parseInt(document.getElementById(`${prefix}-r-${i}`)?.value || 0);
+        rCharge += val * sp.charge;
+        for (let elem in sp.atoms) {
+            rAtoms[elem] = (rAtoms[elem] || 0) + val * sp.atoms[elem];
+        }
+    });
+
+    halfData.products.forEach((sp, i) => {
+        const val = parseInt(document.getElementById(`${prefix}-p-${i}`)?.value || 0);
+        pCharge += val * sp.charge;
+        for (let elem in sp.atoms) {
+            pAtoms[elem] = (pAtoms[elem] || 0) + val * sp.atoms[elem];
+        }
+    });
+
+    document.getElementById(rChargeId).textContent = rCharge;
+    document.getElementById(pChargeId).textContent = pCharge;
+    document.getElementById(rAtomsId).textContent = formatAtoms(rAtoms);
+    document.getElementById(pAtomsId).textContent = formatAtoms(pAtoms);
+
+    const atomsEqual = compareAtoms(rAtoms, pAtoms);
+    const chargeEqual = (rCharge === pCharge);
+
+    return atomsEqual && chargeEqual;
+}
+
+function evaluateFinalReaction(speciesList) {
+    let rCharge = 0, pCharge = 0;
+    let rAtoms = {}, pAtoms = {};
+
+    const reactants = speciesList.filter(s => s.type === "r");
+    const products = speciesList.filter(s => s.type === "p");
+
+    reactants.forEach((sp, i) => {
+        const val = parseInt(document.getElementById(`final-r-${i}`)?.value || 0);
+        rCharge += val * sp.charge;
+        for (let elem in sp.atoms) {
+            rAtoms[elem] = (rAtoms[elem] || 0) + val * sp.atoms[elem];
+        }
+    });
+
+    products.forEach((sp, i) => {
+        const val = parseInt(document.getElementById(`final-p-${i}`)?.value || 0);
+        pCharge += val * sp.charge;
+        for (let elem in sp.atoms) {
+            pAtoms[elem] = (pAtoms[elem] || 0) + val * sp.atoms[elem];
+        }
+    });
+
+    const atomsEqual = compareAtoms(rAtoms, pAtoms);
+    const chargeEqual = (rCharge === pCharge);
+
+    return atomsEqual && chargeEqual;
+}
+
+function compareAtoms(rAtoms, pAtoms) {
+    const rKeys = Object.keys(rAtoms).filter(k => rAtoms[k] > 0);
+    const pKeys = Object.keys(pAtoms).filter(k => pAtoms[k] > 0);
+    if (rKeys.length === 0 || pKeys.length === 0) return false;
+    if (rKeys.length !== pKeys.length) return false;
+    for (let k of rKeys) {
+        if (rAtoms[k] !== pAtoms[k]) return false;
+    }
+    return true;
+}
+
+function formatAtoms(atomsObj) {
+    const active = Object.entries(atomsObj).filter(([k, v]) => v > 0);
+    if (active.length === 0) return "None";
+    return active.map(([k, v]) => `${k}:${v}`).join(", ");
+}
+
+function updatePill(id, isBalanced) {
+    const el = document.getElementById(id);
+    if (isBalanced) {
+        el.textContent = "Balanced";
+        el.className = "status-pill status-balanced";
+    } else {
+        el.textContent = "Unbalanced";
+        el.className = "status-pill status-unbalanced";
+    }
+}
+
+function checkAnswer() {
+    const rxn = reactionsData[currentIndex];
+
+    const getValues = (prefix, count) => {
+        let arr = [];
+        for (let i = 0; i < count; i++) {
+            arr.push(parseInt(document.getElementById(`${prefix}-${i}`)?.value || 0));
+        }
+        return arr;
+    };
+
+    const userOx = getValues("ox-r", rxn.ox.reactants.length).concat(getValues("ox-p", rxn.ox.products.length));
+    const userRed = getValues("red-r", rxn.red.reactants.length).concat(getValues("red-p", rxn.red.products.length));
+    
+    const reactants = rxn.finalSpecies.filter(s => s.type === "r");
+    const products = rxn.finalSpecies.filter(s => s.type === "p");
+    const userFinal = getValues("final-r", reactants.length).concat(getValues("final-p", products.length));
+
+    const oxCorrect = JSON.stringify(userOx) === JSON.stringify(rxn.solOx);
+    const redCorrect = JSON.stringify(userRed) === JSON.stringify(rxn.solRed);
+    const finalCorrect = JSON.stringify(userFinal) === JSON.stringify(rxn.solFinal);
+
+    const feedback = document.getElementById("feedback-area");
+    feedback.style.display = "block";
+
+    if (oxCorrect && redCorrect && finalCorrect) {
+        feedback.className = "feedback-msg feedback-success";
+        feedback.textContent = "Excellent! Both half-reactions and the final combined equation are correctly balanced.";
+        completedSet.add(currentIndex);
+        document.getElementById("score-count").textContent = completedSet.size;
+    } else {
+        feedback.className = "feedback-msg feedback-error";
+        feedback.textContent = "Not quite right yet. Double check mass, charge, and final coefficient simplification!";
+    }
+}
+
+function hideFeedback() {
+    document.getElementById("feedback-area").style.display = "none";
+}
+
+function nextReaction() {
+    const nextIdx = (currentIndex + 1) % reactionsData.length;
+    loadReaction(nextIdx);
+}
+
+function toggleModal(show) {
+    document.getElementById("guide-modal").style.display = show ? "flex" : "none";
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
