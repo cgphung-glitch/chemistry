@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Quantum Mechanics & Atomic Structure Practice</title>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    h1 { font-size: 1.4rem; font-weight: 700; color: #0f172a; }
+
+    /* Scoreboard */
+    .scoreboard {
+      display: flex;
+      justify-content: space-around;
+      background: var(--card-bg);
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .stat-box { text-align: center; }
+    .stat-val { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+    .stat-lbl { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+
+    /* Topic Selector */
+    .control-group { margin-bottom: 16px; }
+    label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px; }
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background-color: var(--card-bg);
+      color: var(--text);
+      outline: none;
+    }
+
+    /* Main Problem Card */
+    .card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      margin-bottom: 20px;
+    }
+
+    .topic-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .problem-text {
+      font-size: 1.05rem;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    /* Form & Input */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      outline: none;
+      font-family: monospace;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+
+    .unit-label {
+      position: absolute;
+      right: 12px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    .btn-group { display: flex; gap: 10px; }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: #e2e8f0; }
+
+    /* Math typography */
+    .formula { font-family: "Georgia", serif; font-style: italic; }
+    .formula var { font-style: italic; }
+    .formula sub, .formula sup { font-size: 0.75em; line-height: 0; position: relative; }
+    .formula sup { top: -0.4em; }
+    .formula sub { bottom: -0.2em; }
+    .fraction { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; padding: 0 2px; }
+    .numerator { border-bottom: 1px solid currentColor; padding-bottom: 1px; }
+    .denominator { padding-top: 1px; }
+
+    /* Solution Box */
+    .feedback {
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 16px;
+      display: none;
+    }
+    .feedback.correct { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .feedback.incorrect { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+    .solution {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border);
+      display: none;
+      font-size: 0.9rem;
+      color: #334155;
+    }
+
+    .solution h4 { margin-bottom: 8px; color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Quantum Chem Practice</h1>
+  </header>
+
+  <div class="scoreboard">
+    <div class="stat-box">
+      <div class="stat-val" id="score-val">0 / 0</div>
+      <div class="stat-lbl">Correct</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="accuracy-val">0%</div>
+      <div class="stat-lbl">Accuracy</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="streak-val">0</div>
+      <div class="stat-lbl">Streak</div>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label for="topic-select">Select Practice Topic:</label>
+    <select id="topic-select">
+      <option value="all">All Topics (Mixed)</option>
+      <option value="1">1. EM Waves (c = λν)</option>
+      <option value="2">2. EM Energy (E = hν = hc/λ)</option>
+      <option value="3">3. Line Spectra (Balmer Series)</option>
+      <option value="4">4. Bohr Model (Electron Transition)</option>
+      <option value="5">5. de Broglie Wavelength (λ = h/mv)</option>
+      <option value="6">6. Heisenberg Uncertainty Principle</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <div class="topic-tag" id="topic-tag">Topic 1</div>
+    <div class="problem-text" id="problem-text">Loading problem...</div>
+
+    <form id="quiz-form">
+      <div class="input-group">
+        <label for="user-answer">Your Answer (use 1.2e3 or 1.2x10^3 format):</label>
+        <div class="input-wrapper">
+          <input type="text" id="user-answer" placeholder="e.g. 5.2e-19" autocomplete="off" required>
+          <span class="unit-label" id="unit-label">m</span>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button type="submit" class="btn-primary" id="submit-btn">Check</button>
+        <button type="button" class="btn-secondary" id="next-btn" style="display:none;">Next Problem</button>
+      </div>
+    </form>
+
+    <div class="feedback" id="feedback-box"></div>
+
+    <div class="solution" id="solution-box">
+      <h4>Step-by-Step Solution:</h4>
+      <div id="solution-content"></div>
+    </div>
+  </div>
+
+  <script>
+    // Constants
+    const C = 3.00e8;       // m/s
+    const H = 6.626e-34;    // J*s
+    const R_H = 1.097e7;    // 1/m
+    const BOHR_E = 2.18e-18; // J
+    const M_E = 9.109e-31;  // kg (electron mass)
+    const M_P = 1.673e-27;  // kg (proton mass)
+
+    // App State
+    let currentProblem = null;
+    let score = 0;
+    let attempts = 0;
+    let streak = 0;
+
+    // Helper: Parse scientific notation strings (e.g. "5.2e-19", "5.2x10^-19")
+    function parseInput(input) {
+      let clean = input.trim().toLowerCase().replace(/\s+/g, '');
+      clean = clean.replace(/x10\^?/g, 'e').replace(/\*10\^?/g, 'e');
+      return parseFloat(clean);
+    }
+
+    // Helper: Format numbers into standard scientific notation HTML
+    function formatSci(num, sigFigs = 3) {
+      if (isNaN(num)) return '';
+      let str = num.toExponential(sigFigs - 1);
+      let [base, exp] = str.split('e');
+      exp = parseInt(exp);
+      if (exp === 0) return `${base}`;
+      return `${base} &times; 10<sup>${exp}</sup>`;
+    }
+
+    // Helper: Random float generator within range
+    function randRange(min, max, sigFigs = 3) {
+      let val = Math.random() * (max - min) + min;
+      return parseFloat(val.toPrecision(sigFigs));
+    }
+
+    // Problem Generators
+    const generators = {
+      // 1. EM Waves
+      1: () => {
+        const solveFor = Math.random() > 0.5 ? 'wavelength' : 'frequency';
+        if (solveFor === 'wavelength') {
+          let freq = randRange(1e14, 1e16); // Hz
+          let wavelength = C / freq;
+          return {
+            topic: 'EM Waves',
+            text: `Calculate the wavelength (&lambda;) of an electromagnetic wave with a frequency of <b>${formatSci(freq)} Hz</b>.`,
+            target: wavelength,
+            unit: 'm',
+            steps: `
+              1. Use <span class="formula"><var>c</var> = &lambda;<var>&nu;</var></span>.<br>
+              2. Rearrange for wavelength: <span class="formula">&lambda; = <span class="fraction"><span class="numerator"><var>c</var></span><span class="denominator"><var>&nu;</var></span></span></span>.<br>
+              3. &lambda; = (3.00 &times; 10<sup>8</sup> m/s) / (${formatSci(freq)} s<sup>-1</sup>) = <b>${formatSci(wavelength)} m</b>.
+            `
+          };
+        } else {
+          let wavelength = randRange(400e-9, 750e-9); // Visible light in meters
+          let freq = C / wavelength;
+          return {
+            topic: 'EM Waves',
+            text: `Calculate the frequency (<var>&nu;</var>) of light with a wavelength of <b>${formatSci(wavelength)} m</b>.`,
+            target: freq,
+            unit: 'Hz',
+            steps: `
+              1. Use <span class="formula"><var>c</var> = &lambda;<var>&nu;</var></span>.<br>
+              2. Rearrange for frequency: <span class="formula"><var>&nu;</var> = <span class="fraction"><span class="numerator"><var>c</var></span><span class="denominator">&lambda;</span></span></span>.<br>
+              3. <var>&nu;</var> = (3.00 &times; 10<sup>8</sup> m/s) / (${formatSci(wavelength)} m) = <b>${formatSci(freq)} Hz</b>.
+            `
+          };
+        }
+      },
+
+      // 2. EM Energy
+      2: () => {
+        const mode = Math.random() > 0.5 ? 'fromFreq' : 'fromWavelength';
+        if (mode === 'fromFreq') {
+          let freq = randRange(1e14, 1e16);
+          let E = H * freq;
+          return {
+            topic: 'EM Energy',
+            text: `Calculate the energy (<var>E</var>) of a single photon with a frequency of <b>${formatSci(freq)} Hz</b>.`,
+            target: E,
+            unit: 'J',
+            steps: `
+              1. Use <span class="formula"><var>E</var> = <var>h</var><var>&nu;</var></span>.<br>
+              2. <var>E</var> = (6.626 &times; 10<sup>-34</sup> J&middot;s) &times; (${formatSci(freq)} s<sup>-1</sup>) = <b>${formatSci(E)} J</b>.
+            `
+          };
+        } else {
+          let wavelength = randRange(200e-9, 700e-9);
+          let E = (H * C) / wavelength;
+          return {
+            topic: 'EM Energy',
+            text: `Calculate the energy (<var>E</var>) of a single photon with a wavelength of <b>${formatSci(wavelength)} m</b>.`,
+            target: E,
+            unit: 'J',
+            steps: `
+              1. Use <span class="formula"><var>E</var> = <span class="fraction"><span class="numerator"><var>h</var><var>c</var></span><span class="denominator">&lambda;</span></span></span>.<br>
+              2. <var>E</var> = ((6.626 &times; 10<sup>-34</sup>) &times; (3.00 &times; 10<sup>8</sup>)) / (${formatSci(wavelength)}) = <b>${formatSci(E)} J</b>.
+            `
+          };
+        }
+      },
+
+      // 3. Line Spectra (Balmer Series)
+      3: () => {
+        let n1 = 2; // Balmer series lower level
+        let n2 = Math.floor(Math.random() * 4) + 3; // n = 3, 4, 5, or 6
+        let invWavelength = R_H * ((1 / (n1 * n1)) - (1 / (n2 * n2)));
+        let wavelength = 1 / invWavelength;
+
+        return {
+          topic: 'Line Spectra (Balmer Series)',
+          text: `Calculate the wavelength (&lambda;) of light emitted during a transition from <b><var>n</var> = ${n2}</b> to <b><var>n</var> = ${n1}</b> in the hydrogen spectrum.`,
+          target: wavelength,
+          unit: 'm',
+          steps: `
+            1. Use Rydberg formula: <span class="formula"><span class="fraction"><span class="numerator">1</span><span class="denominator">&lambda;</span></span> = <var>R</var><sub>H</sub> ( <span class="fraction"><span class="numerator">1</span><span class="denominator"><var>n</var><sub>1</sub><sup>2</sup></span></span> - <span class="fraction"><span class="numerator">1</span><span class="denominator"><var>n</var><sub>2</sub><sup>2</sup></span></span> )</span>.<br>
+            2. 1 / &lambda; = (1.097 &times; 10<sup>7</sup> m<sup>-1</sup>) &times; (1/4 - 1/${n2*n2}) = ${formatSci(invWavelength)} m<sup>-1</sup>.<br>
+            3. Invert answer: &lambda; = 1 / (${formatSci(invWavelength)}) = <b>${formatSci(wavelength)} m</b>.
+          `
+        };
+      },
+
+      // 4. Bohr Model (Transitions)
+      4: () => {
+        let ni = Math.floor(Math.random() * 3) + 3; // n = 3, 4, 5
+        let nf = Math.floor(Math.random() * 2) + 1; // n = 1 or 2
+        let deltaE = Math.abs(-BOHR_E * ((1 / (nf * nf)) - (1 / (ni * ni))));
+        let wavelength = (H * C) / deltaE;
+
+        return {
+          topic: 'Bohr Model',
+          text: `Calculate the wavelength (&lambda;) of the photon emitted when an electron falls from <b><var>n</var><sub>i</sub> = ${ni}</b> to <b><var>n</var><sub>f</sub> = ${nf}</b> in a hydrogen atom.`,
+          target: wavelength,
+          unit: 'm',
+          steps: `
+            1. Calculate energy change: <span class="formula">&Delta;<var>E</var> = 2.18 &times; 10<sup>-18</sup> J ( <span class="fraction"><span class="numerator">1</span><span class="denominator"><var>n</var><sub>f</sub><sup>2</sup></span></span> - <span class="fraction"><span class="numerator">1</span><span class="denominator"><var>n</var><sub>i</sub><sup>2</sup></span></span> )</span>.<br>
+            2. &Delta;<var>E</var> = 2.18 &times; 10<sup>-18</sup> J &times; (1/${nf*nf} - 1/${ni*ni}) = ${formatSci(deltaE)} J.<br>
+            3. Calculate wavelength: <span class="formula">&lambda; = <span class="fraction"><span class="numerator"><var>h</var><var>c</var></span><span class="denominator">&Delta;<var>E</var></span></span></span> = <b>${formatSci(wavelength)} m</b>.
+          `
+        };
+      },
+
+      // 5. de Broglie Wavelength
+      5: () => {
+        const isElectron = Math.random() > 0.5;
+        let mass = isElectron ? M_E : M_P;
+        let particleName = isElectron ? "an electron" : "a proton";
+        let velocity = randRange(1e5, 5e6); // m/s
+        let wavelength = H / (mass * velocity);
+
+        return {
+          topic: 'de Broglie Wavelength',
+          text: `Calculate the de Broglie wavelength (&lambda;) of ${particleName} (mass = <b>${formatSci(mass)} kg</b>) moving at <b>${formatSci(velocity)} m/s</b>.`,
+          target: wavelength,
+          unit: 'm',
+          steps: `
+            1. Use de Broglie equation: <span class="formula">&lambda; = <span class="fraction"><span class="numerator"><var>h</var></span><span class="denominator"><var>m</var><var>v</var></span></span></span>.<br>
+            2. &lambda; = (6.626 &times; 10<sup>-34</sup> J&middot;s) / ((${formatSci(mass)} kg) &times; (${formatSci(velocity)} m/s)).<br>
+            3. &lambda; = <b>${formatSci(wavelength)} m</b>.
+          `
+        };
+      },
+
+      // 6. Heisenberg Uncertainty
+      6: () => {
+        let mass = M_E;
+        let deltaV = randRange(1e3, 5e5); // Uncertainty in velocity m/s
+        // Δx * (m * Δv) >= h / (4 * pi)
+        let deltaX = H / (4 * Math.PI * mass * deltaV);
+
+        return {
+          topic: 'Heisenberg Uncertainty Principle',
+          text: `An electron (mass = <b>${formatSci(mass)} kg</b>) has an uncertainty in velocity (&Delta;<var>v</var>) of <b>${formatSci(deltaV)} m/s</b>. Calculate the minimum uncertainty in its position (&Delta;<var>x</var>).`,
+          target: deltaX,
+          unit: 'm',
+          steps: `
+            1. Use formula: <span class="formula">&Delta;<var>x</var> &middot; <var>m</var>&Delta;<var>v</var> &ge; <span class="fraction"><span class="numerator"><var>h</var></span><span class="denominator">4&pi;</span></span></span>.<br>
+            2. Rearrange for &Delta;<var>x</var>: <span class="formula">&Delta;<var>x</var> = <span class="fraction"><span class="numerator"><var>h</var></span><span class="denominator">4&pi; &middot; <var>m</var>&Delta;<var>v</var></span></span></span>.<br>
+            3. &Delta;<var>x</var> = (6.626 &times; 10<sup>-34</sup>) / (4 &times; &pi; &times; ${formatSci(mass)} &times; ${formatSci(deltaV)}) = <b>${formatSci(deltaX)} m</b>.
+          `
+        };
+      }
+    };
+
+    // Load Next Problem
+    function loadProblem() {
+      const selectedTopic = document.getElementById('topic-select').value;
+      let topicId = selectedTopic === 'all' 
+        ? Math.floor(Math.random() * 6) + 1 
+        : parseInt(selectedTopic);
+
+      currentProblem = generators[topicId]();
+
+      document.getElementById('topic-tag').textContent = currentProblem.topic;
+      document.getElementById('problem-text').innerHTML = currentProblem.text;
+      document.getElementById('unit-label').textContent = currentProblem.unit;
+      
+      // Reset UI state
+      document.getElementById('user-answer').value = '';
+      document.getElementById('user-answer').disabled = false;
+      document.getElementById('submit-btn').style.display = 'block';
+      document.getElementById('next-btn').style.display = 'none';
+      document.getElementById('feedback-box').style.display = 'none';
+      document.getElementById('solution-box').style.display = 'none';
+    }
+
+    // Evaluate Answer
+    document.getElementById('quiz-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      let rawVal = document.getElementById('user-answer').value;
+      let userVal = parseInput(rawVal);
+      let target = currentProblem.target;
+
+      if (isNaN(userVal)) {
+        alert("Please enter a valid numeric answer (e.g. 1.2e-19 or 0.005)");
+        return;
+      }
+
+      attempts++;
+      document.getElementById('user-answer').disabled = true;
+      document.getElementById('submit-btn').style.display = 'none';
+      document.getElementById('next-btn').style.display = 'block';
+
+      // Acceptable tolerance: +/- 3%
+      let margin = Math.abs(target * 0.03);
+      let isCorrect = Math.abs(userVal - target) <= margin;
+
+      let feedbackEl = document.getElementById('feedback-box');
+      feedbackEl.style.display = 'block';
+
+      if (isCorrect) {
+        score++;
+        streak++;
+        feedbackEl.className = 'feedback correct';
+        feedbackEl.innerHTML = `<b>Correct!</b> Excellent work.`;
+      } else {
+        streak = 0;
+        feedbackEl.className = 'feedback incorrect';
+        feedbackEl.innerHTML = `<b>Incorrect.</b> Correct answer: <b>${formatSci(target)} ${currentProblem.unit}</b>`;
+      }
+
+      // Show Solution & Update Score
+      document.getElementById('solution-content').innerHTML = currentProblem.steps;
+      document.getElementById('solution-box').style.display = 'block';
+      
+      updateScoreboard();
+    });
+
+    function updateScoreboard() {
+      document.getElementById('score-val').textContent = `${score} / ${attempts}`;
+      let acc = attempts > 0 ? Math.round((score / attempts) * 100) : 0;
+      document.getElementById('accuracy-val').textContent = `${acc}%`;
+      document.getElementById('streak-val').textContent = streak;
+    }
+
+    // Event Listeners
+    document.getElementById('next-btn').addEventListener('click', loadProblem);
+    document.getElementById('topic-select').addEventListener('change', loadProblem);
+
+    // Initial Load
+    loadProblem();
+  </script>
+</body>
+</html>
