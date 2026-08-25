@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Solubility Rules Practice</title>
+<style>
+  :root{
+    --bg: #1b1d1f;
+    --panel: #232629;
+    --panel-2: #2a2d30;
+    --ink: #e9e6de;
+    --ink-dim: #a9a49a;
+    --amber: #e0a458;
+    --amber-dim: #b9803a;
+    --teal: #5fb8ad;
+    --red: #d9695f;
+    --green: #7fb37a;
+    --border: #3a3d41;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+    --serif: 'Fraunces', Georgia, serif;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:var(--mono); -webkit-tap-highlight-color:transparent; }
+  body{
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 26px 26px;
+    background-attachment: fixed;
+    background-color: var(--bg);
+    min-height:100vh;
+  }
+  .wrap{ max-width: 640px; margin:0 auto; padding: 20px 16px 50px; }
+
+  header.app-header{ margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:12px; }
+  header.app-header h1{ font-family:var(--serif); font-weight:600; font-size:1.5rem; margin:0; color:var(--amber); letter-spacing:0.3px; }
+  header.app-header .subtitle{ color:var(--ink-dim); font-size:0.78rem; margin-top:2px; }
+
+  .card{ background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:18px 18px; margin-bottom:16px; }
+
+  .stats-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  .stat-box{ background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:10px 8px; text-align:center; }
+  .stat-box .label{ font-size:0.62rem; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; }
+  .stat-box .value{ font-family:var(--serif); font-size:1.25rem; color:var(--teal); font-weight:600; }
+  .stat-box .value.amber{ color:var(--amber); }
+
+  h2.section-title{ font-family:var(--serif); font-size:1.1rem; color:var(--ink); margin:0 0 12px 0; font-weight:600; }
+  p.blurb{ color:var(--ink-dim); font-size:0.82rem; line-height:1.6; margin:0 0 16px 0; }
+
+  .length-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:6px; }
+  .len-btn{
+    font-family:var(--mono); background:var(--panel-2); border:1px solid var(--border); border-radius:9px;
+    padding:18px 8px; cursor:pointer; color:var(--ink); text-align:center; transition:border-color .15s, transform .1s;
+  }
+  .len-btn:hover{ border-color:var(--amber); }
+  .len-btn:active{ transform:translateY(1px); }
+  .len-btn .num{ font-family:var(--serif); font-size:1.8rem; color:var(--amber); display:block; }
+  .len-btn .word{ font-size:0.68rem; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.05em; }
+
+  .btn{
+    font-family:var(--mono); font-size:0.8rem; background:var(--panel-2); color:var(--ink);
+    border:1px solid var(--border); border-radius:8px; padding:10px 16px; cursor:pointer;
+    transition:border-color .15s, color .15s;
+  }
+  .btn:hover{ border-color:var(--amber-dim); color:var(--amber); }
+  .btn:active{ transform:translateY(1px); }
+  .btn.primary{ background:var(--amber-dim); border-color:var(--amber-dim); color:#1b1d1f; font-weight:600; }
+  .btn.primary:hover{ background:var(--amber); border-color:var(--amber); color:#1b1d1f; }
+  .btn.danger{ border-color:var(--red); color:var(--red); }
+  .btn.danger:hover{ background:var(--red); color:#1b1d1f; }
+  .btn.small{ padding:7px 11px; font-size:0.7rem; }
+  .btn:disabled{ opacity:0.4; cursor:default; }
+
+  /* quiz screen */
+  .quiz-topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .progress-text{ font-size:0.78rem; color:var(--ink-dim); }
+  .progress-bar-track{ background:var(--panel-2); border-radius:6px; height:6px; overflow:hidden; margin:8px 0 0; border:1px solid var(--border); }
+  .progress-bar-fill{ background:var(--amber-dim); height:100%; transition:width .25s ease; }
+
+  .live-stats{ display:flex; gap:10px; margin-bottom:16px; }
+  .live-pill{ flex:1; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:8px 10px; text-align:center; }
+  .live-pill .l{ font-size:0.6rem; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.05em; }
+  .live-pill .v{ font-family:var(--serif); font-size:1.15rem; color:var(--teal); font-weight:600; }
+  .live-pill .v.streak-hot{ color:var(--amber); }
+
+  .compound-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    padding:38px 20px; text-align:center; margin-bottom:18px; min-height:150px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .compound-formula{ font-family:var(--serif); font-size:2.4rem; color:var(--ink); font-weight:600; letter-spacing:0.5px; }
+  .compound-name{ color:var(--teal); font-size:0.9rem; margin-top:8px; }
+
+  .answer-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+  .ans-btn{
+    font-family:var(--mono); font-size:1rem; font-weight:600; letter-spacing:0.02em;
+    padding:20px 10px; border-radius:10px; cursor:pointer; border:2px solid var(--border);
+    background:var(--panel-2); color:var(--ink); transition: transform .08s, border-color .15s, background .15s;
+  }
+  .ans-btn:hover:not(:disabled){ border-color:var(--amber); }
+  .ans-btn:active:not(:disabled){ transform:translateY(1px); }
+  .ans-btn:disabled{ cursor:default; }
+  .ans-btn.correct{ background:rgba(127,179,122,0.18); border-color:var(--green); color:var(--green); }
+  .ans-btn.incorrect{ background:rgba(217,105,95,0.18); border-color:var(--red); color:var(--red); }
+  .ans-btn.reveal{ background:rgba(127,179,122,0.1); border-color:var(--green); color:var(--green); }
+
+  .feedback-box{
+    border-radius:9px; padding:12px 14px; margin-bottom:14px; font-size:0.8rem; line-height:1.55;
+    border:1px solid var(--border); background:var(--panel-2); display:none;
+  }
+  .feedback-box.show{ display:block; }
+  .feedback-box.correct{ border-color:var(--green); }
+  .feedback-box.incorrect{ border-color:var(--red); }
+  .feedback-box .verdict{ font-weight:700; margin-bottom:4px; }
+  .feedback-box.correct .verdict{ color:var(--green); }
+  .feedback-box.incorrect .verdict{ color:var(--red); }
+  .feedback-box .rule{ color:var(--ink-dim); }
+
+  .quiz-actions{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+
+  /* results screen */
+  .result-hero{ text-align:center; padding: 10px 0 20px; }
+  .result-hero .big-score{ font-family:var(--serif); font-size:3.2rem; color:var(--amber); font-weight:600; }
+  .result-hero .pct{ color:var(--ink-dim); font-size:0.95rem; margin-top:2px; }
+  .badge-row{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:14px; }
+  .badge{
+    font-size:0.7rem; padding:6px 12px; border-radius:20px; border:1px solid var(--teal); color:var(--teal);
+    background: rgba(95,184,173,0.1);
+  }
+  .badge.gold{ border-color:var(--amber); color:var(--amber); background:rgba(224,164,88,0.12); }
+
+  .missed-list{ margin-top:6px; }
+  .missed-item{
+    display:flex; justify-content:space-between; gap:10px; font-size:0.78rem; padding:9px 10px;
+    border:1px solid var(--border); border-radius:7px; background:var(--panel-2); margin-bottom:6px;
+  }
+  .missed-item .f{ color:var(--ink); }
+  .missed-item .a{ color:var(--red); text-align:right; }
+
+  .result-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  .result-actions .btn{ flex:1; min-width:130px; }
+
+  /* modal */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center;
+    z-index:1000; padding:20px;
+  }
+  .modal-backdrop.show{ display:flex; }
+  .modal{ background:var(--panel); border:1px solid var(--border); border-radius:12px; max-width:400px; width:100%; padding:22px; }
+  .modal h3{ font-family:var(--serif); color:var(--amber); margin:0 0 10px 0; font-size:1.15rem; }
+  .modal p{ color:var(--ink-dim); font-size:0.85rem; line-height:1.6; margin:0 0 18px 0; }
+  .modal-actions{ display:flex; gap:10px; justify-content:flex-end; }
+
+  footer.app-footer{ text-align:center; color:var(--ink-dim); font-size:0.66rem; margin-top:20px; opacity:0.7; }
+
+  .hidden{ display:none !important; }
+
+  @media (max-width:420px){
+    .compound-formula{ font-size:1.9rem; }
+    header.app-header h1{ font-size:1.25rem; }
+    .result-hero .big-score{ font-size:2.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app-header">
+    <h1>Solubility Rules Practice</h1>
+    <div class="subtitle">General Chemistry &middot; soluble vs. insoluble</div>
+  </header>
+
+  <!-- ============ MENU SCREEN ============ -->
+  <div id="screen-menu">
+    <div class="card">
+      <h2 class="section-title">Your stats</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="label">Last score</div>
+          <div class="value" id="stat-last">&mdash;</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Highest score</div>
+          <div class="value amber" id="stat-high">&mdash;</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Best streak</div>
+          <div class="value" id="stat-streak">&mdash;</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">Choose quiz length</h2>
+      <p class="blurb">You'll be shown a compound and asked whether it's soluble or insoluble in water. Slightly soluble compounds count as <b>soluble</b>. No compound repeats within a quiz.</p>
+      <div class="length-grid">
+        <div class="len-btn" data-len="10"><span class="num">10</span><span class="word">questions</span></div>
+        <div class="len-btn" data-len="20"><span class="num">20</span><span class="word">questions</span></div>
+        <div class="len-btn" data-len="30"><span class="num">30</span><span class="word">questions</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ QUIZ SCREEN ============ -->
+  <div id="screen-quiz" class="hidden">
+    <div class="quiz-topbar">
+      <div>
+        <div class="progress-text"><span id="q-current">1</span> / <span id="q-total">10</span></div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+      </div>
+      <button class="btn danger small" id="btn-restart">Restart</button>
+    </div>
+
+    <div class="live-stats">
+      <div class="live-pill"><div class="l">Score</div><div class="v" id="live-score">0</div></div>
+      <div class="live-pill"><div class="l">Streak</div><div class="v" id="live-streak">0</div></div>
+      <div class="live-pill"><div class="l">Accuracy</div><div class="v" id="live-accuracy">&mdash;</div></div>
+    </div>
+
+    <div class="compound-card">
+      <div class="compound-formula" id="q-formula">&mdash;</div>
+      <div class="compound-name" id="q-name">&nbsp;</div>
+    </div>
+
+    <div class="answer-grid">
+      <button class="ans-btn" id="btn-soluble" data-answer="soluble">Soluble</button>
+      <button class="ans-btn" id="btn-insoluble" data-answer="insoluble">Insoluble</button>
+    </div>
+
+    <div class="feedback-box" id="feedback-box">
+      <div class="verdict" id="feedback-verdict"></div>
+      <div class="rule" id="feedback-rule"></div>
+    </div>
+
+    <div class="quiz-actions">
+      <span></span>
+      <button class="btn primary hidden" id="btn-next">Next question &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ============ RESULTS SCREEN ============ -->
+  <div id="screen-results" class="hidden">
+    <div class="card">
+      <div class="result-hero">
+        <div class="big-score" id="result-score">0 / 10</div>
+        <div class="pct" id="result-pct">0%</div>
+        <div class="badge-row" id="badge-row"></div>
+      </div>
+    </div>
+
+    <div class="card" id="missed-card">
+      <h2 class="section-title">Review missed compounds</h2>
+      <div class="missed-list" id="missed-list"></div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn primary" id="btn-play-again">Play again</button>
+      <button class="btn" id="btn-change-length">Change length</button>
+    </div>
+  </div>
+
+  <footer class="app-footer">Built for General Chemistry &middot; solubility rules practice</footer>
+</div>
+
+<!-- Restart confirm modal -->
+<div class="modal-backdrop" id="restart-backdrop">
+  <div class="modal">
+    <h3>Restart quiz?</h3>
+    <p>This will erase your current progress on this quiz. Your saved stats (last score, highest score, best streak) will not be affected. Are you sure you want to restart?</p>
+    <div class="modal-actions">
+      <button class="btn" id="restart-cancel">Cancel</button>
+      <button class="btn danger" id="restart-confirm">Restart</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------------------------------------------------------
+   * Compound bank
+   * Rules used (standard general-chemistry solubility table):
+   *  - Group 1 cations and NH4+: always soluble
+   *  - Nitrates, acetates, perchlorates: always soluble
+   *  - Cl-, Br-, I-: soluble except Ag+, Pb2+, Hg2(2+)
+   *  - Sulfates: soluble except Ca2+ (slightly), Sr2+, Ba2+, Pb2+, Ag+ (slightly)
+   *  - Hydroxides: insoluble except Group 1, Ba2+, Sr2+, Ca2+ (slightly)
+   *  - Carbonates, phosphates, chromates: insoluble except Group 1 / NH4+
+   *  - Sulfides: insoluble except Group 1, Group 2, NH4+
+   * ------------------------------------------------------------- */
+  var compounds = [
+    // Group 1 / ammonium salts
+    { f:"NaCl", n:"Sodium chloride", s:true, r:"Group 1 cation \u2014 always soluble." },
+    { f:"KI", n:"Potassium iodide", s:true, r:"Group 1 cation \u2014 always soluble." },
+    { f:"Li<sub>2</sub>SO<sub>4</sub>", n:"Lithium sulfate", s:true, r:"Group 1 cation \u2014 always soluble." },
+    { f:"Na<sub>2</sub>CO<sub>3</sub>", n:"Sodium carbonate", s:true, r:"Group 1 cation overrides the carbonate rule \u2014 always soluble." },
+    { f:"K<sub>3</sub>PO<sub>4</sub>", n:"Potassium phosphate", s:true, r:"Group 1 cation overrides the phosphate rule \u2014 always soluble." },
+    { f:"NH<sub>4</sub>Cl", n:"Ammonium chloride", s:true, r:"Ammonium compounds are always soluble." },
+    { f:"(NH<sub>4</sub>)<sub>2</sub>S", n:"Ammonium sulfide", s:true, r:"Ammonium overrides the sulfide rule \u2014 always soluble." },
+    { f:"(NH<sub>4</sub>)<sub>3</sub>PO<sub>4</sub>", n:"Ammonium phosphate", s:true, r:"Ammonium overrides the phosphate rule \u2014 always soluble." },
+    { f:"Rb<sub>2</sub>CO<sub>3</sub>", n:"Rubidium carbonate", s:true, r:"Group 1 cation \u2014 always soluble." },
+    { f:"CsNO<sub>3</sub>", n:"Cesium nitrate", s:true, r:"Group 1 cation and nitrate \u2014 always soluble." },
+
+    // Nitrates / acetates / perchlorates
+    { f:"AgNO<sub>3</sub>", n:"Silver nitrate", s:true, r:"All nitrates are soluble \u2014 even silver's." },
+    { f:"Pb(NO<sub>3</sub>)<sub>2</sub>", n:"Lead(II) nitrate", s:true, r:"All nitrates are soluble \u2014 even lead's." },
+    { f:"Cu(NO<sub>3</sub>)<sub>2</sub>", n:"Copper(II) nitrate", s:true, r:"All nitrates are soluble, no exceptions." },
+    { f:"Fe(NO<sub>3</sub>)<sub>3</sub>", n:"Iron(III) nitrate", s:true, r:"All nitrates are soluble, no exceptions." },
+    { f:"Ba(ClO<sub>4</sub>)<sub>2</sub>", n:"Barium perchlorate", s:true, r:"All perchlorates are soluble, no exceptions." },
+    { f:"Pb(C<sub>2</sub>H<sub>3</sub>O<sub>2</sub>)<sub>2</sub>", n:"Lead(II) acetate", s:true, r:"All acetates are soluble \u2014 even lead's (\u201csugar of lead\u201d)." },
+    { f:"AgC<sub>2</sub>H<sub>3</sub>O<sub>2</sub>", n:"Silver acetate", s:true, r:"Slightly soluble, which counts as soluble. Acetates are generally soluble." },
+    { f:"Ca(NO<sub>3</sub>)<sub>2</sub>", n:"Calcium nitrate", s:true, r:"All nitrates are soluble, no exceptions." },
+    { f:"Al(C<sub>2</sub>H<sub>3</sub>O<sub>2</sub>)<sub>3</sub>", n:"Aluminum acetate", s:true, r:"All acetates are soluble, no exceptions." },
+
+    // Halides
+    { f:"NaBr", n:"Sodium bromide", s:true, r:"Group 1 cation, and bromides are generally soluble." },
+    { f:"MgCl<sub>2</sub>", n:"Magnesium chloride", s:true, r:"Chlorides are soluble except Ag\u207a, Pb\u00b2\u207a, Hg\u2082\u00b2\u207a." },
+    { f:"CaBr<sub>2</sub>", n:"Calcium bromide", s:true, r:"Bromides are soluble except Ag\u207a, Pb\u00b2\u207a, Hg\u2082\u00b2\u207a." },
+    { f:"AgCl", n:"Silver chloride", s:false, r:"Exception: silver halides are insoluble." },
+    { f:"AgBr", n:"Silver bromide", s:false, r:"Exception: silver halides are insoluble." },
+    { f:"AgI", n:"Silver iodide", s:false, r:"Exception: silver halides are insoluble." },
+    { f:"PbCl<sub>2</sub>", n:"Lead(II) chloride", s:false, r:"Exception: lead(II) halides are insoluble in cold water." },
+    { f:"PbBr<sub>2</sub>", n:"Lead(II) bromide", s:false, r:"Exception: lead(II) halides are insoluble in cold water." },
+    { f:"PbI<sub>2</sub>", n:"Lead(II) iodide", s:false, r:"Exception: lead(II) halides are insoluble \u2014 classic bright yellow precipitate." },
+    { f:"Hg<sub>2</sub>Cl<sub>2</sub>", n:"Mercury(I) chloride", s:false, r:"Exception: mercury(I) halides are insoluble." },
+    { f:"ZnCl<sub>2</sub>", n:"Zinc chloride", s:true, r:"Chlorides are soluble except Ag\u207a, Pb\u00b2\u207a, Hg\u2082\u00b2\u207a." },
+    { f:"FeCl<sub>3</sub>", n:"Iron(III) chloride", s:true, r:"Chlorides are soluble except Ag\u207a, Pb\u00b2\u207a, Hg\u2082\u00b2\u207a." },
+
+    // Sulfates
+    { f:"Na<sub>2</sub>SO<sub>4</sub>", n:"Sodium sulfate", s:true, r:"Group 1 cation, and most sulfates are soluble." },
+    { f:"K<sub>2</sub>SO<sub>4</sub>", n:"Potassium sulfate", s:true, r:"Group 1 cation, and most sulfates are soluble." },
+    { f:"MgSO<sub>4</sub>", n:"Magnesium sulfate", s:true, r:"Most sulfates are soluble; Mg\u00b2\u207a is not an exception." },
+    { f:"CuSO<sub>4</sub>", n:"Copper(II) sulfate", s:true, r:"Most sulfates are soluble; Cu\u00b2\u207a is not an exception." },
+    { f:"BaSO<sub>4</sub>", n:"Barium sulfate", s:false, r:"Exception: barium sulfate is insoluble (used in \u201cbarium meals\u201d for imaging for exactly this reason)." },
+    { f:"SrSO<sub>4</sub>", n:"Strontium sulfate", s:false, r:"Exception: strontium sulfate is insoluble." },
+    { f:"PbSO<sub>4</sub>", n:"Lead(II) sulfate", s:false, r:"Exception: lead(II) sulfate is insoluble." },
+    { f:"CaSO<sub>4</sub>", n:"Calcium sulfate", s:true, r:"Slightly soluble, which counts as soluble." },
+    { f:"Ag<sub>2</sub>SO<sub>4</sub>", n:"Silver sulfate", s:true, r:"Slightly soluble, which counts as soluble." },
+    { f:"Al<sub>2</sub>(SO<sub>4</sub>)<sub>3</sub>", n:"Aluminum sulfate", s:true, r:"Most sulfates are soluble; Al\u00b3\u207a is not an exception." },
+    { f:"ZnSO<sub>4</sub>", n:"Zinc sulfate", s:true, r:"Most sulfates are soluble; Zn\u00b2\u207a is not an exception." },
+
+    // Hydroxides
+    { f:"NaOH", n:"Sodium hydroxide", s:true, r:"Group 1 hydroxides are always soluble." },
+    { f:"KOH", n:"Potassium hydroxide", s:true, r:"Group 1 hydroxides are always soluble." },
+    { f:"Ba(OH)<sub>2</sub>", n:"Barium hydroxide", s:true, r:"Exception: barium hydroxide is soluble." },
+    { f:"Sr(OH)<sub>2</sub>", n:"Strontium hydroxide", s:true, r:"Exception: strontium hydroxide is soluble." },
+    { f:"Ca(OH)<sub>2</sub>", n:"Calcium hydroxide", s:true, r:"Slightly soluble, which counts as soluble (\u201climewater\u201d)." },
+    { f:"Mg(OH)<sub>2</sub>", n:"Magnesium hydroxide", s:false, r:"Most hydroxides are insoluble (\u201cmilk of magnesia\u201d is a suspension, not a solution)." },
+    { f:"Fe(OH)<sub>3</sub>", n:"Iron(III) hydroxide", s:false, r:"Most hydroxides are insoluble." },
+    { f:"Al(OH)<sub>3</sub>", n:"Aluminum hydroxide", s:false, r:"Most hydroxides are insoluble." },
+    { f:"Cu(OH)<sub>2</sub>", n:"Copper(II) hydroxide", s:false, r:"Most hydroxides are insoluble." },
+    { f:"Zn(OH)<sub>2</sub>", n:"Zinc hydroxide", s:false, r:"Most hydroxides are insoluble." },
+
+    // Carbonates
+    { f:"CaCO<sub>3</sub>", n:"Calcium carbonate", s:false, r:"Most carbonates are insoluble (limestone, chalk, marble)." },
+    { f:"BaCO<sub>3</sub>", n:"Barium carbonate", s:false, r:"Most carbonates are insoluble." },
+    { f:"MgCO<sub>3</sub>", n:"Magnesium carbonate", s:false, r:"Most carbonates are insoluble." },
+    { f:"PbCO<sub>3</sub>", n:"Lead(II) carbonate", s:false, r:"Most carbonates are insoluble." },
+    { f:"FeCO<sub>3</sub>", n:"Iron(II) carbonate", s:false, r:"Most carbonates are insoluble." },
+    { f:"Ag<sub>2</sub>CO<sub>3</sub>", n:"Silver carbonate", s:false, r:"Most carbonates are insoluble." },
+    { f:"ZnCO<sub>3</sub>", n:"Zinc carbonate", s:false, r:"Most carbonates are insoluble." },
+
+    // Phosphates
+    { f:"Ca<sub>3</sub>(PO<sub>4</sub>)<sub>2</sub>", n:"Calcium phosphate", s:false, r:"Most phosphates are insoluble." },
+    { f:"Ag<sub>3</sub>PO<sub>4</sub>", n:"Silver phosphate", s:false, r:"Most phosphates are insoluble \u2014 classic yellow precipitate." },
+    { f:"AlPO<sub>4</sub>", n:"Aluminum phosphate", s:false, r:"Most phosphates are insoluble." },
+    { f:"Pb<sub>3</sub>(PO<sub>4</sub>)<sub>2</sub>", n:"Lead(II) phosphate", s:false, r:"Most phosphates are insoluble." },
+    { f:"BaHPO<sub>4</sub>", n:"Barium hydrogen phosphate", s:false, r:"Most phosphates are insoluble." },
+
+    // Sulfides
+    { f:"CuS", n:"Copper(II) sulfide", s:false, r:"Most sulfides are insoluble." },
+    { f:"FeS", n:"Iron(II) sulfide", s:false, r:"Most sulfides are insoluble." },
+    { f:"PbS", n:"Lead(II) sulfide", s:false, r:"Most sulfides are insoluble (galena ore)." },
+    { f:"ZnS", n:"Zinc sulfide", s:false, r:"Most sulfides are insoluble." },
+    { f:"Ag<sub>2</sub>S", n:"Silver sulfide", s:false, r:"Most sulfides are insoluble (this is silver tarnish!)." },
+    { f:"CaS", n:"Calcium sulfide", s:true, r:"Exception: Group 2 sulfides are soluble." },
+    { f:"MgS", n:"Magnesium sulfide", s:true, r:"Exception: Group 2 sulfides are soluble." },
+    { f:"Na<sub>2</sub>S", n:"Sodium sulfide", s:true, r:"Group 1 cation \u2014 always soluble." },
+
+    // Chromates
+    { f:"PbCrO<sub>4</sub>", n:"Lead(II) chromate", s:false, r:"Most chromates are insoluble \u2014 \u201cchrome yellow\u201d pigment." },
+    { f:"BaCrO<sub>4</sub>", n:"Barium chromate", s:false, r:"Most chromates are insoluble." },
+    { f:"K<sub>2</sub>CrO<sub>4</sub>", n:"Potassium chromate", s:true, r:"Group 1 cation \u2014 always soluble." },
+    { f:"Na<sub>2</sub>CrO<sub>4</sub>", n:"Sodium chromate", s:true, r:"Group 1 cation \u2014 always soluble." },
+    { f:"Ag<sub>2</sub>CrO<sub>4</sub>", n:"Silver chromate", s:false, r:"Most chromates are insoluble \u2014 classic brick-red precipitate." }
+  ];
+
+  /* ---------------------------------------------------------------
+   * Persistent stats (localStorage)
+   * ------------------------------------------------------------- */
+  var STORAGE_KEY = "solubilityQuizStats_v1";
+  function loadStats(){
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { lastScore:null, lastTotal:null, highestPct:null, highestScore:null, highestTotal:null, bestStreak:0 };
+      return JSON.parse(raw);
+    } catch(e){
+      return { lastScore:null, lastTotal:null, highestPct:null, highestScore:null, highestTotal:null, bestStreak:0 };
+    }
+  }
+  function saveStats(stats){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stats)); } catch(e){ /* ignore */ }
+  }
+  var stats = loadStats();
+
+  function renderStatsPanel(){
+    var lastEl = document.getElementById('stat-last');
+    var highEl = document.getElementById('stat-high');
+    var streakEl = document.getElementById('stat-streak');
+    lastEl.textContent = (stats.lastScore === null) ? '\u2014' : (stats.lastScore + '/' + stats.lastTotal);
+    highEl.textContent = (stats.highestPct === null) ? '\u2014' : (Math.round(stats.highestPct) + '%');
+    streakEl.textContent = stats.bestStreak ? stats.bestStreak : '\u2014';
+  }
+  renderStatsPanel();
+
+  /* ---------------------------------------------------------------
+   * Quiz state
+   * ------------------------------------------------------------- */
+  var quiz = null; // { items:[], idx, score, streak, bestStreakThisRound, answered:bool, missed:[] }
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function startQuiz(len){
+    var pool = shuffle(compounds).slice(0, Math.min(len, compounds.length));
+    quiz = {
+      items: pool,
+      idx: 0,
+      score: 0,
+      streak: 0,
+      bestStreakThisRound: 0,
+      answered: false,
+      missed: []
+    };
+    showScreen('quiz');
+    renderQuestion();
+  }
+
+  function currentItem(){ return quiz.items[quiz.idx]; }
+
+  function renderQuestion(){
+    var item = currentItem();
+    document.getElementById('q-current').textContent = quiz.idx + 1;
+    document.getElementById('q-total').textContent = quiz.items.length;
+    document.getElementById('progress-fill').style.width = Math.round((quiz.idx / quiz.items.length) * 100) + '%';
+    document.getElementById('q-formula').innerHTML = item.f;
+    document.getElementById('q-name').textContent = item.n;
+
+    document.getElementById('live-score').textContent = quiz.score;
+    document.getElementById('live-streak').textContent = quiz.streak;
+    var attempted = quiz.idx;
+    document.getElementById('live-accuracy').textContent = attempted === 0 ? '\u2014' : Math.round((quiz.score / attempted) * 100) + '%';
+
+    var solBtn = document.getElementById('btn-soluble');
+    var insolBtn = document.getElementById('btn-insoluble');
+    [solBtn, insolBtn].forEach(function(b){
+      b.classList.remove('correct','incorrect','reveal');
+      b.disabled = false;
+    });
+    document.getElementById('feedback-box').classList.remove('show','correct','incorrect');
+    document.getElementById('btn-next').classList.add('hidden');
+    quiz.answered = false;
+  }
+
+  function answerQuestion(choice){
+    if (quiz.answered) return;
+    quiz.answered = true;
+    var item = currentItem();
+    var correctAnswer = item.s ? 'soluble' : 'insoluble';
+    var isCorrect = (choice === correctAnswer);
+
+    var solBtn = document.getElementById('btn-soluble');
+    var insolBtn = document.getElementById('btn-insoluble');
+    var chosenBtn = choice === 'soluble' ? solBtn : insolBtn;
+    var correctBtn = correctAnswer === 'soluble' ? solBtn : insolBtn;
+
+    if (isCorrect){
+      chosenBtn.classList.add('correct');
+      quiz.score++;
+      quiz.streak++;
+      if (quiz.streak > quiz.bestStreakThisRound) quiz.bestStreakThisRound = quiz.streak;
+    } else {
+      chosenBtn.classList.add('incorrect');
+      correctBtn.classList.add('reveal');
+      quiz.streak = 0;
+      quiz.missed.push({ f:item.f, n:item.n, correct:correctAnswer, r:item.r });
+    }
+    solBtn.disabled = true;
+    insolBtn.disabled = true;
+
+    var fb = document.getElementById('feedback-box');
+    fb.classList.add('show', isCorrect ? 'correct' : 'incorrect');
+    document.getElementById('feedback-verdict').textContent = isCorrect ? 'Correct!' : ('Not quite \u2014 ' + item.n + ' is ' + correctAnswer + '.');
+    document.getElementById('feedback-rule').textContent = item.r;
+
+    document.getElementById('live-score').textContent = quiz.score;
+    document.getElementById('live-streak').textContent = quiz.streak;
+    var attempted = quiz.idx + 1;
+    document.getElementById('live-accuracy').textContent = Math.round((quiz.score / attempted) * 100) + '%';
+
+    var nextBtn = document.getElementById('btn-next');
+    nextBtn.textContent = (quiz.idx + 1 >= quiz.items.length) ? 'See results \u2192' : 'Next question \u2192';
+    nextBtn.classList.remove('hidden');
+  }
+
+  function nextQuestion(){
+    quiz.idx++;
+    if (quiz.idx >= quiz.items.length){
+      finishQuiz();
+    } else {
+      renderQuestion();
+    }
+  }
+
+  function finishQuiz(){
+    var total = quiz.items.length;
+    var score = quiz.score;
+    var pct = (score / total) * 100;
+
+    var isNewHighScore = (stats.highestPct === null) || (pct > stats.highestPct);
+    var isNewBestStreak = quiz.bestStreakThisRound > (stats.bestStreak || 0);
+
+    stats.lastScore = score;
+    stats.lastTotal = total;
+    if (isNewHighScore){
+      stats.highestPct = pct;
+      stats.highestScore = score;
+      stats.highestTotal = total;
+    }
+    if (isNewBestStreak){
+      stats.bestStreak = quiz.bestStreakThisRound;
+    }
+    saveStats(stats);
+    renderStatsPanel();
+
+    document.getElementById('result-score').textContent = score + ' / ' + total;
+    document.getElementById('result-pct').textContent = Math.round(pct) + '% correct';
+
+    var badgeRow = document.getElementById('badge-row');
+    badgeRow.innerHTML = '';
+    if (isNewHighScore){
+      var b1 = document.createElement('span');
+      b1.className = 'badge gold';
+      b1.textContent = '\u2605 New highest score!';
+      badgeRow.appendChild(b1);
+    }
+    if (isNewBestStreak && quiz.bestStreakThisRound > 1){
+      var b2 = document.createElement('span');
+      b2.className = 'badge gold';
+      b2.textContent = '\u2605 New best streak: ' + quiz.bestStreakThisRound;
+      badgeRow.appendChild(b2);
+    }
+    if (!isNewHighScore && !isNewBestStreak){
+      var b3 = document.createElement('span');
+      b3.className = 'badge';
+      b3.textContent = 'Best streak this round: ' + quiz.bestStreakThisRound;
+      badgeRow.appendChild(b3);
+    }
+
+    var missedCard = document.getElementById('missed-card');
+    var missedList = document.getElementById('missed-list');
+    missedList.innerHTML = '';
+    if (quiz.missed.length === 0){
+      missedCard.classList.add('hidden');
+    } else {
+      missedCard.classList.remove('hidden');
+      quiz.missed.forEach(function(m){
+        var row = document.createElement('div');
+        row.className = 'missed-item';
+        row.innerHTML = '<span class="f">' + m.f + ' <span style="color:var(--ink-dim)">(' + m.n + ')</span></span>' +
+                         '<span class="a">' + m.correct + '</span>';
+        missedList.appendChild(row);
+      });
+    }
+
+    showScreen('results');
+  }
+
+  /* ---------------------------------------------------------------
+   * Screen management
+   * ------------------------------------------------------------- */
+  function showScreen(name){
+    document.getElementById('screen-menu').classList.toggle('hidden', name !== 'menu');
+    document.getElementById('screen-quiz').classList.toggle('hidden', name !== 'quiz');
+    document.getElementById('screen-results').classList.toggle('hidden', name !== 'results');
+  }
+
+  /* ---------------------------------------------------------------
+   * Event wiring
+   * ------------------------------------------------------------- */
+  document.querySelectorAll('.len-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var len = parseInt(btn.getAttribute('data-len'), 10);
+      startQuiz(len);
+    });
+  });
+
+  document.getElementById('btn-soluble').addEventListener('click', function(){ answerQuestion('soluble'); });
+  document.getElementById('btn-insoluble').addEventListener('click', function(){ answerQuestion('insoluble'); });
+  document.getElementById('btn-next').addEventListener('click', nextQuestion);
+
+  document.getElementById('btn-play-again').addEventListener('click', function(){
+    startQuiz(quiz.items.length);
+  });
+  document.getElementById('btn-change-length').addEventListener('click', function(){
+    showScreen('menu');
+  });
+
+  var restartBackdrop = document.getElementById('restart-backdrop');
+  document.getElementById('btn-restart').addEventListener('click', function(){
+    restartBackdrop.classList.add('show');
+  });
+  document.getElementById('restart-cancel').addEventListener('click', function(){
+    restartBackdrop.classList.remove('show');
+  });
+  document.getElementById('restart-confirm').addEventListener('click', function(){
+    restartBackdrop.classList.remove('show');
+    showScreen('menu');
+  });
+  restartBackdrop.addEventListener('click', function(e){
+    if (e.target === restartBackdrop) restartBackdrop.classList.remove('show');
+  });
+
+  // keyboard support: S / I keys to answer, Enter to advance
+  document.addEventListener('keydown', function(e){
+    var quizVisible = !document.getElementById('screen-quiz').classList.contains('hidden');
+    if (!quizVisible) return;
+    if (!quiz) return;
+    var k = e.key.toLowerCase();
+    if (!quiz.answered && k === 's'){ answerQuestion('soluble'); }
+    else if (!quiz.answered && k === 'i'){ answerQuestion('insoluble'); }
+    else if (quiz.answered && (k === 'enter' || k === ' ')){ e.preventDefault(); nextQuestion(); }
+  });
+
+})();
+</script>
+</body>
+</html>

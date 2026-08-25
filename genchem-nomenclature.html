@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <title>Chemical Nomenclature Practice</title>
@@ -9,19 +9,76 @@
     --bg: #f4f7fb;
     --surface: #ffffff;
     --surface-2: #f8fafc;
+    --surface-translucent: rgba(255,255,255,0.9);
+    --surface-border-translucent: rgba(255,255,255,0.65);
     --text: #1e293b;
+    --heading: #0f172a;
     --muted: #64748b;
     --border: #dbe3ee;
+    --border-hover: #cbd5e1;
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
     --accent: #0f766e;
+    --accent-hover: #0b5e57;
     --success: #166534;
     --success-bg: #ecfdf3;
+    --success-border: #b7ebc6;
     --error: #b42318;
     --error-bg: #fef3f2;
+    --error-border: #f7c3bd;
+    --warn-bg: #fff7ed;
+    --warn-bg-hover: #ffedd5;
+    --warn-text: #9a3412;
+    --warn-border: #fed7aa;
+    --code-bg: #eff6ff;
+    --code-text: #1d4ed8;
+    --table-header-bg: #f8fafc;
+    --table-header-text: #334155;
+    --table-row-alt: #fcfdff;
+    --modal-overlay: rgba(15, 23, 42, 0.50);
+    --hero-glow-1: #dbeafe;
+    --hero-glow-2: #e0f2fe;
+    --stat-bg: #f8fafc;
     --shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
     --radius: 16px;
     --radius-sm: 10px;
+  }
+
+  [data-theme="dark"] {
+    --bg: #0e1420;
+    --surface: #1a2231;
+    --surface-2: #141b28;
+    --surface-translucent: rgba(26,34,49,0.88);
+    --surface-border-translucent: rgba(255,255,255,0.08);
+    --text: #e2e8f0;
+    --heading: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #2d3b4d;
+    --border-hover: #3b4b60;
+    --primary: #60a5fa;
+    --primary-hover: #3b82f6;
+    --accent: #2dd4bf;
+    --accent-hover: #22b8a8;
+    --success: #4ade80;
+    --success-bg: rgba(74, 222, 128, 0.12);
+    --success-border: rgba(74, 222, 128, 0.35);
+    --error: #f87171;
+    --error-bg: rgba(248, 113, 113, 0.12);
+    --error-border: rgba(248, 113, 113, 0.35);
+    --warn-bg: rgba(251, 146, 60, 0.14);
+    --warn-bg-hover: rgba(251, 146, 60, 0.22);
+    --warn-text: #fdba74;
+    --warn-border: rgba(251, 146, 60, 0.4);
+    --code-bg: rgba(96, 165, 250, 0.14);
+    --code-text: #93c5fd;
+    --table-header-bg: #1e2938;
+    --table-header-text: #cbd5e1;
+    --table-row-alt: #171f2c;
+    --modal-overlay: rgba(0, 0, 0, 0.6);
+    --hero-glow-1: rgba(59, 130, 246, 0.14);
+    --hero-glow-2: rgba(45, 212, 191, 0.12);
+    --stat-bg: #141b28;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   }
 
   * { box-sizing: border-box; }
@@ -30,11 +87,12 @@
     margin: 0;
     font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background:
-      radial-gradient(circle at top left, #dbeafe 0%, transparent 28%),
-      radial-gradient(circle at top right, #e0f2fe 0%, transparent 26%),
+      radial-gradient(circle at top left, var(--hero-glow-1) 0%, transparent 28%),
+      radial-gradient(circle at top right, var(--hero-glow-2) 0%, transparent 26%),
       var(--bg);
     color: var(--text);
     line-height: 1.5;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   .page {
@@ -45,14 +103,21 @@
 
   .hero {
     margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
   }
+
+  .hero-text { max-width: 760px; }
 
   .hero h1 {
     margin: 0 0 10px;
     font-size: clamp(1.8rem, 2vw + 1rem, 2.6rem);
     line-height: 1.1;
     letter-spacing: -0.02em;
-    color: #0f172a;
+    color: var(--heading);
   }
 
   .hero p {
@@ -62,13 +127,30 @@
     font-size: 1rem;
   }
 
+  #themeToggleBtn {
+    flex-shrink: 0;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  #themeToggleBtn:hover {
+    background: var(--surface-2);
+    border-color: var(--border-hover);
+  }
+
   .app-card {
-    background: rgba(255,255,255,0.9);
+    background: var(--surface-translucent);
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.65);
+    border: 1px solid var(--surface-border-translucent);
     border-radius: 22px;
     box-shadow: var(--shadow);
     padding: 24px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 
   .controls-grid {
@@ -84,7 +166,7 @@
 
   label {
     font-weight: 700;
-    color: #0f172a;
+    color: var(--heading);
     font-size: 0.95rem;
   }
 
@@ -107,18 +189,24 @@
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
   }
 
+  select:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
   #prompt {
     margin: 4px 0 2px;
     padding: 18px 20px;
-    background: linear-gradient(180deg, #f8fbff 0%, #f1f5f9 100%);
-    border: 1px solid #dbeafe;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
     border-radius: 16px;
     font-size: 1.3rem;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--heading);
     min-height: 78px;
     display: flex;
     align-items: center;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 
   .formula {
@@ -173,15 +261,26 @@
     box-shadow: 0 8px 18px rgba(15, 118, 110, 0.22);
   }
 
-  #nextBtn:hover { background: #0b5e57; }
+  #nextBtn:hover { background: var(--accent-hover); }
 
   #showAnsBtn {
-    background: #fff7ed;
-    color: #9a3412;
-    border-color: #fed7aa;
+    background: var(--warn-bg);
+    color: var(--warn-text);
+    border-color: var(--warn-border);
   }
 
-  #showAnsBtn:hover { background: #ffedd5; }
+  #showAnsBtn:hover { background: var(--warn-bg-hover); }
+
+  #restartGameBtn {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  #restartGameBtn:hover {
+    background: var(--surface-2);
+    border-color: var(--border-hover);
+  }
 
   #showIonsBtn,
   #showPrefixesBtn,
@@ -201,7 +300,7 @@
   #showAcidRulesBtn:hover,
   #showHydrateRulesBtn:hover {
     background: var(--surface-2);
-    border-color: #cbd5e1;
+    border-color: var(--border-hover);
   }
 
   #feedback {
@@ -217,13 +316,13 @@
   #feedback.correct {
     color: var(--success);
     background: var(--success-bg);
-    border-color: #b7ebc6;
+    border-color: var(--success-border);
   }
 
   #feedback.incorrect {
     color: var(--error);
     background: var(--error-bg);
-    border-color: #f7c3bd;
+    border-color: var(--error-border);
   }
 
   .section-label {
@@ -238,11 +337,42 @@
   #gameStatus {
     margin-top: 8px;
     font-size: 0.9rem;
-    color: #64748b;
+    color: var(--muted);
   }
 
   #gameResults {
     margin-top: 16px;
+  }
+
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .stat-chip {
+    background: var(--stat-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    text-align: center;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .stat-chip .stat-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .stat-chip .stat-value {
+    margin-top: 2px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--heading);
   }
 
   .modal {
@@ -250,13 +380,13 @@
     position: fixed;
     inset: 0;
     padding: 24px;
-    background: rgba(15, 23, 42, 0.50);
+    background: var(--modal-overlay);
     backdrop-filter: blur(4px);
     z-index: 1000;
   }
 
   .modal-content {
-    background: white;
+    background: var(--surface);
     margin: 3vh auto 0;
     padding: 20px;
     width: min(760px, 100%);
@@ -264,20 +394,20 @@
     overflow: auto;
     border-radius: 20px;
     box-shadow: 0 25px 70px rgba(2, 6, 23, 0.28);
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border);
   }
 
   .modal-content h2 {
     margin-top: 10px;
     margin-bottom: 12px;
     font-size: 1.35rem;
-    color: #0f172a;
+    color: var(--heading);
   }
 
   .modal-content button {
-    background: #f8fafc;
-    color: #334155;
-    border: 1px solid #dbe3ee;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
   }
 
   table {
@@ -288,26 +418,26 @@
   }
 
   th, td {
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border);
     padding: 10px 12px;
     text-align: left;
     vertical-align: top;
   }
 
   th {
-    background: #f8fafc;
-    color: #334155;
+    background: var(--table-header-bg);
+    color: var(--table-header-text);
     font-weight: 800;
   }
 
-  tr:nth-child(even) td { background: #fcfdff; }
+  tr:nth-child(even) td { background: var(--table-row-alt); }
 
   ul { padding-left: 1.2rem; }
   li + li { margin-top: 0.45rem; }
 
   code {
-    background: #eff6ff;
-    color: #1d4ed8;
+    background: var(--code-bg);
+    color: var(--code-text);
     padding: 0.12rem 0.35rem;
     border-radius: 6px;
     font-size: 0.92em;
@@ -340,13 +470,16 @@
 
   <div class="page">
     <div class="hero">
-      <h1>Chemical Nomenclature Practice</h1>
-      <p>
-        Choose a practice type, then either name the species or write its formula.
-        Enter subscripts as regular numbers (for example, CaCl2) and charges using ^ symbol
-        when needed (for example, Fe^3+). For +1 and -1 ions, the ^ symbol is not needed.
-        For hydrates, use the asterisk * as the center dot (for example, KNO3*2H2O).
-      </p>
+      <div class="hero-text">
+        <h1>Chemical Nomenclature Practice</h1>
+        <p>
+          Choose a practice type, then either name the species or write its formula.
+          Enter subscripts as regular numbers (for example, CaCl2) and charges using ^ symbol
+          when needed (for example, Fe^3+). For +1 and -1 ions, the ^ symbol is not needed.
+          For hydrates, use the asterisk * as the center dot (for example, KNO3*2H2O).
+        </p>
+      </div>
+      <button id="themeToggleBtn" type="button">Dark mode</button>
     </div>
 
     <div class="app-card">
@@ -376,6 +509,14 @@
         </div>
 
         <div class="field-group" id="gameOptions" style="display:none;">
+          <label for="gameTypeSelect">Game type</label>
+          <select id="gameTypeSelect">
+            <option value="standard">Standard (uses Practice type above)</option>
+            <option value="challenge">Challenge (mixed categories)</option>
+          </select>
+        </div>
+
+        <div class="field-group" id="standardCountWrap" style="display:none;">
           <label for="gameQuestionCount">Questions in this game</label>
           <select id="gameQuestionCount">
             <option value="5">5 questions</option>
@@ -384,6 +525,39 @@
             <option value="20">20 questions</option>
             <option value="25">25 questions</option>
           </select>
+        </div>
+
+        <div class="field-group" id="challengeCountWrap" style="display:none;">
+          <label for="challengeQuestionCount">Questions in this challenge</label>
+          <select id="challengeQuestionCount">
+            <option value="20">20 questions</option>
+            <option value="30">30 questions</option>
+            <option value="40">40 questions</option>
+            <option value="50">50 questions</option>
+          </select>
+        </div>
+
+        <div class="stats-bar" id="statsBar" style="display:none;">
+          <div class="stat-chip">
+            <div class="stat-label">Score</div>
+            <div class="stat-value" id="statScore">0</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-label">Streak</div>
+            <div class="stat-value" id="statStreak">0</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-label">Best streak</div>
+            <div class="stat-value" id="statBestStreak">0</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-label">High score</div>
+            <div class="stat-value" id="statHighScore">0</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-label">Last score</div>
+            <div class="stat-value" id="statLastScore">–</div>
+          </div>
         </div>
 
         <div id="prompt"></div>
@@ -395,6 +569,7 @@
             <button id="checkBtn" type="button">Check Answer</button>
             <button id="nextBtn" type="button">Next Question</button>
             <button id="showAnsBtn" type="button">Show Correct Answer</button>
+            <button id="restartGameBtn" type="button" style="display:none;">Restart Game</button>
           </div>
         </div>
 
@@ -727,10 +902,15 @@ let attemptCount = 0;
 const MAX_ATTEMPTS_BEFORE_CHECK = 3;
 
 let gameMode = false;
+let gameType = 'standard'; // 'standard' | 'challenge'
 let gameQuestionTotal = 0;
 let gameScore = 0;
 let gamePenaltyHelp = 0;
+let gameStreak = 0;
 let gameLog = []; // entries: { mode, question, correctAnswer, userAnswers, usedHelp, maxPoints, remainingPoints, gotCorrect }
+
+let usedQuestionKeys = new Set(); // prevents repeat questions within one game
+let challengeQueue = null;        // array of mode numbers ('1'-'10') for challenge mode
 
 const categoryLabels = {
   nameIon: 'Ions',
@@ -745,47 +925,185 @@ const categoryLabels = {
   hydrateFormula: 'Hydrates'
 };
 
+// Each category maps to the pair of mode numbers that belong to it
+// (odd = "name it", even = "write the formula").
+const categoryModePairs = [
+  ['1', '2'],   // Ions
+  ['3', '4'],   // Ionic compounds
+  ['5', '6'],   // Molecular compounds
+  ['7', '8'],   // Acids
+  ['9', '10']   // Hydrates
+];
+const allModeNumbers = categoryModePairs.flat();
+
 const gameModeToggle = document.getElementById('gameModeToggle');
 const gameOptions = document.getElementById('gameOptions');
+const gameTypeSelect = document.getElementById('gameTypeSelect');
+const standardCountWrap = document.getElementById('standardCountWrap');
+const challengeCountWrap = document.getElementById('challengeCountWrap');
 const gameQuestionCountEl = document.getElementById('gameQuestionCount');
+const challengeQuestionCountEl = document.getElementById('challengeQuestionCount');
 const gameStatus = document.getElementById('gameStatus');
 const gameResults = document.getElementById('gameResults');
+const statsBar = document.getElementById('statsBar');
+const statScoreEl = document.getElementById('statScore');
+const statStreakEl = document.getElementById('statStreak');
+const statBestStreakEl = document.getElementById('statBestStreak');
+const statHighScoreEl = document.getElementById('statHighScore');
+const statLastScoreEl = document.getElementById('statLastScore');
+const practiceTypeSelect = document.getElementById('mode');
+const restartGameBtn = document.getElementById('restartGameBtn');
+
+// ------------ PERSISTED STATS (high score / last score / best streak) ------------
+const STATS_KEY = 'genchemNomenclatureStats';
+
+function loadPersistedStats() {
+  try {
+    const raw = localStorage.getItem(STATS_KEY);
+    if (!raw) return { highScore: 0, lastScore: null, bestStreak: 0 };
+    const parsed = JSON.parse(raw);
+    return {
+      highScore: Number(parsed.highScore) || 0,
+      lastScore: (parsed.lastScore === null || parsed.lastScore === undefined) ? null : Number(parsed.lastScore),
+      bestStreak: Number(parsed.bestStreak) || 0
+    };
+  } catch (e) {
+    return { highScore: 0, lastScore: null, bestStreak: 0 };
+  }
+}
+
+function savePersistedStats() {
+  try {
+    localStorage.setItem(STATS_KEY, JSON.stringify(persistedStats));
+  } catch (e) {
+    // localStorage unavailable; stats simply won't persist across sessions
+  }
+}
+
+let persistedStats = loadPersistedStats();
+
+function updateStatsDisplay() {
+  if (!gameMode) {
+    statsBar.style.display = 'none';
+    return;
+  }
+  statsBar.style.display = 'grid';
+  statScoreEl.textContent = gameScore;
+  statStreakEl.textContent = gameStreak;
+  statBestStreakEl.textContent = persistedStats.bestStreak;
+  statHighScoreEl.textContent = persistedStats.highScore;
+  statLastScoreEl.textContent = (persistedStats.lastScore === null) ? '–' : persistedStats.lastScore;
+}
+
+// ------------ CHALLENGE QUEUE (mixed categories, no repeats) ------------
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function buildChallengeQueue(total) {
+  const queue = [];
+  // Guarantee at least one question from every category first.
+  categoryModePairs.forEach(pair => {
+    queue.push(pair[Math.floor(Math.random() * pair.length)]);
+  });
+  // Fill the rest randomly across all categories/types.
+  while (queue.length < total) {
+    queue.push(allModeNumbers[Math.floor(Math.random() * allModeNumbers.length)]);
+  }
+  return shuffle(queue);
+}
 
 function resetGameState() {
-  gameQuestionTotal = gameMode ? parseInt(gameQuestionCountEl.value, 10) : 0;
+  gameType = gameTypeSelect.value;
+
+  if (!gameMode) {
+    gameQuestionTotal = 0;
+    gameScore = 0;
+    gamePenaltyHelp = 0;
+    gameStreak = 0;
+    gameLog = [];
+    usedQuestionKeys = new Set();
+    challengeQueue = null;
+    gameResults.innerHTML = '';
+    gameStatus.textContent = '';
+    updateStatsDisplay();
+    return;
+  }
+
+  gameQuestionTotal = gameType === 'challenge'
+    ? parseInt(challengeQuestionCountEl.value, 10)
+    : parseInt(gameQuestionCountEl.value, 10);
+
   gameScore = 0;
   gamePenaltyHelp = 0;
+  gameStreak = 0;
   gameLog = [];
+  usedQuestionKeys = new Set();
+  challengeQueue = gameType === 'challenge' ? buildChallengeQueue(gameQuestionTotal) : null;
+
+  practiceTypeSelect.disabled = (gameType === 'challenge');
+
+  standardCountWrap.style.display = gameType === 'challenge' ? 'none' : 'grid';
+  challengeCountWrap.style.display = gameType === 'challenge' ? 'grid' : 'none';
+
   gameResults.innerHTML = '';
   gameStatus.textContent = '';
+  updateStatsDisplay();
 }
 
 function updateGameStatus() {
   if (!gameMode) {
     gameStatus.textContent = '';
+    updateStatsDisplay();
     return;
   }
 
   const currentNumber = Math.min(gameLog.length, gameQuestionTotal);
 
   gameStatus.textContent =
-    'Game mode: ' +
+    (gameType === 'challenge' ? 'Challenge mode: ' : 'Game mode: ') +
     (currentNumber < gameQuestionTotal
       ? 'Question ' + currentNumber + ' of ' + gameQuestionTotal
       : 'Game finished') +
     ' | Score: ' + gameScore + ' pts' +
     (gamePenaltyHelp < 0 ? ' (Help penalties: ' + gamePenaltyHelp + ' pts)' : '');
+
+  updateStatsDisplay();
 }
 
 gameModeToggle.onchange = function () {
   gameMode = this.checked;
   gameOptions.style.display = gameMode ? 'block' : 'none';
+  restartGameBtn.style.display = gameMode ? 'inline-block' : 'none';
+  if (!gameMode) {
+    practiceTypeSelect.disabled = false;
+    standardCountWrap.style.display = 'none';
+    challengeCountWrap.style.display = 'none';
+  }
   resetGameState();
   newQuestion();
 };
 
-gameQuestionCountEl.onchange = function () {
+gameTypeSelect.onchange = function () {
   if (gameMode) {
+    resetGameState();
+    newQuestion();
+  }
+};
+
+gameQuestionCountEl.onchange = function () {
+  if (gameMode && gameType === 'standard') {
+    resetGameState();
+    newQuestion();
+  }
+};
+
+challengeQuestionCountEl.onchange = function () {
+  if (gameMode && gameType === 'challenge') {
     resetGameState();
     newQuestion();
   }
@@ -1010,6 +1328,135 @@ function showRules(ruleKey) {
 }
 
 // ====== QUESTION GENERATION ======
+function generateQuestionForMode(mode) {
+  switch (mode) {
+    case '1': {
+      const pool = ions.cations.concat(ions.anions);
+      if (pool.length === 0) {
+        throw new Error('Ion pool is empty or ions object is malformed');
+      }
+      const ion = randomItem(pool);
+      return {
+        type: 'nameIon',
+        answer: ion.name,
+        displayFormula: ion.formula,
+        promptHtml: 'Name this ion: ' + renderFormula(ion.formula)
+      };
+    }
+
+    case '2': {
+      const pool = ions.cations.concat(ions.anions);
+      if (pool.length === 0) {
+        throw new Error('Ion pool is empty or ions object is malformed');
+      }
+      const ion = randomItem(pool);
+      return {
+        type: 'ionFormula',
+        answer: ion.formula,
+        promptHtml: 'Write the formula for: ' + ion.name
+      };
+    }
+
+    case '3': {
+      const c = randomItem(ions.cations);
+      const a = randomItem(ions.anions);
+      const compound = makeIonicCompound(c, a);
+      return {
+        type: 'nameIonicCompound',
+        answer: compound.name,
+        displayFormula: compound.formula,
+        promptHtml: 'Name this ionic compound: ' + renderFormula(compound.formula)
+      };
+    }
+
+    case '4': {
+      const c = randomItem(ions.cations);
+      const a = randomItem(ions.anions);
+      const compound = makeIonicCompound(c, a);
+      return {
+        type: 'ionicFormula',
+        answer: compound.formula,
+        promptHtml: 'Write the formula for: ' + compound.name
+      };
+    }
+
+    case '5': {
+      const comp = makeRandomMolecular();
+      return {
+        type: 'nameMolecular',
+        answer: comp.name,
+        displayFormula: comp.formula,
+        promptHtml: 'Name this molecular compound: ' + renderFormula(comp.formula)
+      };
+    }
+
+    case '6': {
+      const comp = makeRandomMolecular();
+      return {
+        type: 'molecularFormula',
+        answer: comp.formula,
+        promptHtml: 'Write the formula for: ' + comp.name
+      };
+    }
+
+    case '7': {
+      const acid = randomItem(acids);
+      return {
+        type: 'nameAcid',
+        answer: acid.name,
+        displayFormula: acid.formula,
+        promptHtml: 'Name this acid: ' + renderFormula(acid.formula)
+      };
+    }
+
+    case '8': {
+      const acid = randomItem(acids);
+      return {
+        type: 'acidFormula',
+        answer: acid.formula,
+        promptHtml: 'Write the formula for: ' + acid.name
+      };
+    }
+
+    case '9': {
+      const h = randomItem(hydrates);
+      const formula = h.anhydrous + '·' + h.water + 'H2O';
+      return {
+        type: 'nameHydrate',
+        answer: h.name,
+        displayFormula: formula,
+        promptHtml: 'Name this hydrate: ' + renderFormula(formula)
+      };
+    }
+
+    case '10': {
+      const h = randomItem(hydrates);
+      const formula = h.anhydrous + '·' + h.water + 'H2O';
+      return {
+        type: 'hydrateFormula',
+        answer: formula,
+        promptHtml: 'Write the formula for: ' + h.name
+      };
+    }
+
+    default:
+      throw new Error('Unknown practice mode: ' + mode);
+  }
+}
+
+// Picks which mode number to generate a question for. In standard mode this is
+// just whatever the Practice type dropdown says; in challenge mode it pulls the
+// next entry from the pre-built, category-balanced challengeQueue.
+function pickModeForThisQuestion(modeSelectValue) {
+  if (gameMode && gameType === 'challenge' && challengeQueue) {
+    const idx = gameLog.length;
+    return challengeQueue[idx] || allModeNumbers[Math.floor(Math.random() * allModeNumbers.length)];
+  }
+  return modeSelectValue;
+}
+
+const MAX_UNIQUE_ATTEMPTS = 500; // safety valve so we never loop forever if a small pool runs dry
+
 function newQuestion() {
   const modeEl = document.getElementById('mode');
   const promptDiv = document.getElementById('prompt');
@@ -1021,7 +1468,7 @@ function newQuestion() {
     throw new Error('One or more required DOM elements are missing');
   }
 
-  const mode = modeEl.value;
+  const mode = pickModeForThisQuestion(modeEl.value);
   feedback.textContent = '';
   feedback.className = '';
   answerBox.value = '';
@@ -1030,129 +1477,23 @@ function newQuestion() {
   attemptCount = 0;
   showAnsBtn.style.display = gameMode ? 'none' : 'none';
 
-  switch (mode) {
-    case '1': {
-      const pool = ions.cations.concat(ions.anions);
-      if (pool.length === 0) {
-        throw new Error('Ion pool is empty or ions object is malformed');
-      }
-      const ion = randomItem(pool);
-      currentQuestion = {
-        type: 'nameIon',
-        answer: ion.name,
-        displayFormula: ion.formula
-      };
-      promptDiv.innerHTML = 'Name this ion: ' + renderFormula(ion.formula);
-      break;
-    }
+  // In game mode, keep re-rolling until we land on a question that hasn't
+  // been asked yet this game (bounded so a small, exhausted pool can't hang).
+  let candidate;
+  let key;
+  let attempts = 0;
+  do {
+    candidate = generateQuestionForMode(mode);
+    key = candidate.type + '::' + candidate.answer;
+    attempts += 1;
+  } while (gameMode && usedQuestionKeys.has(key) && attempts < MAX_UNIQUE_ATTEMPTS);
 
-    case '2': {
-      const pool = ions.cations.concat(ions.anions);
-      if (pool.length === 0) {
-        throw new Error('Ion pool is empty or ions object is malformed');
-      }
-      const ion = randomItem(pool);
-      currentQuestion = {
-        type: 'ionFormula',
-        answer: ion.formula
-      };
-      promptDiv.textContent = 'Write the formula for: ' + ion.name;
-      break;
-    }
-
-    case '3': {
-      const c = randomItem(ions.cations);
-      const a = randomItem(ions.anions);
-      const compound = makeIonicCompound(c, a);
-      currentQuestion = {
-        type: 'nameIonicCompound',
-        answer: compound.name,
-        displayFormula: compound.formula
-      };
-      promptDiv.innerHTML = 'Name this ionic compound: ' + renderFormula(compound.formula);
-      break;
-    }
-
-    case '4': {
-      const c = randomItem(ions.cations);
-      const a = randomItem(ions.anions);
-      const compound = makeIonicCompound(c, a);
-      currentQuestion = {
-        type: 'ionicFormula',
-        answer: compound.formula
-      };
-      promptDiv.textContent = 'Write the formula for: ' + compound.name;
-      break;
-    }
-
-    case '5': {
-      const comp = makeRandomMolecular();
-      currentQuestion = {
-        type: 'nameMolecular',
-        answer: comp.name,
-        displayFormula: comp.formula
-      };
-      promptDiv.innerHTML = 'Name this molecular compound: ' + renderFormula(comp.formula);
-      break;
-    }
-
-    case '6': {
-      const comp = makeRandomMolecular();
-      currentQuestion = {
-        type: 'molecularFormula',
-        answer: comp.formula
-      };
-      promptDiv.textContent = 'Write the formula for: ' + comp.name;
-      break;
-    }
-
-    case '7': {
-      const acid = randomItem(acids);
-      currentQuestion = {
-        type: 'nameAcid',
-        answer: acid.name,
-        displayFormula: acid.formula
-      };
-      promptDiv.innerHTML = 'Name this acid: ' + renderFormula(acid.formula);
-      break;
-    }
-
-    case '8': {
-      const acid = randomItem(acids);
-      currentQuestion = {
-        type: 'acidFormula',
-        answer: acid.formula
-      };
-      promptDiv.textContent = 'Write the formula for: ' + acid.name;
-      break;
-    }
-
-    case '9': {
-      const h = randomItem(hydrates);
-      const formula = h.anhydrous + '·' + h.water + 'H2O';
-      currentQuestion = {
-        type: 'nameHydrate',
-        answer: h.name,
-        displayFormula: formula
-      };
-      promptDiv.innerHTML = 'Name this hydrate: ' + renderFormula(formula);
-      break;
-    }
-
-    case '10': {
-      const h = randomItem(hydrates);
-      const formula = h.anhydrous + '·' + h.water + 'H2O';
-      currentQuestion = {
-        type: 'hydrateFormula',
-        answer: formula
-      };
-      promptDiv.textContent = 'Write the formula for: ' + h.name;
-      break;
-    }
-
-    default:
-      throw new Error('Unknown practice mode: ' + mode);
+  if (gameMode) {
+    usedQuestionKeys.add(key);
   }
+
+  currentQuestion = candidate;
+  promptDiv.innerHTML = candidate.promptHtml;
 
   if (gameMode) {
     gameLog.push({
@@ -1202,6 +1543,11 @@ function checkAnswer() {
 
     if (entry.gotCorrect) {
       gameScore += entry.remainingPoints;
+      gameStreak += 1;
+      if (gameStreak > persistedStats.bestStreak) {
+        persistedStats.bestStreak = gameStreak;
+        savePersistedStats();
+      }
 
       feedback.className = 'correct';
       if (mode === 'nameIon' || mode === 'nameIonicCompound' ||
@@ -1248,6 +1594,7 @@ function checkAnswer() {
       feedback.innerHTML =
         'Incorrect (attempt 3 of 3). No more attempts for this question. ' +
         'Click "Next Question" to continue.';
+      gameStreak = 0;
     }
 
     showAnsBtn.style.display = 'none';
@@ -1366,10 +1713,21 @@ function finishGame() {
     }
   });
 
+  const isNewHighScore = gameScore > persistedStats.highScore;
+  if (isNewHighScore) {
+    persistedStats.highScore = gameScore;
+  }
+  persistedStats.lastScore = gameScore;
+  savePersistedStats();
+  updateStatsDisplay();
+
   let html = '<h3>Game Results</h3>';
   html += '<p>Total score: <strong>' + gameScore + ' pts</strong>';
   if (gamePenaltyHelp < 0) {
     html += ' (includes ' + gamePenaltyHelp + ' pts from help penalties)';
+  }
+  if (isNewHighScore) {
+    html += ' — new high score!';
   }
   html += '</p>';
 
@@ -1464,6 +1822,13 @@ document.getElementById('mode').onchange = function () {
   newQuestion();
 };
 
+restartGameBtn.onclick = function (e) {
+  if (e) e.preventDefault();
+  if (!gameMode) return;
+  resetGameState();
+  newQuestion();
+};
+
 document.getElementById('showIonsBtn').onclick = function (e) {
   if (e) e.preventDefault();
   buildIonTable();
@@ -1532,6 +1897,38 @@ document.getElementById('showHydrateRulesBtn').onclick = function (e) {
 setupModalBackgroundClose('ionModal');
 setupModalBackgroundClose('prefixModal');
 setupModalBackgroundClose('rulesModal');
+
+// ====== THEME (light / dark) ======
+const THEME_KEY = 'genchemNomenclatureTheme';
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggleBtn.textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
+  try {
+    localStorage.setItem(THEME_KEY, theme);
+  } catch (e) {
+    // localStorage unavailable; theme just won't persist across sessions
+  }
+}
+
+(function initTheme() {
+  let storedTheme = null;
+  try {
+    storedTheme = localStorage.getItem(THEME_KEY);
+  } catch (e) {
+    storedTheme = null;
+  }
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(storedTheme || (prefersDark ? 'dark' : 'light'));
+})();
+
+themeToggleBtn.onclick = function () {
+  const current = document.documentElement.getAttribute('data-theme');
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+};
+
+updateStatsDisplay();
 newQuestion();
 </script>
 

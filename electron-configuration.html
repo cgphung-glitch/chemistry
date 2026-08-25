@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Electron Configuration Trainer</title>
+  <style>
+    :root {
+      font-size: 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #fafafa;
+      color: #222;
+    }
+
+    header {
+      padding: 1rem;
+      background: #283593;
+      color: #fff;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    main {
+      padding: 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    section {
+      margin-bottom: 1.5rem;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.1rem;
+    }
+
+    button,
+    select,
+    input[type="text"] {
+      font-size: 1rem;
+      padding: 0.75rem 1rem;
+      margin: 0.25rem 0;
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #3949ab;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background-color: #b0bec5;
+      cursor: default;
+    }
+
+    button:hover:not(:disabled) {
+      background-color: #303f9f;
+    }
+
+    label {
+      display: block;
+      margin-top: 0.5rem;
+      margin-bottom: 0.25rem;
+      font-size: 0.95rem;
+    }
+
+    fieldset {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      margin: 0.5rem 0;
+    }
+
+    legend {
+      font-size: 0.9rem;
+      padding: 0 0.25rem;
+    }
+
+    .buttons-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    @media (min-width: 600px) {
+      .buttons-row {
+        flex-direction: row;
+      }
+      button {
+        width: auto;
+        flex: 1;
+      }
+    }
+
+    #practice-score,
+    #game-score,
+    #practice-feedback,
+    #game-feedback,
+    #game-progress {
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    #practice-mistakes {
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    .mistake-part {
+      padding: 0.2rem 0.3rem;
+      margin: 0.1rem;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    .mistake-correct {
+      background-color: #e0f7e9;
+    }
+
+    .mistake-wrong {
+      background-color: #fde0e0;
+    }
+
+    .mistake-missing {
+      background-color: #fff4d6;
+    }
+
+    #practice-mistakes-legend {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .legend-item {
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+
+    .legend-correct {
+      color: #1a7f3c;
+    }
+
+    .legend-wrong {
+      color: #c62828;
+    }
+
+    .legend-missing {
+      color: #e65100;
+    }
+
+    .practice-mistakes-summary {
+      margin-bottom: 0.25rem;
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    /* Simple divider */
+    .divider {
+      height: 1px;
+      background: #ddd;
+      margin: 1rem 0;
+    }
+
+    /* Mini periodic table */
+    .mini-ptable {
+      display: grid;
+      grid-template-columns: repeat(18, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 0.75rem;
+      max-width: 100%;
+    }
+
+    .mini-ptable .cell {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.5rem;
+      line-height: 1;
+      border-radius: 2px;
+      background-color: #e8eaf6;
+      color: #444;
+      user-select: none;
+    }
+
+    @media (min-width: 600px) {
+      .mini-ptable .cell {
+        font-size: 0.6rem;
+      }
+    }
+
+    .mini-ptable .cell.block-s { background-color: #ffe0b2; }
+    .mini-ptable .cell.block-p { background-color: #c8e6c9; }
+    .mini-ptable .cell.block-d { background-color: #bbdefb; }
+    .mini-ptable .cell.block-f { background-color: #e1bee7; }
+
+    .mini-ptable .cell.current {
+      background-color: #3949ab;
+      color: #fff;
+      font-weight: bold;
+      box-shadow: 0 0 0 1px #1a237e;
+    }
+
+    .mini-ptable .cell.empty {
+      background: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Electron Configuration Trainer</h1>
+  </header>
+
+  <main>
+    <!-- Home view -->
+    <section id="home-view">
+      <h2>Modes</h2>
+      <button id="practice-btn">Practice Mode</button>
+      <button id="game-btn">Game Mode</button>
+
+      <div class="divider"></div>
+
+      <h2>Game options</h2>
+      <label for="game-length">Game length:</label>
+      <select id="game-length">
+        <option value="10">10 elements</option>
+        <option value="20">20 elements</option>
+        <option value="30">30 elements</option>
+        <option value="40">40 elements</option>
+        <option value="50">50 elements</option>
+      </select>
+    </section>
+
+    <!-- Practice view -->
+    <section id="practice-view" hidden>
+      <h2>Practice Mode</h2>
+
+      <label for="practice-element">Choose element:</label>
+      <select id="practice-element"></select>
+
+      <fieldset id="practice-format">
+        <legend>Answer format</legend>
+        <label>
+          <input type="radio" name="practiceFormat" value="long" checked>
+          Long configuration
+        </label>
+        <label>
+          <input type="radio" name="practiceFormat" value="short">
+          Noble gas shorthand
+        </label>
+        <label>
+          <input type="radio" name="practiceFormat" value="either">
+          Accept either
+        </label>
+      </fieldset>
+
+      <label>
+        <input type="checkbox" id="practice-show-mistakes" checked>
+        Show mistakes for this answer
+      </label>
+
+      <label for="practice-input">Electron configuration:</label>
+      <input id="practice-input" type="text" autocomplete="off" />
+
+      <div class="buttons-row">
+        <button id="practice-check">Check answer</button>
+        <button id="practice-show">Show answer</button>
+        <button id="practice-reset">Reset answer</button>
+        <button id="practice-back">Back</button>
+      </div>
+
+      <p id="practice-feedback"></p>
+      <p id="practice-score">Score: 0 / 0</p>
+
+      <div id="practice-periodic-table" class="mini-ptable"></div>
+
+      <div id="practice-mistakes"></div>
+
+      <div id="practice-mistakes-legend">
+        <span class="legend-item legend-correct">Green: correct subshell</span>
+        <span class="legend-item legend-wrong">Red: incorrect or extra subshell</span>
+        <span class="legend-item legend-missing">Orange: missing subshell</span>
+      </div>
+    </section>
+
+    <!-- Game view -->
+    <section id="game-view" hidden>
+      <h2>Game Mode</h2>
+      <p id="game-progress"></p>
+      <p id="game-element-label"></p>
+
+      <input id="game-input" type="text" autocomplete="off" />
+
+      <div class="buttons-row">
+        <button id="game-check">Check answer</button>
+        <button id="game-reset">Reset answer</button>
+        <button id="game-next" disabled>Next</button>
+        <button id="game-end">End game</button>
+      </div>
+
+      <p id="game-feedback"></p>
+      <p id="game-score">Score: 0 / 0</p>
+
+      <div id="game-periodic-table" class="mini-ptable"></div>
+    </section>
+  </main>
+
+  <script>
+    /****************************************************************
+     * Element and configuration data
+     * For brevity, this includes a subset plus placeholders.
+     * You can extend to all 118 elements following this pattern.
+     ****************************************************************/
+
+    // Minimal element list with d/f flags; extend to all 118.
+    const elements = [
+      { Z: 1, symbol: "H",  name: "Hydrogen",      hasD: false, hasF: false },
+      { Z: 2, symbol: "He", name: "Helium",        hasD: false, hasF: false },
+      { Z: 3, symbol: "Li", name: "Lithium",       hasD: false, hasF: false },
+      { Z: 4, symbol: "Be", name: "Beryllium",     hasD: false, hasF: false },
+      { Z: 5, symbol: "B",  name: "Boron",         hasD: false, hasF: false },
+      { Z: 6, symbol: "C",  name: "Carbon",        hasD: false, hasF: false },
+      { Z: 7, symbol: "N",  name: "Nitrogen",      hasD: false, hasF: false },
+      { Z: 8, symbol: "O",  name: "Oxygen",        hasD: false, hasF: false },
+      { Z: 9, symbol: "F",  name: "Fluorine",      hasD: false, hasF: false },
+      { Z: 10, symbol: "Ne", name: "Neon",         hasD: false, hasF: false },
+      { Z: 11, symbol: "Na", name: "Sodium",       hasD: false, hasF: false },
+      { Z: 12, symbol: "Mg", name: "Magnesium",    hasD: false, hasF: false },
+      { Z: 13, symbol: "Al", name: "Aluminium",    hasD: false, hasF: false },
+      { Z: 14, symbol: "Si", name: "Silicon",      hasD: false, hasF: false },
+      { Z: 15, symbol: "P",  name: "Phosphorus",   hasD: false, hasF: false },
+      { Z: 16, symbol: "S",  name: "Sulfur",       hasD: false, hasF: false },
+      { Z: 17, symbol: "Cl", name: "Chlorine",     hasD: false, hasF: false },
+      { Z: 18, symbol: "Ar", name: "Argon",        hasD: false, hasF: false },
+      { Z: 19, symbol: "K",  name: "Potassium",    hasD: false, hasF: false },
+      { Z: 20, symbol: "Ca", name: "Calcium",      hasD: false, hasF: false },
+
+      // d-block examples
+      { Z: 21, symbol: "Sc", name: "Scandium",     hasD: true,  hasF: false },
+      { Z: 22, symbol: "Ti", name: "Titanium",     hasD: true,  hasF: false },
+      { Z: 23, symbol: "V",  name: "Vanadium",     hasD: true,  hasF: false },
+      { Z: 24, symbol: "Cr", name: "Chromium",     hasD: true,  hasF: false },
+      { Z: 25, symbol: "Mn", name: "Manganese",    hasD: true,  hasF: false },
+      { Z: 26, symbol: "Fe", name: "Iron",         hasD: true,  hasF: false },
+      { Z: 27, symbol: "Co", name: "Cobalt",       hasD: true,  hasF: false },
+      { Z: 28, symbol: "Ni", name: "Nickel",       hasD: true,  hasF: false },
+      { Z: 29, symbol: "Cu", name: "Copper",       hasD: true,  hasF: false },
+      { Z: 30, symbol: "Zn", name: "Zinc",         hasD: true,  hasF: false },
+      { Z: 31, symbol: "Ga", name: "Gallium",      hasD: true,  hasF: false },
+      { Z: 32, symbol: "Ge", name: "Germanium",    hasD: true,  hasF: false },
+      { Z: 33, symbol: "As", name: "Arsenic",      hasD: true,  hasF: false },
+      { Z: 34, symbol: "Se", name: "Selenium",     hasD: true,  hasF: false },
+      { Z: 35, symbol: "Br", name: "Bromine",      hasD: true,  hasF: false },
+      { Z: 36, symbol: "Kr", name: "Krypton",      hasD: true,  hasF: false },
+      { Z: 37, symbol: "Rb", name: "Rubidium",     hasD: false,  hasF: false },
+      { Z: 38, symbol: "Sr", name: "Strontium",    hasD: false,  hasF: false },
+      { Z: 39, symbol: "Y",  name: "Yttrium",      hasD: true,   hasF: false },
+      { Z: 40, symbol: "Zr", name: "Zirconium",    hasD: true,   hasF: false },
+      { Z: 41, symbol: "Nb", name: "Niobium",      hasD: true,   hasF: false },
+      { Z: 42, symbol: "Mo", name: "Molybdenum",   hasD: true,   hasF: false },
+      { Z: 43, symbol: "Tc", name: "Technetium",   hasD: true,   hasF: false },
+      { Z: 44, symbol: "Ru", name: "Ruthenium",    hasD: true,   hasF: false },
+      { Z: 45, symbol: "Rh", name: "Rhodium",      hasD: true,   hasF: false },
+      { Z: 46, symbol: "Pd", name: "Palladium",    hasD: true,   hasF: false },
+      { Z: 47, symbol: "Ag", name: "Silver",       hasD: true,   hasF: false },
+      { Z: 48, symbol: "Cd", name: "Cadmium",      hasD: true,   hasF: false },
+      { Z: 49, symbol: "In", name: "Indium",       hasD: true,   hasF: false },
+      { Z: 50, symbol: "Sn", name: "Tin",          hasD: true,   hasF: false },
+      { Z: 51, symbol: "Sb", name: "Antimony",     hasD: true,   hasF: false },
+      { Z: 52, symbol: "Te", name: "Tellurium",    hasD: true,   hasF: false },
+      { Z: 53, symbol: "I",  name: "Iodine",       hasD: true,   hasF: false },
+      { Z: 54, symbol: "Xe", name: "Xenon",        hasD: true,   hasF: false },
+      { Z: 55, symbol: "Cs", name: "Cesium",       hasD: false,  hasF: false },
+      { Z: 56, symbol: "Ba", name: "Barium",       hasD: false,  hasF: false },
+
+      // f-block examples (lanthanides/actinides placeholders)
+      { Z: 57, symbol: "La", name: "Lanthanum",    hasD: false, hasF: true },
+      { Z: 58, symbol: "Ce", name: "Cerium",       hasD: false, hasF: true },
+      { Z: 59, symbol: "Pr", name: "Praseodymium", hasD: false, hasF: true },
+      { Z: 60, symbol: "Nd", name: "Neodymium",    hasD: false, hasF: true },
+      { Z: 61, symbol: "Pm", name: "Promethium",   hasD: false, hasF: true },
+      { Z: 62, symbol: "Sm", name: "Samarium",     hasD: false, hasF: true },
+      { Z: 63, symbol: "Eu", name: "Europium",     hasD: false, hasF: true },
+      { Z: 64, symbol: "Gd", name: "Gadolinium",   hasD: false, hasF: true },
+      { Z: 65, symbol: "Tb", name: "Terbium",      hasD: false, hasF: true },
+      { Z: 66, symbol: "Dy", name: "Dysprosium",   hasD: false, hasF: true },
+      { Z: 67, symbol: "Ho", name: "Holmium",      hasD: false, hasF: true },
+      { Z: 68, symbol: "Er", name: "Erbium",       hasD: false, hasF: true },
+      { Z: 69, symbol: "Tm", name: "Thulium",      hasD: false, hasF: true },
+      { Z: 70, symbol: "Yb", name: "Ytterbium",    hasD: false, hasF: true },
+      { Z: 74, symbol: "W",  name: "Tungsten",     hasD: true,  hasF: true },
+      { Z: 79, symbol: "Au", name: "Gold",         hasD: true,  hasF: true },
+      { Z: 80, symbol: "Hg", name: "Mercury",      hasD: true,  hasF: true },
+      { Z: 81, symbol: "Tl", name: "Thallium",     hasD: true,  hasF: true },
+      { Z: 89, symbol: "Ac", name: "Actinium",     hasD: true,  hasF: true },
+      { Z: 94, symbol: "Pu", name: "Plutonium",    hasD: false, hasF: true },
+      { Z: 102, symbol: "No", name: "Nobelium",    hasD: false, hasF: true },
+      { Z: 106, symbol: "Sg", name: "Seaborgium",  hasD: true,  hasF: true },
+      { Z: 111, symbol: "Rg", name: "Roentgenium", hasD: true,  hasF: true }
+      // Extend with all remaining elements...
+    ];
+
+    // Long and shorthand configurations for key elements and exceptions.
+    // Extend to all 118 following this structure.
+    const elementConfigs = {
+      1: { long: "1s1", short: "" }, // placeholder shorthand; adjust if you only allow from He onwards
+      2: { long: "1s2", short: "[He]" },
+      11: { long: "1s2 2s2 2p6 3s1", short: "[Ne] 3s1" },
+      19: { long: "1s2 2s2 2p6 3s2 3p6 4s1", short: "[Ar] 4s1" },
+
+      // Chromium exception
+      24: {
+        long: "1s2 2s2 2p6 3s2 3p6 4s1 3d5",
+        short: "[Ar] 4s1 3d5"
+      },
+      // Copper exception
+      29: {
+        long: "1s2 2s2 2p6 3s2 3p6 4s1 3d10",
+        short: "[Ar] 4s1 3d10"
+      },
+      // Molybdenum exception
+      42: {
+        long: "1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1 4d5",
+        short: "[Kr] 5s1 4d5"
+      },
+      // Silver exception
+      47: {
+        long: "1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1 4d10",
+        short: "[Kr] 5s1 4d10"
+      },
+      // Tungsten (simplified)
+      74: {
+        long: "1s2 2s2 2p6 3s2 3p6 4s2 3d10 5s2 4d10 5p6 6s1 4f14 5d5",
+        short: "[Xe] 6s1 4f14 5d6"
+      },
+      // Gold
+      79: {
+        long: "1s2 2s2 2p6 3s2 3p6 4s2 3d10 5s2 4d10 5p6 6s1 4f14 5d10",
+        short: "[Xe] 6s1 4f14 5d10"
+      },
+      // Sm, Yb, Pu, No, Sg, Rg — simplified placeholders
+      62: { long: "1s2 2s2 2p6 3s2 3p6 4s2 3d10 5s2 4d10 5p6 6s1 4f7",  short: "[Xe] 6s1 4f7" },
+      70: { long: "1s2 2s2 2p6 3s2 3p6 4s2 3d10 5s2 4d10 5p6 6s1 4f14", short: "[Xe] 6s1 4f14" },
+      94: { long: "1s2 2s2 2p6 3s2 3p6 4s2 3d10 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s1 5f7",  short: "[Rn] 7s1 5f7" },
+      102:{ long: "1s2 2s2 2p6 3s2 3p6 4s2 3d10 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s1 5f14", short: "[Rn] 7s1 5f14" },
+      106:{ long: "1s2 2s2 2p6 3s2 3p6 4s2 3d10 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s1 5f14 6d5", short: "[Rn] 7s1 5f14 6d5" },
+      111:{ long: "1s2 2s2 2p6 3s2 3p6 4s2 3d10 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s1 5f14 6d10", short: "[Rn] 7s1 5f14 6d10" }
+      // Fill in all other elements with accurate long/short configs.
+    };
+
+    // Fallback: simple Aufbau-like builder if a config is missing.
+    const subshellOrder = [
+      "1s", "2s", "2p",
+      "3s", "3p", "4s",
+      "3d", "4p", "5s",
+      "4d", "5p", "6s",
+      "4f", "5d", "6p", "7s",
+      "5f", "6d", "7p"
+    ];
+
+    const subshellCapacity = { s: 2, p: 6, d: 10, f: 14 };
+
+    function buildConfigAtomicNumber(Z) {
+      const parts = [];
+      let remaining = Z;
+      for (const subshell of subshellOrder) {
+        if (remaining <= 0) break;
+        const l = subshell.slice(-1);
+        const cap = subshellCapacity[l];
+        const fill = Math.min(cap, remaining);
+        parts.push(subshell + fill);
+        remaining -= fill;
+      }
+      return parts.join(" ");
+    }
+
+    // Noble gases used as shorthand reference points, in increasing Z order.
+    const nobleGases = [
+      { Z: 2, symbol: "He" },
+      { Z: 10, symbol: "Ne" },
+      { Z: 18, symbol: "Ar" },
+      { Z: 36, symbol: "Kr" },
+      { Z: 54, symbol: "Xe" },
+      { Z: 86, symbol: "Rn" }
+    ];
+
+    function buildShorthandFromLong(Z, long) {
+      // Find the largest noble gas with a smaller atomic number.
+      let ng = null;
+      for (const g of nobleGases) {
+        if (g.Z < Z) {
+          ng = g;
+        } else {
+          break;
+        }
+      }
+      if (!ng) return long; // H and He have no smaller noble gas to reference
+
+      const ngConfig = buildConfigAtomicNumber(ng.Z);
+      if (long.startsWith(ngConfig)) {
+        const remainder = long.slice(ngConfig.length).trim();
+        return remainder ? `[${ng.symbol}] ${remainder}` : `[${ng.symbol}]`;
+      }
+      return long; // fallback safety net; shouldn't happen for aufbau-ordered configs
+    }
+
+    function getElectronConfigVariants(Z) {
+      const existing = elementConfigs[Z];
+      if (existing) return existing;
+
+      const long = buildConfigAtomicNumber(Z);
+      const short = buildShorthandFromLong(Z, long);
+      return { long, short };
+    }
+
+    /****************************************************************
+     * Mini periodic table (visual reference / progress indicator)
+     ****************************************************************/
+
+    // [Z, symbol, row, col, block]
+    const periodicLayout = [
+      [1, "H", 1, 1, "s"], [2, "He", 1, 18, "s"],
+      [3, "Li", 2, 1, "s"], [4, "Be", 2, 2, "s"],
+      [5, "B", 2, 13, "p"], [6, "C", 2, 14, "p"], [7, "N", 2, 15, "p"],
+      [8, "O", 2, 16, "p"], [9, "F", 2, 17, "p"], [10, "Ne", 2, 18, "p"],
+      [11, "Na", 3, 1, "s"], [12, "Mg", 3, 2, "s"],
+      [13, "Al", 3, 13, "p"], [14, "Si", 3, 14, "p"], [15, "P", 3, 15, "p"],
+      [16, "S", 3, 16, "p"], [17, "Cl", 3, 17, "p"], [18, "Ar", 3, 18, "p"],
+      [19, "K", 4, 1, "s"], [20, "Ca", 4, 2, "s"],
+      [21, "Sc", 4, 3, "d"], [22, "Ti", 4, 4, "d"], [23, "V", 4, 5, "d"],
+      [24, "Cr", 4, 6, "d"], [25, "Mn", 4, 7, "d"], [26, "Fe", 4, 8, "d"],
+      [27, "Co", 4, 9, "d"], [28, "Ni", 4, 10, "d"], [29, "Cu", 4, 11, "d"],
+      [30, "Zn", 4, 12, "d"],
+      [31, "Ga", 4, 13, "p"], [32, "Ge", 4, 14, "p"], [33, "As", 4, 15, "p"],
+      [34, "Se", 4, 16, "p"], [35, "Br", 4, 17, "p"], [36, "Kr", 4, 18, "p"],
+      [37, "Rb", 5, 1, "s"], [38, "Sr", 5, 2, "s"],
+      [39, "Y", 5, 3, "d"], [40, "Zr", 5, 4, "d"], [41, "Nb", 5, 5, "d"],
+      [42, "Mo", 5, 6, "d"], [43, "Tc", 5, 7, "d"], [44, "Ru", 5, 8, "d"],
+      [45, "Rh", 5, 9, "d"], [46, "Pd", 5, 10, "d"], [47, "Ag", 5, 11, "d"],
+      [48, "Cd", 5, 12, "d"],
+      [49, "In", 5, 13, "p"], [50, "Sn", 5, 14, "p"], [51, "Sb", 5, 15, "p"],
+      [52, "Te", 5, 16, "p"], [53, "I", 5, 17, "p"], [54, "Xe", 5, 18, "p"],
+      [55, "Cs", 6, 1, "s"], [56, "Ba", 6, 2, "s"],
+      [57, "La", 9, 3, "f"], [58, "Ce", 9, 4, "f"], [59, "Pr", 9, 5, "f"],
+      [60, "Nd", 9, 6, "f"], [61, "Pm", 9, 7, "f"], [62, "Sm", 9, 8, "f"],
+      [63, "Eu", 9, 9, "f"], [64, "Gd", 9, 10, "f"], [65, "Tb", 9, 11, "f"],
+      [66, "Dy", 9, 12, "f"], [67, "Ho", 9, 13, "f"], [68, "Er", 9, 14, "f"],
+      [69, "Tm", 9, 15, "f"], [70, "Yb", 9, 16, "f"], [71, "Lu", 9, 17, "f"],
+      [72, "Hf", 6, 4, "d"], [73, "Ta", 6, 5, "d"], [74, "W", 6, 6, "d"],
+      [75, "Re", 6, 7, "d"], [76, "Os", 6, 8, "d"], [77, "Ir", 6, 9, "d"],
+      [78, "Pt", 6, 10, "d"], [79, "Au", 6, 11, "d"], [80, "Hg", 6, 12, "d"],
+      [81, "Tl", 6, 13, "p"], [82, "Pb", 6, 14, "p"], [83, "Bi", 6, 15, "p"],
+      [84, "Po", 6, 16, "p"], [85, "At", 6, 17, "p"], [86, "Rn", 6, 18, "p"],
+      [87, "Fr", 7, 1, "s"], [88, "Ra", 7, 2, "s"],
+      [89, "Ac", 10, 3, "f"], [90, "Th", 10, 4, "f"], [91, "Pa", 10, 5, "f"],
+      [92, "U", 10, 6, "f"], [93, "Np", 10, 7, "f"], [94, "Pu", 10, 8, "f"],
+      [95, "Am", 10, 9, "f"], [96, "Cm", 10, 10, "f"], [97, "Bk", 10, 11, "f"],
+      [98, "Cf", 10, 12, "f"], [99, "Es", 10, 13, "f"], [100, "Fm", 10, 14, "f"],
+      [101, "Md", 10, 15, "f"], [102, "No", 10, 16, "f"], [103, "Lr", 10, 17, "f"],
+      [104, "Rf", 7, 4, "d"], [105, "Db", 7, 5, "d"], [106, "Sg", 7, 6, "d"],
+      [107, "Bh", 7, 7, "d"], [108, "Hs", 7, 8, "d"], [109, "Mt", 7, 9, "d"],
+      [110, "Ds", 7, 10, "d"], [111, "Rg", 7, 11, "d"], [112, "Cn", 7, 12, "d"],
+      [113, "Nh", 7, 13, "p"], [114, "Fl", 7, 14, "p"], [115, "Mc", 7, 15, "p"],
+      [116, "Lv", 7, 16, "p"], [117, "Ts", 7, 17, "p"], [118, "Og", 7, 18, "p"]
+    ];
+
+    function renderPeriodicTable(containerId, highlightZ) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = "";
+
+      // Spacer row between main body and the f-block rows.
+      for (let col = 1; col <= 18; col++) {
+        const spacer = document.createElement("div");
+        spacer.classList.add("cell", "empty");
+        spacer.style.gridRow = "8";
+        spacer.style.gridColumn = String(col);
+        container.appendChild(spacer);
+      }
+
+      periodicLayout.forEach(([Z, symbol, row, col, block]) => {
+        const cell = document.createElement("div");
+        cell.classList.add("cell", `block-${block}`);
+        cell.style.gridRow = String(row);
+        cell.style.gridColumn = String(col);
+        cell.textContent = symbol;
+        cell.title = `${symbol} (Z=${Z})`;
+        if (Z === highlightZ) {
+          cell.classList.add("current");
+        }
+        container.appendChild(cell);
+      });
+    }
+
+    /****************************************************************
+     * Normalization and tokenization (flexible formatting)
+     ****************************************************************/
+
+    function normalizeConfigFlexible(str) {
+      if (!str) return "";
+      let s = str.trim().toLowerCase();
+      s = s.replace(/\s+/g, " ");
+      s = s.replace(/\[\s*([a-z]{1,2})\s*\]/g, "[$1]");
+      s = s.replace(/\]\s+/g, "]");
+      s = s.replace(/(\d+[spdf])\s+(\d+)/g, "$1$2");
+      s = s.replace(/\s+/g, " ");
+      return s;
+    }
+
+    function tokenizeConfig(normStr) {
+      if (!normStr) return [];
+      const tokens = [];
+      let s = normStr;
+
+      const nobleMatch = s.match(/^\[[a-z]{1,2}\]/);
+      if (nobleMatch) {
+        tokens.push(nobleMatch[0]);
+        s = s.slice(nobleMatch[0].length);
+      }
+
+      const parts = s.trim().length ? s.trim().split(" ") : [];
+      for (const part of parts) {
+        if (!part) continue;
+        tokens.push(part);
+      }
+
+      return tokens;
+    }
+
+    function diffConfigTokens(correctTokens, userTokens) {
+      const maxLen = Math.max(correctTokens.length, userTokens.length);
+      const result = [];
+
+      for (let i = 0; i < maxLen; i++) {
+        const correctTok = correctTokens[i] || null;
+        const userTok = userTokens[i] || null;
+
+        if (correctTok && userTok) {
+          if (correctTok === userTok) {
+            result.push({ type: "correct", correct: correctTok, user: userTok });
+          } else {
+            result.push({ type: "wrong", correct: correctTok, user: userTok });
+          }
+        } else if (correctTok && !userTok) {
+          result.push({ type: "missing", correct: correctTok, user: null });
+        } else if (!correctTok && userTok) {
+          result.push({ type: "extra", correct: null, user: userTok });
+        }
+      }
+
+      return result;
+    }
+
+    function summarizeDiff(diff) {
+      const summary = { correct: 0, wrong: 0, missing: 0, extra: 0 };
+      diff.forEach(item => {
+        if (summary[item.type] != null) {
+          summary[item.type]++;
+        }
+      });
+      return summary;
+    }
+
+    function renderPracticeMistakes(diff) {
+      const container = document.getElementById("practice-mistakes");
+      container.innerHTML = "";
+      if (!diff.length) return;
+
+      const summary = summarizeDiff(diff);
+      const hasMistakes =
+        summary.wrong > 0 || summary.missing > 0 || summary.extra > 0;
+
+      if (hasMistakes) {
+        const summaryP = document.createElement("p");
+        summaryP.classList.add("practice-mistakes-summary");
+        summaryP.textContent =
+          `Summary: ${summary.correct} correct, ${summary.wrong} wrong, ` +
+          `${summary.missing} missing, ${summary.extra} extra subshells.`;
+        container.appendChild(summaryP);
+      }
+
+      const frag = document.createDocumentFragment();
+
+      diff.forEach(item => {
+        const span = document.createElement("span");
+        span.classList.add("mistake-part");
+
+        if (item.type === "correct") {
+          span.classList.add("mistake-correct");
+          span.textContent = item.correct;
+        } else if (item.type === "wrong") {
+          span.classList.add("mistake-wrong");
+          span.textContent = `${item.user} → ${item.correct}`;
+        } else if (item.type === "missing") {
+          span.classList.add("mistake-missing");
+          span.textContent = `∅ → ${item.correct}`;
+        } else if (item.type === "extra") {
+          span.classList.add("mistake-wrong");
+          span.textContent = `${item.user} (extra)`;
+        }
+
+        frag.appendChild(span);
+      });
+
+      container.appendChild(frag);
+    }
+
+    /****************************************************************
+     * Practice mode logic
+     ****************************************************************/
+
+    let practiceCorrect = 0;
+    let practiceTries = 0;
+
+    function updatePracticeScore() {
+      document.getElementById("practice-score").textContent =
+        `Score: ${practiceCorrect} / ${practiceTries}`;
+    }
+
+    function getSelectedPracticeFormat() {
+      const radios = document.querySelectorAll("input[name='practiceFormat']");
+      for (const r of radios) {
+        if (r.checked) return r.value;
+      }
+      return "long";
+    }
+
+    function checkPractice() {
+      const Z = parseInt(document.getElementById("practice-element").value, 10);
+      const variants = getElectronConfigVariants(Z);
+      const format = getSelectedPracticeFormat();
+
+      const rawUser = document.getElementById("practice-input").value;
+      const userNorm = normalizeConfigFlexible(rawUser);
+      const longNorm = normalizeConfigFlexible(variants.long);
+      const shortNorm = normalizeConfigFlexible(variants.short);
+
+      practiceTries++;
+      let correct = false;
+      let canonicalNorm;
+
+      if (format === "long") {
+        canonicalNorm = longNorm;
+        correct = userNorm === longNorm;
+      } else if (format === "short") {
+        canonicalNorm = shortNorm;
+        correct = userNorm === shortNorm;
+      } else {
+        if (userNorm === longNorm) {
+          canonicalNorm = longNorm;
+          correct = true;
+        } else if (userNorm === shortNorm) {
+          canonicalNorm = shortNorm;
+          correct = true;
+        } else {
+          canonicalNorm = longNorm;
+          correct = false;
+        }
+      }
+
+      document.getElementById("practice-feedback").textContent =
+        correct
+          ? "Correct!"
+          : "Incorrect. Exponents (e.g. 3s1) are required; spacing/case can vary.";
+
+      if (correct) practiceCorrect++;
+      updatePracticeScore();
+
+      const showMistakes = document.getElementById("practice-show-mistakes").checked;
+      if (showMistakes) {
+        const correctTokens = tokenizeConfig(canonicalNorm);
+        const userTokens = tokenizeConfig(userNorm);
+        const diff = diffConfigTokens(correctTokens, userTokens);
+        renderPracticeMistakes(diff);
+      } else {
+        document.getElementById("practice-mistakes").innerHTML = "";
+      }
+    }
+
+    function showPracticeAnswer() {
+      const Z = parseInt(document.getElementById("practice-element").value, 10);
+      const variants = getElectronConfigVariants(Z);
+      const format = getSelectedPracticeFormat();
+
+      let answerText;
+      if (format === "long") {
+        answerText = `Long: ${variants.long}`;
+      } else if (format === "short") {
+        answerText = `Shorthand: ${variants.short}`;
+      } else {
+        answerText = `Long: ${variants.long}\nShorthand: ${variants.short}`;
+      }
+
+      document.getElementById("practice-feedback").textContent = answerText;
+
+      // Optionally count "Show answer" as a try
+      practiceTries++;
+      updatePracticeScore();
+
+      // Do not compute mistakes on "Show answer"
+      document.getElementById("practice-mistakes").innerHTML = "";
+    }
+
+    function resetPractice() {
+      document.getElementById("practice-input").value = "";
+      document.getElementById("practice-feedback").textContent = "";
+      document.getElementById("practice-mistakes").innerHTML = "";
+      // Score, element, format, and checkbox state are preserved
+    }
+
+    function setupPractice() {
+      const select = document.getElementById("practice-element");
+      elements.forEach(el => {
+        const opt = document.createElement("option");
+        opt.value = el.Z;
+        opt.textContent = `${el.symbol} (${el.Z})`;
+        select.appendChild(opt);
+      });
+
+      document.getElementById("practice-check").addEventListener("click", checkPractice);
+      document.getElementById("practice-show").addEventListener("click", showPracticeAnswer);
+      document.getElementById("practice-reset").addEventListener("click", resetPractice);
+      document.getElementById("practice-back").addEventListener("click", () => {
+        document.getElementById("practice-view").hidden = true;
+        document.getElementById("home-view").hidden = false;
+      });
+
+      select.addEventListener("change", () => {
+        renderPeriodicTable("practice-periodic-table", parseInt(select.value, 10));
+      });
+
+      renderPeriodicTable("practice-periodic-table", parseInt(select.value, 10));
+    }
+
+    /****************************************************************
+     * Game mode logic
+     ****************************************************************/
+
+    let gameSet = [];
+    let gameIndex = 0;
+    let gameCorrect = 0;
+    let gameTries = 0;
+
+    function updateGameScore() {
+      document.getElementById("game-score").textContent =
+        `Score: ${gameCorrect} / ${gameTries}`;
+    }
+
+    function randomFormat() {
+      return Math.random() < 0.5 ? "long" : "short";
+    }
+
+    function sampleArr(arr, count) {
+      const copy = [...arr];
+      const result = [];
+      for (let i = 0; i < count; i++) {
+        const idx = Math.floor(Math.random() * copy.length);
+        result.push(copy[idx]);
+        copy.splice(idx, 1);
+      }
+      return result;
+    }
+
+    function buildGameSet(n) {
+      const dElements = elements.filter(e => e.hasD);
+      const fElements = elements.filter(e => e.hasF);
+      const others = elements.filter(e => !e.hasD && !e.hasF);
+
+      if (dElements.length < 2 || fElements.length < 2 || elements.length < n) {
+        throw new Error("Insufficient elements to build requested set.");
+      }
+
+      const pickedD = sampleArr(dElements, 2);
+      const pickedF = sampleArr(fElements, 2);
+      const remainingNeeded = n - 4;
+
+      const pool = elements.filter(
+        e => !pickedD.includes(e) && !pickedF.includes(e)
+      );
+      const pickedOthers = sampleArr(pool, remainingNeeded);
+
+      const finalSet = [...pickedD, ...pickedF, ...pickedOthers];
+
+      for (let i = finalSet.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [finalSet[i], finalSet[j]] = [finalSet[j], finalSet[i]];
+      }
+
+      return finalSet.map(el => ({
+        ...el,
+        format: randomFormat()
+      }));
+    }
+
+    function showCurrentGameElement() {
+      const current = gameSet[gameIndex];
+      document.getElementById("game-element-label").textContent =
+        `Element: ${current.symbol} (${current.Z})`;
+
+      const formatHint = current.format === "short"
+        ? "Use noble-gas shorthand."
+        : "Use full (long) configuration.";
+
+      document.getElementById("game-progress").textContent =
+        `Question ${gameIndex + 1} of ${gameSet.length} — ${formatHint}`;
+
+      document.getElementById("game-input").value = "";
+      document.getElementById("game-feedback").textContent = "";
+      document.getElementById("game-next").disabled = true;
+
+      renderPeriodicTable("game-periodic-table", current.Z);
+
+      updateGameScore();
+    }
+
+    function checkGame() {
+      const current = gameSet[gameIndex];
+      const variants = getElectronConfigVariants(current.Z);
+
+      const rawUser = document.getElementById("game-input").value;
+      const userNorm = normalizeConfigFlexible(rawUser);
+      const longNorm = normalizeConfigFlexible(variants.long);
+      const shortNorm = normalizeConfigFlexible(variants.short);
+
+      const correctNorm =
+        current.format === "short" ? shortNorm : longNorm;
+
+      gameTries++;
+      if (userNorm === correctNorm) {
+        gameCorrect++;
+        document.getElementById("game-feedback").textContent =
+          "Correct!";
+        document.getElementById("game-next").disabled = false;
+      } else {
+        document.getElementById("game-feedback").textContent =
+          "Incorrect. Ensure exponents and required format (long vs shorthand).";
+      }
+      updateGameScore();
+    }
+
+    function resetGameAnswer() {
+      document.getElementById("game-input").value = "";
+      document.getElementById("game-feedback").textContent = "";
+      // Score, index, and game set stay unchanged
+    }
+
+    function nextGameElement() {
+      if (gameIndex < gameSet.length - 1) {
+        gameIndex++;
+        showCurrentGameElement();
+      } else {
+        document.getElementById("game-feedback").textContent =
+          "Game complete!";
+      }
+    }
+
+    function startGame() {
+      const n = parseInt(document.getElementById("game-length").value, 10);
+      gameSet = buildGameSet(n);
+      gameIndex = 0;
+      gameCorrect = 0;
+      gameTries = 0;
+      showCurrentGameElement();
+    }
+
+    function setupGame() {
+      document.getElementById("game-check").addEventListener("click", checkGame);
+      document.getElementById("game-reset").addEventListener("click", resetGameAnswer);
+      document.getElementById("game-next").addEventListener("click", nextGameElement);
+      document.getElementById("game-end").addEventListener("click", () => {
+        document.getElementById("home-view").hidden = false;
+        document.getElementById("game-view").hidden = true;
+      });
+
+      document.getElementById("game-btn").addEventListener("click", () => {
+        document.getElementById("home-view").hidden = true;
+        document.getElementById("game-view").hidden = false;
+        startGame();
+      });
+    }
+
+    /****************************************************************
+     * App initialization
+     ****************************************************************/
+
+    function initApp() {
+      setupPractice();
+      setupGame();
+
+      document.getElementById("practice-btn").addEventListener("click", () => {
+        document.getElementById("home-view").hidden = true;
+        document.getElementById("practice-view").hidden = false;
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", initApp);
+  </script>
+</body>
+</html>

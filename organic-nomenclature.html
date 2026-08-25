@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Nomenclature Lab — Organic Chemistry Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #12181a;
+    --bg2: #0d1113;
+    --panel: #1b2326;
+    --panel2: #212b2f;
+    --line: rgba(232,230,223,0.07);
+    --ink: #e9e6dd;
+    --ink-dim: #98a29e;
+    --amber: #e2a23f;
+    --amber-dim: #a97a30;
+    --teal: #4fb3a3;
+    --teal-dim: #316b62;
+    --good: #7fc287;
+    --bad: #d8756c;
+    --radius: 10px;
+    --serif: 'Fraunces', Georgia, serif;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0/28px 28px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/28px 28px,
+      radial-gradient(ellipse at top, var(--bg) 0%, var(--bg2) 100%);
+    color: var(--ink);
+    font-family: var(--mono);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width: 640px; margin:0 auto; padding: 20px 16px 60px; }
+  header.top{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
+  }
+  header.top h1{
+    font-family: var(--serif); font-weight:700; font-size: clamp(20px,5vw,28px);
+    margin:0; color: var(--ink); letter-spacing:0.2px;
+  }
+  header.top h1 span{ color: var(--amber); }
+  header.top .reset-link{
+    font-size:11px; color: var(--ink-dim); text-decoration:none; border-bottom:1px dashed var(--ink-dim);
+    cursor:pointer; white-space:nowrap; margin-left:12px;
+  }
+  header.top .reset-link:hover{ color: var(--amber); border-color: var(--amber); }
+  .subtitle{ color: var(--ink-dim); font-size:12.5px; margin:-12px 0 20px; }
+
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+
+  /* ---------- Home screen ---------- */
+  .section-label{
+    font-family:var(--serif); font-size:13px; text-transform:uppercase; letter-spacing:1.5px;
+    color: var(--teal); margin: 22px 0 10px; font-weight:600;
+  }
+  .cat-grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap:10px;
+  }
+  .cat-card{
+    background: var(--panel); border:1px solid var(--line); border-radius: var(--radius);
+    padding: 12px 12px 10px; text-align:left; cursor:pointer; color:var(--ink);
+    transition: border-color .15s, transform .1s; font-family: var(--mono);
+  }
+  .cat-card:hover{ border-color: var(--teal-dim); }
+  .cat-card:active{ transform: scale(0.98); }
+  .cat-card.selected{ border-color: var(--amber); background: var(--panel2); box-shadow: 0 0 0 1px var(--amber) inset; }
+  .cat-card .cname{ font-weight:600; font-size:14px; display:block; margin-bottom:5px; }
+  .cat-card .cstat{ font-size:10.5px; color: var(--ink-dim); display:block; min-height: 13px;}
+  .cat-card .cstat b{ color: var(--amber); font-weight:600;}
+  .cat-card.random-card{ grid-column: span 2; }
+  .cat-card.random-card .cname{ color: var(--teal); }
+
+  .count-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .count-btn{
+    flex:1; min-width:52px; padding:10px 6px; text-align:center; border-radius: var(--radius);
+    background: var(--panel); border:1px solid var(--line); color:var(--ink); cursor:pointer; font-family:var(--mono); font-weight:600;
+  }
+  .count-btn.selected{ border-color: var(--teal); color: var(--teal); background: var(--panel2); }
+
+  .start-btn{
+    display:block; width:100%; margin-top:22px; padding:14px; border:none; border-radius: var(--radius);
+    background: var(--amber); color: #1c1406; font-family: var(--serif); font-weight:700; font-size:16px;
+    cursor:pointer; letter-spacing:0.3px;
+  }
+  .start-btn:disabled{ background: var(--panel2); color: var(--ink-dim); cursor:not-allowed; }
+  .start-btn:not(:disabled):active{ transform: scale(0.99); }
+
+  /* ---------- Quiz screen ---------- */
+  .quiz-bar{
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;
+    font-size:12px; color:var(--ink-dim);
+  }
+  .quiz-bar .qcat{ color: var(--teal); font-weight:600; }
+  .quiz-bar .stats-live{ display:flex; gap:14px; }
+  .quiz-bar .stats-live span b{ color: var(--ink); }
+  .quit-btn{ background:none; border:1px solid var(--line); color:var(--ink-dim); border-radius:6px; padding:4px 8px; cursor:pointer; font-family:var(--mono); font-size:11px;}
+  .quit-btn:hover{ border-color: var(--bad); color: var(--bad); }
+
+  .progress-track{ height:4px; background: var(--panel); border-radius:2px; overflow:hidden; margin-bottom:20px;}
+  .progress-fill{ height:100%; background: var(--teal); transition: width .25s; }
+
+  .question-card{
+    background: var(--panel); border:1px solid var(--line); border-radius: var(--radius);
+    padding: 18px; margin-bottom:18px; text-align:center;
+  }
+  .qtype-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px; color:var(--ink-dim); margin-bottom:10px;}
+  .struct-box svg{ width:100%; height:auto; max-height:230px; }
+  .struct-box{ --ink: #e9e6dd; --amber: #e2a23f; }
+  .name-prompt{ font-family:var(--serif); font-weight:600; font-size: clamp(20px,5.5vw,28px); color:var(--ink); padding: 30px 6px; }
+
+  .options-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .opt-btn{
+    background: var(--panel); border:1px solid var(--line); border-radius: var(--radius); color:var(--ink);
+    padding:12px 10px; cursor:pointer; font-family:var(--mono); font-size:13px; text-align:center;
+  }
+  .opt-btn:hover{ border-color: var(--teal-dim); }
+  .opt-btn.struct-opt{ padding:6px; }
+  .opt-btn.struct-opt svg{ width:100%; height:auto; max-height:110px; }
+  .opt-btn.correct{ border-color: var(--good); background: rgba(127,194,135,0.12); }
+  .opt-btn.incorrect{ border-color: var(--bad); background: rgba(216,117,108,0.12); }
+  .opt-btn.dim{ opacity:0.5; }
+  .opt-btn:disabled{ cursor:default; }
+
+  .type-row{ display:flex; gap:8px; }
+  .type-input{
+    flex:1; background: var(--panel); border:1px solid var(--line); border-radius: var(--radius);
+    color: var(--ink); padding:12px 12px; font-family: var(--mono); font-size:14px;
+  }
+  .type-input:focus{ outline:none; border-color: var(--teal); }
+  .submit-btn{
+    padding: 12px 18px; border:none; border-radius: var(--radius); background: var(--teal);
+    color:#0b1a17; font-family:var(--serif); font-weight:700; cursor:pointer;
+  }
+  .submit-btn:disabled{ background: var(--panel2); color: var(--ink-dim); cursor:not-allowed; }
+
+  .feedback{
+    margin-top:14px; padding:12px 14px; border-radius: var(--radius); font-size:13.5px; display:none;
+  }
+  .feedback.show{ display:block; }
+  .feedback.correct{ background: rgba(127,194,135,0.10); border:1px solid var(--good); color: var(--good); }
+  .feedback.incorrect{ background: rgba(216,117,108,0.10); border:1px solid var(--bad); color: var(--bad); }
+  .feedback .fname{ color:var(--ink); font-weight:600; }
+  .next-btn{
+    display:block; width:100%; margin-top:12px; padding:13px; border:none; border-radius: var(--radius);
+    background: var(--amber); color:#1c1406; font-family:var(--serif); font-weight:700; font-size:15px; cursor:pointer;
+  }
+
+  /* ---------- Summary screen ---------- */
+  .summary-card{
+    background: var(--panel); border:1px solid var(--line); border-radius: var(--radius);
+    padding: 26px 20px; text-align:center;
+  }
+  .summary-card h2{ font-family:var(--serif); font-size:26px; margin:0 0 4px; color:var(--ink); }
+  .summary-card .pct{ font-family:var(--serif); font-size:52px; font-weight:700; color: var(--amber); margin: 10px 0 2px;}
+  .summary-card .frac{ color: var(--ink-dim); font-size:13px; margin-bottom:18px;}
+  .badge-row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:20px;}
+  .badge{ background: var(--panel2); border:1px solid var(--line); border-radius:8px; padding:9px 14px; font-size:11.5px; color:var(--ink-dim); min-width:90px;}
+  .badge b{ display:block; font-size:17px; color:var(--teal); font-family:var(--serif); margin-top:2px;}
+  .badge.new-high b{ color: var(--amber); }
+  .newhigh-tag{ display:inline-block; font-size:10.5px; color:var(--amber); border:1px solid var(--amber); border-radius:6px; padding:3px 8px; margin-bottom:14px; letter-spacing:0.5px;}
+  .summary-actions{ display:flex; gap:10px; }
+  .summary-actions button{ flex:1; padding:13px; border-radius: var(--radius); font-family:var(--serif); font-weight:700; cursor:pointer; border:none; font-size:14.5px;}
+  .btn-primary{ background: var(--amber); color:#1c1406; }
+  .btn-secondary{ background: var(--panel2); color: var(--ink); border:1px solid var(--line) !important; }
+
+  .review-list{ margin-top:22px; text-align:left; }
+  .review-item{ display:flex; justify-content:space-between; gap:10px; font-size:12px; padding:7px 0; border-bottom:1px solid var(--line); }
+  .review-item .rname{ color: var(--ink); }
+  .review-item .rmark{ font-weight:700; }
+  .review-item.miss .rmark{ color: var(--bad); }
+  .review-item.hit .rmark{ color: var(--good); }
+
+  @media (max-width:420px){
+    .cat-grid{ grid-template-columns: repeat(2, 1fr); }
+    .options-grid{ grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Nomenclature <span>Lab</span></h1>
+    <a class="reset-link" id="reset-link">reset progress</a>
+  </header>
+  <div class="subtitle">IUPAC naming drills — structures, names, and multiple choice, generated fresh every round.</div>
+
+  <!-- ============ HOME SCREEN ============ -->
+  <section class="screen active" id="home-screen">
+    <div class="section-label">Choose a category</div>
+    <div class="cat-grid" id="cat-grid"></div>
+
+    <div class="section-label">Number of questions</div>
+    <div class="count-row" id="count-row"></div>
+
+    <button class="start-btn" id="start-btn" disabled>Select a category to begin</button>
+  </section>
+
+  <!-- ============ QUIZ SCREEN ============ -->
+  <section class="screen" id="quiz-screen">
+    <div class="quiz-bar">
+      <div class="qcat" id="quiz-cat-label"></div>
+      <div class="stats-live">
+        <span>Q <b id="q-index">1</b>/<b id="q-total">10</b></span>
+        <span>Score <b id="q-score">0</b></span>
+        <span>🔥 <b id="q-streak">0</b></span>
+      </div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+    <div class="question-card">
+      <div class="qtype-label" id="qtype-label"></div>
+      <div id="question-body"></div>
+    </div>
+
+    <div id="answer-area"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="next-btn" style="display:none;">Next question →</button>
+    <div style="text-align:center; margin-top:16px;"><button class="quit-btn" id="quit-btn">End session</button></div>
+  </section>
+
+  <!-- ============ SUMMARY SCREEN ============ -->
+  <section class="screen" id="summary-screen">
+    <div class="summary-card">
+      <div id="newhigh-tag-holder"></div>
+      <h2>Session complete</h2>
+      <div class="pct" id="sum-pct">0%</div>
+      <div class="frac" id="sum-frac">0 / 0 correct</div>
+      <div class="badge-row">
+        <div class="badge" id="badge-high"><span>High score</span><b>—</b></div>
+        <div class="badge" id="badge-last"><span>Last score</span><b>—</b></div>
+        <div class="badge" id="badge-streak"><span>Best streak</span><b>—</b></div>
+      </div>
+      <div class="summary-actions">
+        <button class="btn-secondary" id="btn-change-cat">Change category</button>
+        <button class="btn-primary" id="btn-play-again">Play again</button>
+      </div>
+      <div class="review-list" id="review-list"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* =====================================================================
+   PART 1 — Chemistry naming + generation engine
+   ===================================================================== */
+const parentNames = ['', 'meth', 'eth', 'prop', 'but', 'pent', 'hex', 'hept', 'oct'];
+const halogenNames = { F: 'fluoro', Cl: 'chloro', Br: 'bromo', I: 'iodo' };
+const alkylGroupNames = ['', 'methyl', 'ethyl', 'propyl', 'butyl', 'pentyl'];
+const oxyNames = { 1: 'methoxy', 2: 'ethoxy', 3: 'propoxy', 4: 'butoxy', 5: 'pentoxy' };
+const multiplier = { 1: '', 2: 'di', 3: 'tri', 4: 'tetra' };
+
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function choice(arr) { return arr[rand(0, arr.length - 1)]; }
+function samplePositions(pool, count) {
+  const p = pool.slice(); const out = []; count = Math.min(count, p.length);
+  for (let i = 0; i < count; i++) { const idx = rand(0, p.length - 1); out.push(p[idx]); p.splice(idx, 1); }
+  return out;
+}
+function subName(kind) { return kind === 'methyl' ? 'methyl' : halogenNames[kind]; }
+
+function locantsForDirection(n, subs, bond, principal, reverse) {
+  const conv = pos => (reverse ? (n + 1 - pos) : pos);
+  const convBond = pos => (reverse ? (n - pos) : pos);
+  let principalPos = null;
+  if (principal) {
+    if (['al', 'oic', 'amide'].includes(principal.kind)) principalPos = reverse ? n : 1;
+    else principalPos = conv(principal.pos);
+  }
+  const bondPos = bond ? convBond(bond.pos) : null;
+  const subPositions = subs.map(s => ({ pos: conv(s.pos), kind: s.kind }))
+    .sort((a, b) => a.pos - b.pos || subName(a.kind).localeCompare(subName(b.kind)));
+  return { principalPos, bondPos, subPositions };
+}
+function pickDirection(n, subs, bond, principal) {
+  const f = locantsForDirection(n, subs, bond, principal, false);
+  const r = locantsForDirection(n, subs, bond, principal, true);
+  if (principal && !['al', 'oic', 'amide'].includes(principal.kind)) {
+    if (f.principalPos !== r.principalPos) return f.principalPos < r.principalPos ? f : r;
+  } else if (principal) { return f; }
+  if (bond) { if (f.bondPos !== r.bondPos) return f.bondPos < r.bondPos ? f : r; }
+  const fs = f.subPositions.map(s => s.pos), rs = r.subPositions.map(s => s.pos);
+  for (let i = 0; i < fs.length; i++) { if (fs[i] !== rs[i]) return fs[i] < rs[i] ? f : r; }
+  if (fs.length > 0) {
+    const sortedByName = [...f.subPositions].sort((a, b) => subName(a.kind).localeCompare(subName(b.kind)));
+    const firstKind = sortedByName[0].kind;
+    const fPos = f.subPositions.find(s => s.kind === firstKind).pos;
+    const rPos = r.subPositions.find(s => s.kind === firstKind).pos;
+    if (fPos !== rPos) return fPos < rPos ? f : r;
+  }
+  return f;
+}
+function formatSubstituents(subPositions) {
+  const groups = {};
+  subPositions.forEach(s => { (groups[s.kind] = groups[s.kind] || []).push(s.pos); });
+  const parts = Object.keys(groups).map(kind => {
+    const positions = groups[kind].sort((a, b) => a - b);
+    const mult = multiplier[positions.length] || '';
+    return { name: subName(kind), text: positions.join(',') + '-' + mult + subName(kind) };
+  });
+  parts.sort((a, b) => a.name.localeCompare(b.name));
+  return parts.map(p => p.text).join('-');
+}
+function buildChainName(n, subs, bond, principal) {
+  const { principalPos, bondPos, subPositions } = pickDirection(n, subs, bond, principal);
+  const base = parentNames[n];
+  const subStr = formatSubstituents(subPositions);
+  let core;
+  if (principal) {
+    if (principal.kind === 'al') core = base + 'anal';
+    else if (principal.kind === 'oic') core = base + 'anoic acid';
+    else if (principal.kind === 'amide') core = base + 'anamide';
+    else if (principal.kind === 'ol') core = n <= 2 ? base + 'anol' : base + 'an-' + principalPos + '-ol';
+    else if (principal.kind === 'amine') core = n <= 2 ? base + 'anamine' : base + 'an-' + principalPos + '-amine';
+    else if (principal.kind === 'one') core = base + 'an-' + principalPos + '-one';
+  } else if (bond) {
+    const suffix = bond.order === 2 ? 'ene' : 'yne';
+    core = n <= 3 ? base + suffix : base + '-' + bondPos + '-' + suffix;
+  } else { core = base + 'ane'; }
+  return subStr ? subStr + core : core;
+}
+function nameRing(sub1kind, sub2kind, d) {
+  const nm = k => (k === 'methyl' || k === 'ethyl' || k === 'propyl') ? k : halogenNames[k];
+  if (!sub2kind) return nm(sub1kind) + 'benzene';
+  let a = sub1kind, b = sub2kind;
+  if (nm(a) === nm(b)) return `1,${d + 1}-di${nm(a)}benzene`;
+  if (nm(b) < nm(a)) { const t = a; a = b; b = t; }
+  return `1-${nm(a)}-${d + 1}-${nm(b)}benzene`;
+}
+function esterName(nA, nB) { return alkylGroupNames[nB] + ' ' + parentNames[nA] + 'anoate'; }
+function etherName(nSmall, nBig, pos) {
+  let locant = '';
+  if (nBig > 2) { const p = Math.min(pos, nBig + 1 - pos); locant = p + '-'; }
+  return locant + oxyNames[nSmall] + parentNames[nBig] + 'ane';
+}
+function makeChainCompound(n, subs, bond, principal) {
+  return { name: buildChainName(n, subs, bond, principal), struct: { type: 'chain', n, subs, bond, principal } };
+}
+const halogens = ['F', 'Cl', 'Br', 'I'];
+const generators = {
+  alkane() {
+    const n = rand(3, 7);
+    const internal = []; for (let p = 2; p <= n - 1; p++) internal.push(p);
+    const numSubs = Math.min(choice([0, 0, 1, 1, 1, 2]), internal.length);
+    const positions = samplePositions(internal, numSubs);
+    const subs = positions.map(p => ({ pos: p, kind: 'methyl' }));
+    return makeChainCompound(n, subs, null, null);
+  },
+  alkylhalide() {
+    const n = rand(2, 6);
+    const all = []; for (let p = 1; p <= n; p++) all.push(p);
+    const numSubs = Math.min(choice([1, 1, 1, 2]), all.length);
+    const positions = samplePositions(all, numSubs);
+    let subs;
+    if (numSubs === 2 && Math.random() < 0.4) { const k = choice(halogens); subs = positions.map(p => ({ pos: p, kind: k })); }
+    else { subs = positions.map(p => ({ pos: p, kind: choice(halogens) })); }
+    if (n >= 4 && Math.random() < 0.25) {
+      const internal = []; for (let p = 2; p <= n - 1; p++) if (!positions.includes(p)) internal.push(p);
+      if (internal.length) subs.push({ pos: choice(internal), kind: 'methyl' });
+    }
+    return makeChainCompound(n, subs, null, null);
+  },
+  alkene() {
+    const n = rand(3, 7); const bondPos = rand(1, n - 1); let subs = [];
+    if (n >= 5 && Math.random() < 0.35) {
+      const internal = []; for (let p = 2; p <= n - 1; p++) if (p !== bondPos && p !== bondPos + 1) internal.push(p);
+      if (internal.length) subs = [{ pos: choice(internal), kind: 'methyl' }];
+    }
+    return makeChainCompound(n, subs, { pos: bondPos, order: 2 }, null);
+  },
+  alkyne() {
+    const n = rand(3, 7); const bondPos = rand(1, n - 1); let subs = [];
+    if (n >= 6 && Math.random() < 0.3) {
+      const internal = []; for (let p = 2; p <= n - 1; p++) if (p !== bondPos && p !== bondPos + 1) internal.push(p);
+      if (internal.length) subs = [{ pos: choice(internal), kind: 'methyl' }];
+    }
+    return makeChainCompound(n, subs, { pos: bondPos, order: 3 }, null);
+  },
+  alcohol() {
+    const n = rand(2, 6); const pos = rand(1, n); let subs = [];
+    if (n >= 4 && Math.random() < 0.35) {
+      const internal = []; for (let p = 2; p <= n - 1; p++) if (p !== pos) internal.push(p);
+      if (internal.length) subs = [{ pos: choice(internal), kind: 'methyl' }];
+    }
+    return makeChainCompound(n, subs, null, { kind: 'ol', pos });
+  },
+  amine() {
+    const n = rand(2, 6); const pos = rand(1, n); let subs = [];
+    if (n >= 4 && Math.random() < 0.35) {
+      const internal = []; for (let p = 2; p <= n - 1; p++) if (p !== pos) internal.push(p);
+      if (internal.length) subs = [{ pos: choice(internal), kind: 'methyl' }];
+    }
+    return makeChainCompound(n, subs, null, { kind: 'amine', pos });
+  },
+  ketone() {
+    const n = rand(3, 7); const internal = []; for (let p = 2; p <= n - 1; p++) internal.push(p);
+    const pos = choice(internal); let subs = [];
+    if (n >= 5 && Math.random() < 0.3) {
+      const avail = internal.filter(p => p !== pos);
+      if (avail.length) subs = [{ pos: choice(avail), kind: 'methyl' }];
+    }
+    return makeChainCompound(n, subs, null, { kind: 'one', pos });
+  },
+  aldehyde() {
+    const n = rand(1, 6); let subs = [];
+    if (n >= 3 && Math.random() < 0.35) {
+      const avail = []; for (let p = 2; p <= n; p++) avail.push(p);
+      if (avail.length) subs = [{ pos: choice(avail), kind: choice(halogens) }];
+    }
+    return makeChainCompound(n, subs, null, { kind: 'al', pos: 1 });
+  },
+  carboxylicacid() {
+    const n = rand(1, 6); let subs = [];
+    if (n >= 3 && Math.random() < 0.35) {
+      const avail = []; for (let p = 2; p <= n; p++) avail.push(p);
+      if (avail.length) subs = [{ pos: choice(avail), kind: choice(halogens) }];
+    }
+    return makeChainCompound(n, subs, null, { kind: 'oic', pos: 1 });
+  },
+  amide() {
+    const n = rand(1, 6); let subs = [];
+    if (n >= 3 && Math.random() < 0.35) {
+      const avail = []; for (let p = 2; p <= n; p++) avail.push(p);
+      if (avail.length) subs = [{ pos: choice(avail), kind: choice(halogens) }];
+    }
+    return makeChainCompound(n, subs, null, { kind: 'amide', pos: 1 });
+  },
+  ester() {
+    const nA = rand(1, 5), nB = rand(1, 4);
+    return { name: esterName(nA, nB), struct: { type: 'ester', nA, nB } };
+  },
+  ether() {
+    const nA = rand(1, 5), nB = rand(1, 5);
+    const nSmall = Math.min(nA, nB), nBig = Math.max(nA, nB); const pos = 1;
+    return { name: etherName(nSmall, nBig, pos), struct: { type: 'ether', nSmall, nBig, pos } };
+  },
+  aromatic() {
+    const alkyls = ['methyl', 'ethyl', 'propyl']; const numSubs = choice([1, 1, 2]);
+    if (numSubs === 1) { const kind = choice(alkyls); return { name: nameRing(kind, null, null), struct: { type: 'ring', subs: [{ vertex: 0, kind }] } }; }
+    const d = choice([1, 2, 3]); const k1 = choice(alkyls), k2 = choice(alkyls);
+    return { name: nameRing(k1, k2, d), struct: { type: 'ring', subs: [{ vertex: 0, kind: k1 }, { vertex: d, kind: k2 }] } };
+  },
+  arylhalide() {
+    const numSubs = choice([1, 1, 2]);
+    if (numSubs === 1) { const kind = choice(halogens); return { name: nameRing(kind, null, null), struct: { type: 'ring', subs: [{ vertex: 0, kind }] } }; }
+    const d = choice([1, 2, 3]); const k1 = choice(halogens), k2 = choice(halogens);
+    return { name: nameRing(k1, k2, d), struct: { type: 'ring', subs: [{ vertex: 0, kind: k1 }, { vertex: d, kind: k2 }] } };
+  },
+};
+const realCategories = ['alkane', 'alkene', 'alkyne', 'aromatic', 'alkylhalide', 'arylhalide',
+  'alcohol', 'amine', 'carboxylicacid', 'aldehyde', 'ketone', 'ester', 'ether', 'amide'];
+generators.random = function () {
+  const cat = choice(realCategories); const c = generators[cat]();
+  return { name: c.name, struct: c.struct, sourceCategory: cat };
+};
+function generateUnique(catKey, usedSet, maxTries = 50) {
+  let result = null;
+  for (let i = 0; i < maxTries; i++) {
+    const c = generators[catKey]();
+    result = c;
+    if (!usedSet.has(c.name)) break;
+  }
+  usedSet.add(result.name);
+  return result;
+}
+function generateDistractors(effectiveCat, correctName, count) {
+  const seen = new Set([correctName]); const list = []; let tries = 0;
+  while (list.length < count && tries < 80) {
+    tries++;
+    const c = generators[effectiveCat]();
+    if (!seen.has(c.name)) { seen.add(c.name); list.push(c); }
+  }
+  return list;
+}
+
+/* =====================================================================
+   PART 2 — SVG skeletal-formula renderer
+   ===================================================================== */
+const BOND = 'var(--ink)', HETERO = 'var(--amber)';
+function chainPoints(n, x0, y0, dx, dy) {
+  const pts = []; for (let i = 0; i < n; i++) pts.push({ x: x0 + i * dx, y: y0 + (i % 2 === 0 ? 0 : -dy) }); return pts;
+}
+function svgLine(x1, y1, x2, y2) {
+  return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${BOND}" stroke-width="2.5" stroke-linecap="round"/>`;
+}
+function doubleLine(x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+  const nx = -dy / len, ny = dx / len, off = 3.2, shrink = 0.16;
+  const ix1 = x1 + dx * shrink, iy1 = y1 + dy * shrink, ix2 = x2 - dx * shrink, iy2 = y2 - dy * shrink;
+  return svgLine(x1, y1, x2, y2) + svgLine(ix1 + nx * off, iy1 + ny * off, ix2 + nx * off, iy2 + ny * off);
+}
+function tripleLine(x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+  const nx = -dy / len, ny = dx / len, off = 4.2, shrink = 0.16;
+  const ix1 = x1 + dx * shrink, iy1 = y1 + dy * shrink, ix2 = x2 - dx * shrink, iy2 = y2 - dy * shrink;
+  return svgLine(x1, y1, x2, y2) + svgLine(ix1 + nx * off, iy1 + ny * off, ix2 + nx * off, iy2 + ny * off)
+    + svgLine(ix1 - nx * off, iy1 - ny * off, ix2 - nx * off, iy2 - ny * off);
+}
+function svgLabel(x, y, text, color) {
+  color = color || HETERO;
+  return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" fill="${color}" font-family="'JetBrains Mono', monospace" font-size="15" font-weight="600" text-anchor="middle" dominant-baseline="middle">${text}</text>`;
+}
+function alkylBranch(x0, y0, carbons, dirUp) {
+  let svg = '', x = x0, y = y0; const dx = 24, dy = 16;
+  for (let i = 0; i < carbons; i++) {
+    const goUp = dirUp ? (i % 2 === 0) : (i % 2 === 1);
+    const nx = x + dx, ny = y + (goUp ? -dy : dy);
+    svg += svgLine(x, y, nx, ny); x = nx; y = ny;
+  }
+  return svg;
+}
+function heteroBranch(x0, y0, text, dirUp) {
+  const dx = 22 * 0.15, dy = dirUp ? -22 : 22;
+  const x2 = x0 + dx, y2 = y0 + dy;
+  return svgLine(x0, y0, x2, y2) + svgLabel(x2, y2 + (dirUp ? -8 : 10), text);
+}
+function renderChain(struct, width, height) {
+  const { n, subs, bond, principal } = struct;
+  const dx = 34, dy = 17, totalW = (n - 1) * dx, x0 = (width - totalW) / 2, y0 = height / 2 + 8;
+  const pts = chainPoints(n, x0, y0, dx, dy);
+  let svg = '';
+  for (let i = 0; i < n - 1; i++) {
+    const a = pts[i], b = pts[i + 1];
+    if (bond && bond.pos - 1 === i) svg += bond.order === 2 ? doubleLine(a.x, a.y, b.x, b.y) : tripleLine(a.x, a.y, b.x, b.y);
+    else svg += svgLine(a.x, a.y, b.x, b.y);
+  }
+  subs.forEach(s => {
+    const idx = s.pos - 1, v = pts[idx], dirUp = idx % 2 === 1;
+    if (s.kind === 'methyl') svg += alkylBranch(v.x, v.y, 1, dirUp);
+    else svg += heteroBranch(v.x, v.y, s.kind, dirUp);
+  });
+  if (principal) {
+    const { kind } = principal;
+    if (kind === 'ol') { const idx = principal.pos - 1, v = pts[idx]; svg += heteroBranch(v.x, v.y, 'OH', idx % 2 === 1); }
+    else if (kind === 'amine') { const idx = principal.pos - 1, v = pts[idx]; svg += heteroBranch(v.x, v.y, 'NH₂', idx % 2 === 1); }
+    else if (kind === 'one') {
+      const idx = principal.pos - 1, v = pts[idx], dirUp = idx % 2 === 1, y2 = v.y + (dirUp ? -30 : 30);
+      svg += doubleLine(v.x, v.y, v.x, y2) + svgLabel(v.x, y2 + (dirUp ? -8 : 10), 'O');
+    } else if (kind === 'al') {
+      const v = pts[0], ox = v.x - 14, oy = v.y - 30;
+      svg += doubleLine(v.x, v.y, ox, oy) + svgLabel(ox - 4, oy - 8, 'O');
+    } else if (kind === 'oic') {
+      const v = pts[0], ox = v.x - 6, oy = v.y - 32;
+      svg += doubleLine(v.x, v.y, ox, oy) + svgLabel(ox, oy - 10, 'O');
+      const hx = v.x - 30, hy = v.y + 14;
+      svg += svgLine(v.x, v.y, hx, hy) + svgLabel(hx - 12, hy + 8, 'OH');
+    } else if (kind === 'amide') {
+      const v = pts[0], ox = v.x - 6, oy = v.y - 32;
+      svg += doubleLine(v.x, v.y, ox, oy) + svgLabel(ox, oy - 10, 'O');
+      const hx = v.x - 30, hy = v.y + 14;
+      svg += svgLine(v.x, v.y, hx, hy) + svgLabel(hx - 14, hy + 8, 'NH₂');
+    }
+  }
+  return svg;
+}
+function renderRing(struct, width, height) {
+  const { subs } = struct, cx = width / 2, cy = height / 2 + 4, R = 42;
+  const verts = [];
+  for (let i = 0; i < 6; i++) { const angle = -Math.PI / 2 + i * (Math.PI / 3); verts.push({ x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle) }); }
+  let svg = '';
+  for (let i = 0; i < 6; i++) { const a = verts[i], b = verts[(i + 1) % 6]; svg += svgLine(a.x, a.y, b.x, b.y); }
+  svg += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(R * 0.55).toFixed(1)}" fill="none" stroke="${BOND}" stroke-width="2" opacity="0.75"/>`;
+  subs.forEach(s => {
+    const v = verts[s.vertex], angle = -Math.PI / 2 + s.vertex * (Math.PI / 3);
+    if (['methyl', 'ethyl', 'propyl'].includes(s.kind)) {
+      const carbons = s.kind === 'methyl' ? 1 : s.kind === 'ethyl' ? 2 : 3, bondLen = 26;
+      let x = v.x, y = v.y;
+      for (let i = 0; i < carbons; i++) {
+        const off = (i % 2 === 0 ? -1 : 1) * (Math.PI / 6), a = angle + off;
+        const nx = x + bondLen * Math.cos(a), ny = y + bondLen * Math.sin(a);
+        svg += svgLine(x, y, nx, ny); x = nx; y = ny;
+      }
+    } else {
+      const outX = cx + (R + 26) * Math.cos(angle), outY = cy + (R + 26) * Math.sin(angle);
+      const midX = v.x + (outX - v.x) * 0.55, midY = v.y + (outY - v.y) * 0.55;
+      svg += svgLine(v.x, v.y, midX, midY) + svgLabel(outX, outY, s.kind);
+    }
+  });
+  return svg;
+}
+function centerAll(width, height, groups) {
+  const flat = groups.flat();
+  const minX = Math.min(...flat.map(p => p.x)), maxX = Math.max(...flat.map(p => p.x));
+  const minY = Math.min(...flat.map(p => p.y)), maxY = Math.max(...flat.map(p => p.y));
+  const shiftX = (width - (maxX - minX)) / 2 - minX, shiftY = (height - (maxY - minY)) / 2 - minY;
+  const shift = p => ({ x: p.x + shiftX, y: p.y + shiftY });
+  return groups.map(g => g.map(shift));
+}
+function renderEster(struct, width, height) {
+  const { nA, nB } = struct, dx = 30, dy = 16;
+  const acyl = chainPoints(nA, 0, 0, dx, dy), carbonylIdx = nA - 1, carbonylUp = carbonylIdx % 2 === 1;
+  const carb = acyl[carbonylIdx];
+  const oPt = { x: carb.x + dx, y: carb.y + (carbonylUp ? dy : -dy) };
+  const alkyl = [];
+  for (let i = 0; i < nB; i++) alkyl.push({ x: oPt.x + (i + 1) * dx, y: oPt.y + ((carbonylUp ? (i % 2 === 0) : (i % 2 === 1)) ? -dy : dy) });
+  const dblO = { x: carb.x, y: carb.y + (carbonylUp ? -30 : 30) };
+  const [A, O_arr, ALK] = centerAll(width, height, [acyl, [oPt, dblO], alkyl]);
+  const O = O_arr[0], dblOc = O_arr[1];
+  let svg = '';
+  for (let i = 0; i < nA - 1; i++) svg += svgLine(A[i].x, A[i].y, A[i + 1].x, A[i + 1].y);
+  const carbC = A[carbonylIdx];
+  svg += doubleLine(carbC.x, carbC.y, dblOc.x, dblOc.y) + svgLabel(dblOc.x, dblOc.y + (carbonylUp ? -10 : 10), 'O');
+  svg += svgLine(carbC.x, carbC.y, O.x, O.y) + svgLabel(O.x, O.y, 'O');
+  if (nB > 0) { svg += svgLine(O.x, O.y, ALK[0].x, ALK[0].y); for (let i = 0; i < nB - 1; i++) svg += svgLine(ALK[i].x, ALK[i].y, ALK[i + 1].x, ALK[i + 1].y); }
+  return svg;
+}
+function renderEther(struct, width, height) {
+  const { nSmall, nBig } = struct, dx = 30, dy = 16;
+  const big = chainPoints(nBig, 0, 0, dx, dy), lastUp = (nBig - 1) % 2 === 1;
+  const oPt = { x: big[nBig - 1].x + dx, y: big[nBig - 1].y + (lastUp ? dy : -dy) };
+  const small = [];
+  for (let i = 0; i < nSmall; i++) small.push({ x: oPt.x + (i + 1) * dx, y: oPt.y + ((lastUp ? (i % 2 === 0) : (i % 2 === 1)) ? -dy : dy) });
+  const [Bg, O_arr, Sm] = centerAll(width, height, [big, [oPt], small]);
+  const O = O_arr[0];
+  let svg = '';
+  for (let i = 0; i < nBig - 1; i++) svg += svgLine(Bg[i].x, Bg[i].y, Bg[i + 1].x, Bg[i + 1].y);
+  svg += svgLine(Bg[nBig - 1].x, Bg[nBig - 1].y, O.x, O.y) + svgLabel(O.x, O.y, 'O');
+  svg += svgLine(O.x, O.y, Sm[0].x, Sm[0].y);
+  for (let i = 0; i < nSmall - 1; i++) svg += svgLine(Sm[i].x, Sm[i].y, Sm[i + 1].x, Sm[i + 1].y);
+  return svg;
+}
+function renderStructure(struct) {
+  const width = 320, height = struct.type === 'ring' ? 260 : 200;
+  let body = '';
+  if (struct.type === 'chain') body = renderChain(struct, width, height);
+  else if (struct.type === 'ring') body = renderRing(struct, width, height);
+  else if (struct.type === 'ester') body = renderEster(struct, width, height);
+  else if (struct.type === 'ether') body = renderEther(struct, width, height);
+  return `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
+}
+
+/* =====================================================================
+   PART 3 — App: categories, storage, quiz engine, UI
+   ===================================================================== */
+const CATEGORIES = [
+  { key: 'alkane', label: 'Alkane' },
+  { key: 'alkene', label: 'Alkene' },
+  { key: 'alkyne', label: 'Alkyne' },
+  { key: 'aromatic', label: 'Aromatic' },
+  { key: 'alkylhalide', label: 'Alkyl Halide' },
+  { key: 'arylhalide', label: 'Aryl Halide' },
+  { key: 'alcohol', label: 'Alcohol' },
+  { key: 'amine', label: 'Amine' },
+  { key: 'carboxylicacid', label: 'Carboxylic Acid' },
+  { key: 'aldehyde', label: 'Aldehyde' },
+  { key: 'ketone', label: 'Ketone' },
+  { key: 'ester', label: 'Ester' },
+  { key: 'ether', label: 'Ether' },
+  { key: 'amide', label: 'Amide' },
+  { key: 'random', label: 'Random Mix' },
+];
+const COUNT_OPTIONS = [10, 20, 30, 40, 50];
+
+const state = {
+  selectedCategory: null,
+  selectedCount: 20,
+  quiz: null, // {catKey, total, index, score, streak, bestStreak, used:Set, questions:[], answers:[]}
+};
+
+function normalize(s) { return s.toLowerCase().replace(/[\s\-]/g, ''); }
+
+/* ---- storage helpers ---- */
+async function getStats(catKey) {
+  try {
+    const res = await window.storage.get('stats:' + catKey);
+    return res ? JSON.parse(res.value) : null;
+  } catch (e) { return null; }
+}
+async function setStats(catKey, obj) {
+  try { await window.storage.set('stats:' + catKey, JSON.stringify(obj)); } catch (e) { /* ignore */ }
+}
+async function clearAllStats() {
+  for (const c of CATEGORIES) { try { await window.storage.delete('stats:' + c.key); } catch (e) {} }
+}
+
+/* ---- Home screen rendering ---- */
+const catGrid = document.getElementById('cat-grid');
+const countRow = document.getElementById('count-row');
+const startBtn = document.getElementById('start-btn');
+
+function buildHome() {
+  catGrid.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const card = document.createElement('button');
+    card.className = 'cat-card' + (cat.key === 'random' ? ' random-card' : '');
+    card.dataset.key = cat.key;
+    card.innerHTML = `<span class="cname">${cat.label}</span><span class="cstat" id="stat-${cat.key}">…</span>`;
+    card.addEventListener('click', () => selectCategory(cat.key));
+    catGrid.appendChild(card);
+    getStats(cat.key).then(st => {
+      const el = document.getElementById('stat-' + cat.key);
+      if (!el) return;
+      el.innerHTML = st ? `High <b>${st.highPct}%</b> · 🔥${st.bestStreak}` : 'Not played yet';
+    });
+  });
+
+  countRow.innerHTML = '';
+  COUNT_OPTIONS.forEach(n => {
+    const b = document.createElement('button');
+    b.className = 'count-btn' + (n === state.selectedCount ? ' selected' : '');
+    b.textContent = n;
+    b.addEventListener('click', () => {
+      state.selectedCount = n;
+      [...countRow.children].forEach(c => c.classList.remove('selected'));
+      b.classList.add('selected');
+    });
+    countRow.appendChild(b);
+  });
+
+  if (state.selectedCategory) selectCategory(state.selectedCategory);
+}
+
+function selectCategory(key) {
+  state.selectedCategory = key;
+  [...catGrid.children].forEach(c => c.classList.toggle('selected', c.dataset.key === key));
+  const label = CATEGORIES.find(c => c.key === key).label;
+  startBtn.disabled = false;
+  startBtn.textContent = `Start ${label} practice`;
+}
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  if (!state.selectedCategory) return;
+  startQuiz(state.selectedCategory, state.selectedCount);
+});
+
+/* ---- Screen switching ---- */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ---- Quiz engine ---- */
+function pickQuestionType() { return choice(['struct_mc', 'type_name', 'name_mc']); }
+
+function buildQuestion(catKey) {
+  const compound = generateUnique(catKey, state.quiz.used);
+  const effectiveCat = compound.sourceCategory || catKey;
+  const qType = pickQuestionType();
+  const q = { name: compound.name, struct: compound.struct, qType, effectiveCat };
+  if (qType === 'struct_mc') {
+    const distractors = generateDistractors(effectiveCat, compound.name, 3);
+    const opts = [{ label: compound.name, correct: true }, ...distractors.map(d => ({ label: d.name, correct: false }))];
+    q.options = shuffleArr(opts);
+  } else if (qType === 'name_mc') {
+    const distractors = generateDistractors(effectiveCat, compound.name, 3);
+    const opts = [{ svg: renderStructure(compound.struct), correct: true }, ...distractors.map(d => ({ svg: renderStructure(d.struct), correct: false }))];
+    q.options = shuffleArr(opts);
+  }
+  return q;
+}
+function shuffleArr(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = rand(0, i); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function startQuiz(catKey, count) {
+  state.quiz = { catKey, total: count, index: 0, score: 0, streak: 0, bestStreak: 0, used: new Set(), questions: [], answers: [] };
+  showScreen('quiz-screen');
+  document.getElementById('quiz-cat-label').textContent = CATEGORIES.find(c => c.key === catKey).label;
+  document.getElementById('q-total').textContent = count;
+  renderQuestion();
+}
+
+function currentQuestion() {
+  const qz = state.quiz;
+  if (!qz.questions[qz.index]) qz.questions[qz.index] = buildQuestion(qz.catKey);
+  return qz.questions[qz.index];
+}
+
+function renderQuestion() {
+  const qz = state.quiz;
+  document.getElementById('q-index').textContent = qz.index + 1;
+  document.getElementById('q-score').textContent = qz.score;
+  document.getElementById('q-streak').textContent = qz.streak;
+  document.getElementById('progress-fill').style.width = Math.round((qz.index / qz.total) * 100) + '%';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('next-btn').style.display = 'none';
+
+  const q = currentQuestion();
+  const typeLabelEl = document.getElementById('qtype-label');
+  const bodyEl = document.getElementById('question-body');
+  const answerArea = document.getElementById('answer-area');
+  answerArea.innerHTML = '';
+
+  if (q.qType === 'struct_mc') {
+    typeLabelEl.textContent = 'Identify the structure — choose the correct name';
+    bodyEl.innerHTML = `<div class="struct-box">${renderStructure(q.struct)}</div>`;
+    const grid = document.createElement('div'); grid.className = 'options-grid';
+    q.options.forEach(opt => {
+      const b = document.createElement('button'); b.className = 'opt-btn'; b.textContent = opt.label;
+      b.addEventListener('click', () => submitMCAnswer(b, opt.correct, q));
+      grid.appendChild(b);
+    });
+    answerArea.appendChild(grid);
+  } else if (q.qType === 'name_mc') {
+    typeLabelEl.textContent = 'Identify the name — choose the correct structure';
+    bodyEl.innerHTML = `<div class="name-prompt">${q.name}</div>`;
+    const grid = document.createElement('div'); grid.className = 'options-grid';
+    q.options.forEach(opt => {
+      const b = document.createElement('button'); b.className = 'opt-btn struct-opt'; b.innerHTML = `<div class="struct-box">${opt.svg}</div>`;
+      b.addEventListener('click', () => submitMCAnswer(b, opt.correct, q));
+      grid.appendChild(b);
+    });
+    answerArea.appendChild(grid);
+  } else {
+    typeLabelEl.textContent = 'Type the IUPAC name';
+    bodyEl.innerHTML = `<div class="struct-box">${renderStructure(q.struct)}</div>`;
+    const row = document.createElement('div'); row.className = 'type-row';
+    row.innerHTML = `<input type="text" class="type-input" id="type-input" placeholder="e.g. 2-methylpentane" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="submit-btn" id="submit-type-btn">Check</button>`;
+    answerArea.appendChild(row);
+    const input = document.getElementById('type-input');
+    const submit = document.getElementById('submit-type-btn');
+    const doSubmit = () => {
+      if (!input.value.trim()) return;
+      const correct = normalize(input.value) === normalize(q.name);
+      input.disabled = true; submit.disabled = true;
+      recordAnswer(correct, q);
+    };
+    submit.addEventListener('click', doSubmit);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') doSubmit(); });
+    setTimeout(() => input.focus(), 50);
+  }
+}
+
+function submitMCAnswer(btn, isCorrect, q) {
+  const buttons = document.querySelectorAll('#answer-area .opt-btn');
+  buttons.forEach(b => { b.disabled = true; if (b !== btn) b.classList.add('dim'); });
+  btn.classList.add(isCorrect ? 'correct' : 'incorrect');
+  if (!isCorrect) {
+    // reveal the correct one too
+    buttons.forEach((b, i) => { if (q.options[i] && q.options[i].correct) { b.classList.remove('dim'); b.classList.add('correct'); } });
+  }
+  recordAnswer(isCorrect, q);
+}
+
+function recordAnswer(isCorrect, q) {
+  const qz = state.quiz;
+  qz.answers.push({ name: q.name, correct: isCorrect });
+  if (isCorrect) { qz.score++; qz.streak++; qz.bestStreak = Math.max(qz.bestStreak, qz.streak); }
+  else { qz.streak = 0; }
+
+  document.getElementById('q-score').textContent = qz.score;
+  document.getElementById('q-streak').textContent = qz.streak;
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'incorrect');
+  fb.innerHTML = isCorrect
+    ? `✓ Correct — <span class="fname">${q.name}</span>`
+    : `✗ Not quite — the answer is <span class="fname">${q.name}</span>`;
+  document.getElementById('next-btn').style.display = 'block';
+}
+
+document.getElementById('next-btn').addEventListener('click', () => {
+  const qz = state.quiz;
+  qz.index++;
+  if (qz.index >= qz.total) finishQuiz();
+  else renderQuestion();
+});
+
+document.getElementById('quit-btn').addEventListener('click', () => {
+  if (confirm('End this session early? Your progress so far will still be scored.')) finishQuiz();
+});
+
+async function finishQuiz() {
+  const qz = state.quiz;
+  const answered = qz.answers.length;
+  const pct = answered > 0 ? Math.round((qz.score / answered) * 100) : 0;
+  const prev = await getStats(qz.catKey);
+  const newHigh = !prev || pct > prev.highPct;
+  const updated = {
+    lastCorrect: qz.score, lastTotal: answered, highPct: Math.max(prev ? prev.highPct : 0, pct),
+    bestStreak: Math.max(prev ? prev.bestStreak : 0, qz.bestStreak), playedCount: (prev ? prev.playedCount : 0) + 1,
+  };
+  await setStats(qz.catKey, updated);
+
+  document.getElementById('sum-pct').textContent = pct + '%';
+  document.getElementById('sum-frac').textContent = `${qz.score} / ${answered} correct`;
+  document.getElementById('badge-high').innerHTML = `<span>High score</span><b>${updated.highPct}%</b>`;
+  document.getElementById('badge-last').innerHTML = `<span>Last score</span><b>${qz.score}/${answered}</b>`;
+  document.getElementById('badge-streak').innerHTML = `<span>Best streak</span><b>${qz.bestStreak}</b>`;
+  document.getElementById('newhigh-tag-holder').innerHTML = newHigh ? `<div class="newhigh-tag">★ New high score</div>` : '';
+
+  const reviewList = document.getElementById('review-list');
+  reviewList.innerHTML = '<div class="section-label" style="margin-top:0;">Review</div>' + qz.answers.map(a =>
+    `<div class="review-item ${a.correct ? 'hit' : 'miss'}"><span class="rname">${a.name}</span><span class="rmark">${a.correct ? '✓' : '✗'}</span></div>`
+  ).join('');
+
+  showScreen('summary-screen');
+}
+
+document.getElementById('btn-play-again').addEventListener('click', () => {
+  startQuiz(state.quiz.catKey, state.selectedCount);
+});
+document.getElementById('btn-change-cat').addEventListener('click', () => {
+  buildHome();
+  showScreen('home-screen');
+});
+document.getElementById('reset-link').addEventListener('click', async (e) => {
+  e.preventDefault();
+  if (confirm('Reset all saved scores and streaks for every category? This cannot be undone.')) {
+    await clearAllStats();
+    buildHome();
+  }
+});
+
+buildHome();
+</script>
+</body>
+</html>
