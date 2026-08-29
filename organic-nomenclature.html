@@ -348,7 +348,7 @@ function makeChainCompound(n, subs, bond, principal) {
 const halogens = ['F', 'Cl', 'Br', 'I'];
 const generators = {
   alkane() {
-    const n = rand(3, 7);
+    const n = rand(3, 8);
     const internal = []; for (let p = 2; p <= n - 1; p++) internal.push(p);
     const numSubs = Math.min(choice([0, 0, 1, 1, 1, 2]), internal.length);
     const positions = samplePositions(internal, numSubs);
