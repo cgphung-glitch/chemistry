@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ChemRush - Chemistry Fundamentals Rapid Quiz</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Canvas Confetti for High Scores -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0f172a',
+                            card: '#1e293b',
+                            accent: '#06b6d4',
+                            emerald: '#10b981',
+                            rose: '#f43f5e',
+                            amber: '#f59e0b',
+                            violet: '#8b5cf6'
+                        }
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 0.8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'shake': 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both',
+                        'bounce-short': 'bounceShort 0.5s ease duration-300'
+                    },
+                    keyframes: {
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' },
+                        },
+                        bounceShort: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a, #020617);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .timer-progress {
+            transition: width 0.05s linear, background-color 0.3s ease;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .touch-active:active {
+            transform: scale(0.97);
+        }
+    </style>
+</head>
+<body class="h-full text-slate-100 font-sans flex flex-col justify-between overflow-x-hidden antialiased selection:bg-cyan-500 selection:text-white">
+
+    <header class="w-full max-w-xl mx-auto px-4 pt-4 pb-2 flex justify-between items-center z-10">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="showScreen('setup')">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                <i class="fa-solid fa-vial-circle-check text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">ChemRush</h1>
+                <p class="text-xs text-slate-400 -mt-1 font-semibold">Rapid Fire Chemistry</p>
+            </div>
+        </div>
+        <button id="audio-toggle" onclick="toggleAudio()" class="w-10 h-10 rounded-xl glass-panel flex items-center justify-center text-slate-300 hover:text-white transition">
+            <i class="fa-solid fa-volume-high text-base" id="audio-icon"></i>
+        </button>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="w-full max-w-xl mx-auto px-4 my-auto py-2 flex-grow flex flex-col justify-center">
+
+        <!-- ==================== SETUP / MENU SCREEN ==================== -->
+        <section id="screen-setup" class="space-y-5 animate-fade-in">
+            
+            <!-- Overall Stats Bar -->
+            <div class="grid grid-cols-3 gap-2">
+                <div class="glass-panel rounded-2xl p-3 text-center border-b-2 border-cyan-500/40">
+                    <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Best Score</span>
+                    <span id="stat-best-score" class="text-xl font-extrabold text-cyan-400 font-mono">0</span>
+                </div>
+                <div class="glass-panel rounded-2xl p-3 text-center border-b-2 border-emerald-500/40">
+                    <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Best Streak</span>
+                    <span id="stat-best-streak" class="text-xl font-extrabold text-emerald-400 font-mono">🔥 0</span>
+                </div>
+                <div class="glass-panel rounded-2xl p-3 text-center border-b-2 border-violet-500/40">
+                    <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Last Round</span>
+                    <span id="stat-last-score" class="text-xl font-extrabold text-violet-400 font-mono">0/0</span>
+                </div>
+            </div>
+
+            <!-- Topic Selection -->
+            <div class="glass-panel rounded-3xl p-5 space-y-4">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                    <i class="fa-solid fa-atom text-cyan-400"></i> Select Practice Topic
+                </h2>
+                
+                <div class="grid grid-cols-1 gap-2.5">
+                    <button onclick="selectTopic('matter')" id="btn-topic-matter" class="topic-btn p-3.5 rounded-2xl border text-left flex items-center gap-3 transition touch-active bg-slate-800/80 border-slate-700 hover:border-cyan-500/50">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-lg">1</div>
+                        <div class="flex-grow">
+                            <div class="font-bold text-sm text-slate-100">Classification of Matter</div>
+                            <div class="text-xs text-slate-400">Element, Compound, Homogeneous, Heterogeneous</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
+                    </button>
+
+                    <button onclick="selectTopic('properties')" id="btn-topic-properties" class="topic-btn p-3.5 rounded-2xl border text-left flex items-center gap-3 transition touch-active bg-slate-800/80 border-slate-700 hover:border-cyan-500/50">
+                        <div class="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center font-bold text-lg">2</div>
+                        <div class="flex-grow">
+                            <div class="font-bold text-sm text-slate-100">Extensive vs. Intensive</div>
+                            <div class="text-xs text-slate-400">Mass, Density, Volume, Boiling Point, etc.</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
+                    </button>
+
+                    <button onclick="selectTopic('types')" id="btn-topic-types" class="topic-btn p-3.5 rounded-2xl border text-left flex items-center gap-3 transition touch-active bg-slate-800/80 border-slate-700 hover:border-cyan-500/50">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-lg">3</div>
+                        <div class="flex-grow">
+                            <div class="font-bold text-sm text-slate-100">Physical vs. Chemical Properties</div>
+                            <div class="text-xs text-slate-400">Flammability, Reactivity, Density, Solubility</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
+                    </button>
+
+                    <button onclick="selectTopic('changes')" id="btn-topic-changes" class="topic-btn p-3.5 rounded-2xl border text-left flex items-center gap-3 transition touch-active bg-slate-800/80 border-slate-700 hover:border-cyan-500/50">
+                        <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold text-lg">4</div>
+                        <div class="flex-grow">
+                            <div class="font-bold text-sm text-slate-100">Physical vs. Chemical Changes</div>
+                            <div class="text-xs text-slate-400">Melting, Burning, Dissolving, Rusting</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
+                    </button>
+
+                    <button onclick="selectTopic('mixed')" id="btn-topic-mixed" class="topic-btn p-3.5 rounded-2xl border text-left flex items-center gap-3 transition touch-active bg-slate-800/80 border-slate-700 hover:border-cyan-500/50">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-lg"><i class="fa-solid fa-shuffle text-sm"></i></div>
+                        <div class="flex-grow">
+                            <div class="font-bold text-sm text-slate-100">Mixed Practice</div>
+                            <div class="text-xs text-slate-400">Randomized questions across all 4 categories</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Number of Questions Selector -->
+            <div class="glass-panel rounded-3xl p-5 space-y-3">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                    <i class="fa-solid fa-list-ol text-cyan-400"></i> Number of Questions
+                </h2>
+                <div class="grid grid-cols-3 gap-3">
+                    <button onclick="selectCount(10)" id="btn-count-10" class="count-btn py-3 rounded-xl border text-center font-extrabold transition touch-active bg-slate-800/80 border-slate-700 text-slate-300">10</button>
+                    <button onclick="selectCount(20)" id="btn-count-20" class="count-btn py-3 rounded-xl border text-center font-extrabold transition touch-active bg-slate-800/80 border-slate-700 text-slate-300">20</button>
+                    <button onclick="selectCount(30)" id="btn-count-30" class="count-btn py-3 rounded-xl border text-center font-extrabold transition touch-active bg-slate-800/80 border-slate-700 text-slate-300">30</button>
+                </div>
+            </div>
+
+            <!-- Start Game Button -->
+            <button onclick="startGame()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white font-extrabold text-lg shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all touch-active flex items-center justify-center gap-2">
+                <i class="fa-solid fa-bolt text-amber-300"></i> START SPEED QUIZ (5s / Q)
+            </button>
+        </section>
+
+        <!-- ==================== GAMEPLAY SCREEN ==================== -->
+        <section id="screen-game" class="hidden space-y-4 animate-fade-in">
+            
+            <!-- Top Bar: Progress, Score & Streak -->
+            <div class="glass-panel rounded-2xl p-3 flex justify-between items-center text-sm font-semibold">
+                <div class="flex items-center gap-2">
+                    <button onclick="confirmQuit()" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <span id="game-progress" class="font-mono text-cyan-400 font-bold">Q 1/10</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1.5 bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                        <i class="fa-solid fa-fire text-amber-400"></i>
+                        <span id="game-streak" class="font-mono font-bold">0</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                        <i class="fa-solid fa-star text-emerald-400"></i>
+                        <span id="game-score" class="font-mono font-bold">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5-Second Timer Bar -->
+            <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-700/80 shadow-inner">
+                <div id="game-timer-bar" class="timer-progress h-full w-full rounded-full bg-cyan-400 shadow-md shadow-cyan-400/50"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div id="question-card" class="glass-panel rounded-3xl p-6 min-h-[200px] flex flex-col justify-between space-y-4 border border-slate-700/60 relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <span id="question-category" class="text-[11px] font-extrabold uppercase tracking-widest text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-lg">
+                        Classification
+                    </span>
+                    <span id="timer-text" class="font-mono text-xs font-bold text-slate-400 flex items-center gap-1">
+                        <i class="fa-regular fa-clock"></i> 5.0s
+                    </span>
+                </div>
+
+                <div class="my-auto py-2">
+                    <h3 id="question-text" class="text-xl sm:text-2xl font-extrabold text-white leading-tight">
+                        Classify Table Salt (NaCl)
+                    </h3>
+                </div>
+
+                <!-- Category Sub-prompt -->
+                <p id="question-prompt" class="text-xs text-slate-400 italic">Select the best match before time expires!</p>
+            </div>
+
+            <!-- Options Grid -->
+            <div id="options-container" class="grid grid-cols-1 gap-2.5">
+                <!-- Dynamically Generated Buttons Go Here -->
+            </div>
+
+            <!-- Explanation Banner (Appears on Answer) -->
+            <div id="feedback-banner" class="hidden glass-panel rounded-2xl p-4 border transition-all animate-fade-in space-y-1">
+                <div class="flex items-center gap-2 font-bold text-sm" id="feedback-title">
+                    <i class="fa-solid fa-circle-check"></i> <span>Correct!</span>
+                </div>
+                <p id="feedback-text" class="text-xs text-slate-300 leading-relaxed"></p>
+            </div>
+        </section>
+
+        <!-- ==================== RESULTS / SUMMARY SCREEN ==================== -->
+        <section id="screen-results" class="hidden space-y-5 animate-fade-in my-auto">
+            
+            <div class="glass-panel rounded-3xl p-6 text-center space-y-4 relative overflow-hidden border border-slate-700">
+                <div class="inline-flex w-16 h-16 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 items-center justify-center text-3xl mb-1" id="result-badge">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white" id="result-title">Round Complete!</h2>
+                    <p class="text-xs text-slate-400 mt-1" id="result-subtitle">Great job practicing your chemistry fundamentals!</p>
+                </div>
+
+                <!-- Final Stats Grid -->
+                <div class="grid grid-cols-3 gap-2 pt-2">
+                    <div class="bg-slate-800/80 rounded-2xl p-3 border border-slate-700/60">
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Score</span>
+                        <span id="res-score" class="text-xl font-extrabold text-cyan-400 font-mono">18/20</span>
+                    </div>
+                    <div class="bg-slate-800/80 rounded-2xl p-3 border border-slate-700/60">
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Accuracy</span>
+                        <span id="res-accuracy" class="text-xl font-extrabold text-emerald-400 font-mono">90%</span>
+                    </div>
+                    <div class="bg-slate-800/80 rounded-2xl p-3 border border-slate-700/60">
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase">Max Streak</span>
+                        <span id="res-streak" class="text-xl font-extrabold text-amber-400 font-mono">8</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="startGame()" class="py-3.5 px-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-extrabold text-sm shadow-lg shadow-cyan-500/20 touch-active flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> Play Again
+                </button>
+                <button onclick="showScreen('setup')" class="py-3.5 px-4 rounded-2xl bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-extrabold text-sm touch-active flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-sliders"></i> Menu / Options
+                </button>
+            </div>
+
+            <!-- Review Missed Questions Section -->
+            <div class="glass-panel rounded-3xl p-5 space-y-3 max-h-[280px] overflow-y-auto">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                    <span><i class="fa-solid fa-magnifying-glass text-cyan-400 mr-1"></i> Review Questions</span>
+                    <span id="missed-count-badge" class="text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded-full">0 Missed</span>
+                </h3>
+
+                <div id="missed-list" class="space-y-2.5">
+                    <!-- Dynamic Missed Questions List -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Quit Modal -->
+    <div id="quit-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel rounded-3xl p-6 max-w-sm w-full space-y-4 text-center border border-slate-700 animate-fade-in">
+            <div class="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white">Quit Quiz Round?</h3>
+            <p class="text-xs text-slate-300">Your current score and streak progress for this round will be lost.</p>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="closeQuitModal()" class="py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-bold text-sm">Cancel</button>
+                <button onclick="exitQuiz()" class="py-2.5 rounded-xl bg-rose-600 text-white font-bold text-sm">Quit Round</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-xl mx-auto px-4 py-3 text-center text-[11px] text-slate-500">
+        ChemRush &bull; High School Chemistry Fundamentals
+    </footer>
+
+    <script>
+        /* ==================== QUESTION DATABASE ==================== */
+        const QUESTION_BANK = {
+            matter: [
+                { item: "Gold Coin (Pure Au)", answer: "Element", exp: "Gold consists of only one type of atom (Au) and cannot be chemically broken down further." },
+                { item: "Table Salt (NaCl)", answer: "Compound", exp: "Sodium and Chlorine are chemically combined in a fixed 1:1 ratio." },
+                { item: "Saltwater Solution", answer: "Homogeneous Mixture", exp: "Salt is uniformly dissolved in water, forming a single clear phase." },
+                { item: "Oil and Vinegar Salad Dressing", answer: "Heterogeneous Mixture", exp: "Oil and vinegar do not blend uniformly and form separate visible layers." },
+                { item: "Carbon Dioxide Gas (CO₂)", answer: "Compound", exp: "Composed of Carbon and Oxygen chemically bonded together." },
+                { item: "Filtered Air", answer: "Homogeneous Mixture", exp: "A uniform mixture of Nitrogen, Oxygen, and other gases throughout." },
+                { item: "Stainless Steel", answer: "Homogeneous Mixture", exp: "A solid metal alloy (Iron, Chromium, Nickel) with uniform composition." },
+                { item: "Granite Rock", answer: "Heterogeneous Mixture", exp: "Consists of distinct visible mineral grains like quartz, feldspar, and mica." },
+                { item: "Pure Nitrogen Gas (N₂)", answer: "Element", exp: "Made of identical Nitrogen atoms bonded as diatomic molecules." },
+                { item: "Orange Juice with Pulp", answer: "Heterogeneous Mixture", exp: "The pulp creates non-uniform regions and settles at the bottom." },
+                { item: "Brass (Copper + Zinc)", answer: "Homogeneous Mixture", exp: "An alloy of copper and zinc melted together with uniform composition." },
+                { item: "Glucose (C₆H₁₂O₆)", answer: "Compound", exp: "Carbon, Hydrogen, and Oxygen chemically combined in fixed proportions." },
+                { item: "Copper Wire", answer: "Element", exp: "Consists entirely of pure Copper (Cu) atoms." },
+                { item: "Chocolate Chip Cookie", answer: "Heterogeneous Mixture", exp: "Chocolate chips and dough are unevenly distributed throughout." },
+                { item: "White Vinegar", answer: "Homogeneous Mixture", exp: "Acetic acid dissolved uniformly in water." },
+                { item: "Helium Gas in Balloon", answer: "Element", exp: "Helium (He) is a noble gas element found on the periodic table." },
+                { item: "Pure Water (H₂O)", answer: "Compound", exp: "Hydrogen and Oxygen chemically combined in a 2:1 atomic ratio." },
+                { item: "Whole Milk", answer: "Heterogeneous Mixture", exp: "A colloid/mixture of fat globules and proteins suspended unevenly in water." },
+                { item: "Sand in Water", answer: "Heterogeneous Mixture", exp: "Sand does not dissolve and visibly settles at the bottom." },
+                { item: "Rust (Iron Oxide - Fe₂O₃)", answer: "Compound", exp: "Iron and Oxygen chemically reacted to form a new substance." },
+                { item: "Ozone Gas (O₃)", answer: "Element", exp: "Formed entirely of Oxygen atoms, making it an elemental allotrope." },
+                { item: "Tap Water", answer: "Homogeneous Mixture", exp: "Contains tiny amounts of dissolved minerals uniformly distributed in pure water." },
+                { item: "Baking Soda (NaHCO₃)", answer: "Compound", exp: "Sodium, Hydrogen, Carbon, and Oxygen chemically combined." },
+                { item: "Concrete", answer: "Heterogeneous Mixture", exp: "Contains visible gravel, sand, and cement matrix combined non-uniformly." },
+                { item: "Pure Aluminum Foil", answer: "Element", exp: "Made entirely of Aluminum (Al) atoms." }
+            ],
+
+            properties: [
+                { item: "Mass of a Sample", answer: "Extensive Property", exp: "Mass depends directly on the amount of matter in the sample." },
+                { item: "Density", answer: "Intensive Property", exp: "Density remains constant regardless of sample size." },
+                { item: "Boiling Point", answer: "Intensive Property", exp: "Water boils at 100°C whether you have a cup or an ocean." },
+                { item: "Volume", answer: "Extensive Property", exp: "Volume increases as more matter is added." },
+                { item: "Temperature", answer: "Intensive Property", exp: "Temperature measures average kinetic energy, independent of sample quantity." },
+                { item: "Length of Wire", answer: "Extensive Property", exp: "Length changes depending on how much wire is measured." },
+                { item: "Color", answer: "Intensive Property", exp: "Gold is yellow whether you have a tiny flake or a huge bar." },
+                { item: "Hardness (Mohs Scale)", answer: "Intensive Property", exp: "Hardness is an inherent characteristic independent of amount." },
+                { item: "Weight", answer: "Extensive Property", exp: "Weight depends on the amount of matter and gravitational pull." },
+                { item: "Melting Point", answer: "Intensive Property", exp: "Ice melts at 0°C regardless of the block's size." },
+                { item: "Electrical Conductivity", answer: "Intensive Property", exp: "Ability to conduct electricity is an intrinsic material property." },
+                { item: "Total Heat Content (Enthalpy)", answer: "Extensive Property", exp: "More substance contains more total thermal energy at a given temperature." },
+                { item: "Specific Heat Capacity", answer: "Intensive Property", exp: "The energy required to raise 1g of substance by 1°C is constant." },
+                { item: "Moles of Substance", answer: "Extensive Property", exp: "Measures the physical count/amount of particles present." },
+                { item: "Molar Mass", answer: "Intensive Property", exp: "Grams per mole is a fixed constant ratio for any substance." },
+                { item: "Refractive Index", answer: "Intensive Property", exp: "Bending of light depends on the material, not its size." },
+                { item: "Surface Area", answer: "Extensive Property", exp: "Surface area changes with particle size and sample quantity." },
+                { item: "Viscosity", answer: "Intensive Property", exp: "Thickness/flow resistance of a liquid is intrinsic to the fluid." },
+                { item: "Odor", answer: "Intensive Property", exp: "Scent is a characteristic property independent of amount." },
+                { item: "Ductility", answer: "Intensive Property", exp: "Ability to be drawn into wires depends on atomic bonding, not amount." },
+                { item: "Total Energy Released in Burning", answer: "Extensive Property", exp: "More fuel releases more total heat when burned." },
+                { item: "Concentration (Molarity)", answer: "Intensive Property", exp: "Ratio of solute to solution volume is identical throughout." },
+                { item: "Magnetism", answer: "Intensive Property", exp: "Whether a substance is ferromagnetic is an intrinsic property." },
+                { item: "Thickness/Width", answer: "Extensive Property", exp: "Physical dimension varies with the size of the object." },
+                { item: "Luster (Shininess)", answer: "Intensive Property", exp: "Surface reflectivity is an intrinsic characteristic." }
+            ],
+
+            types: [
+                { item: "Flammability", answer: "Chemical Property", exp: "Describes how a substance reacts with oxygen to ignite and burn." },
+                { item: "Density", answer: "Physical Property", exp: "Can be measured without changing the chemical identity of the substance." },
+                { item: "Reactivity with Acid", answer: "Chemical Property", exp: "Involves forming new chemical compounds upon reacting with acid." },
+                { item: "Color", answer: "Physical Property", exp: "Observed directly without altering the substance's composition." },
+                { item: "Ability to Rust (Oxidizability)", answer: "Chemical Property", exp: "Involves iron reacting with oxygen to form iron oxide." },
+                { item: "Melting Point", answer: "Physical Property", exp: "Transitioning from solid to liquid alters state, not molecular formula." },
+                { item: "Toxicity", answer: "Chemical Property", exp: "Describes how a substance damages biological systems via chemical reactions." },
+                { item: "Solubility in Water", answer: "Physical Property", exp: "Dissolving changes physical state phase, not basic molecular bonds." },
+                { item: "Heat of Combustion", answer: "Chemical Property", exp: "Energy released when a compound undergoes complete combustion." },
+                { item: "Enthalpy of Formation", answer: "Chemical Property", exp: "Relates to the energy involved in forming bonds of a compound." },
+                { item: "Malleability", answer: "Physical Property", exp: "Ability to be hammered into sheets without changing atomic structure." },
+                { item: "Ductility", answer: "Physical Property", exp: "Ability to be drawn into wire without altering chemical composition." },
+                { item: "Corrosiveness", answer: "Chemical Property", exp: "Describes ability to chemically eat away at metals or tissue." },
+                { item: "Viscosity", answer: "Physical Property", exp: "Resistance to flow is a physical fluid characteristic." },
+                { item: "Chemical Stability", answer: "Chemical Property", exp: "Refers to whether a substance decomposes or reacts easily." },
+                { item: "Odor", answer: "Physical Property", exp: "Scent can be detected without undergoing a chemical reaction." },
+                { item: "Radioactivity / Half-life", answer: "Chemical Property", exp: "Involves nuclear/atomic transformations and decay reactivity." },
+                { item: "Boiling Point", answer: "Physical Property", exp: "Phase change temperature measured without altering chemical bonds." },
+                { item: "Electronegativity", answer: "Chemical Property", exp: "Tendency of an atom to attract electrons during chemical bonding." },
+                { item: "Hardness", answer: "Physical Property", exp: "Resistance to scratching observed physically." },
+                { item: "pH Level / Acidity", answer: "Chemical Property", exp: "Measures hydrogen ion reactivity potential in chemical systems." },
+                { item: "Thermal Conductivity", answer: "Physical Property", exp: "Ability to transfer heat through kinetic energy transfer." },
+                { item: "Taste", answer: "Physical Property", exp: "Sensation produced without permanently altering the test substance." },
+                { item: "Combustibility", answer: "Chemical Property", exp: "Capacity of a material to burn in the presence of oxygen." },
+                { item: "Magnetism", answer: "Physical Property", exp: "Magnetic attraction observed without chemical alteration." }
+            ],
+
+            changes: [
+                { item: "Melting Ice Cubes", answer: "Physical Change", exp: "H₂O changes from solid to liquid; molecular structure remains H₂O." },
+                { item: "Burning Wood in Fireplace", answer: "Chemical Change", exp: "Wood reacts with O₂ to produce ash, carbon dioxide, and water vapor." },
+                { item: "Dissolving Sugar in Warm Water", answer: "Physical Change", exp: "Sugar molecules disperse in water but remain chemically unchanged." },
+                { item: "Rusting Iron Nail", answer: "Chemical Change", exp: "Fe reacts with O₂ and H₂O to form a new substance, Fe₂O₃." },
+                { item: "Chopping Firewood", answer: "Physical Change", exp: "Changes shape and size, but the composition remains wood." },
+                { item: "Baking a Cake", answer: "Chemical Change", exp: "Heat causes chemical reactions among ingredients (denaturing, leavening)." },
+                { item: "Evaporating Rubbing Alcohol", answer: "Physical Change", exp: "Liquid alcohol converts to vapor state without chemical breakdown." },
+                { item: "Digestion of Food in Stomach", answer: "Chemical Change", exp: "Enzymes and acids break chemical bonds to convert food into nutrients." },
+                { item: "Boiling Water on Stove", answer: "Physical Change", exp: "Liquid H₂O turns into gaseous steam without altering H₂O molecules." },
+                { item: "Tarnishing Silverware", answer: "Chemical Change", exp: "Silver reacts with sulfur compounds in air to form silver sulfide." },
+                { item: "Crushing an Aluminum Can", answer: "Physical Change", exp: "Alters shape/volume of container; metal composition is unchanged." },
+                { item: "Mixing Vinegar and Baking Soda", answer: "Chemical Change", exp: "Produces CO₂ gas bubbles, water, and sodium acetate salt." },
+                { item: "Shredding Paper", answer: "Physical Change", exp: "Paper is physically torn into small pieces without molecular change." },
+                { item: "Photosynthesis in Plant Leaves", answer: "Chemical Change", exp: "Converts CO₂ and H₂O into Glucose (C₆H₁₂O₆) and O₂." },
+                { item: "Sublimation of Dry Ice (Solid CO₂)", answer: "Physical Change", exp: "Passes directly from solid to gas state without forming new substances." },
+                { item: "Cooking an Egg", answer: "Chemical Change", exp: "Heat permanently denatures and cross-links egg proteins." },
+                { item: "Fireworks Exploding", answer: "Chemical Change", exp: "Rapid combustion reaction releases light, heat, gas, and new compounds." },
+                { item: "Condensation of Steam on Mirror", answer: "Physical Change", exp: "Water gas cools to liquid water; state change only." },
+                { item: "Souring of Milk", answer: "Chemical Change", exp: "Bacteria ferment lactose into lactic acid, creating sour taste and curds." },
+                { item: "Bending a Copper Wire", answer: "Physical Change", exp: "Changes physical shape without altering metallic bonds." },
+                { item: "Bleaching a Stained Shirt", answer: "Chemical Change", exp: "Bleach chemically breaks down chromophore bonds responsible for color." },
+                { item: "Melting Wax", answer: "Physical Change", exp: "Wax transitions from solid to liquid; solidifies back to wax when cooled." },
+                { item: "Rotting Apple", answer: "Chemical Change", exp: "Decomposition breaks down complex organic molecules into simpler ones." },
+                { item: "Breaking Glass", answer: "Physical Change", exp: "Glass shatters into fragments; chemical makeup remains silicon dioxide." },
+                { item: "Lighting a Match", answer: "Chemical Change", exp: "Friction ignites red phosphorus, initiating a combustion reaction." }
+            ]
+        };
+
+        const CATEGORY_OPTIONS = {
+            matter: ["Element", "Compound", "Homogeneous Mixture", "Heterogeneous Mixture"],
+            properties: ["Extensive Property", "Intensive Property"],
+            types: ["Physical Property", "Chemical Property"],
+            changes: ["Physical Change", "Chemical Change"]
+        };
+
+        const CATEGORY_TITLES = {
+            matter: "Classification of Matter",
+            properties: "Extensive vs. Intensive",
+            types: "Property Types",
+            changes: "Physical vs. Chemical Change"
+        };
+
+        /* ==================== APP STATE ==================== */
+        let state = {
+            selectedTopic: 'mixed',
+            questionCount: 10,
+            currentQuestionIdx: 0,
+            questions: [],
+            score: 0,
+            streak: 0,
+            maxStreakInRound: 0,
+            missedQuestions: [],
+            timer: null,
+            timeRemaining: 5.0,
+            timerIntervalMs: 50,
+            audioEnabled: true,
+            isAnswering: false
+        };
+
+        /* ==================== AUDIO SYNTHESIZER ==================== */
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioCtx();
+        }
+
+        function playSound(type) {
+            if (!state.audioEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now); // A3
+                    osc.frequency.exponentialRampToValueAtTime(110, now + 0.25); // A2
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'tick') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(600, now);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                    osc.start(now);
+                    osc.stop(now + 0.04);
+                }
+            } catch (e) {
+                // Audio fallback silence
+            }
+        }
+
+        function toggleAudio() {
+            state.audioEnabled = !state.audioEnabled;
+            const icon = document.getElementById('audio-icon');
+            if (state.audioEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-base';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-base text-slate-500';
+            }
+        }
+
+        /* ==================== STORAGE HELPERS ==================== */
+        function loadStats() {
+            const bestScore = localStorage.getItem('chemrush_best_score') || '0';
+            const bestStreak = localStorage.getItem('chemrush_best_streak') || '0';
+            const lastScore = localStorage.getItem('chemrush_last_score') || '0/0';
+
+            document.getElementById('stat-best-score').textContent = bestScore;
+            document.getElementById('stat-best-streak').textContent = '🔥 ' + bestStreak;
+            document.getElementById('stat-last-score').textContent = lastScore;
+        }
+
+        function saveStats(score, total, maxStreak) {
+            const currentBestScore = parseInt(localStorage.getItem('chemrush_best_score') || '0', 10);
+            const currentBestStreak = parseInt(localStorage.getItem('chemrush_best_streak') || '0', 10);
+
+            if (score > currentBestScore) {
+                localStorage.setItem('chemrush_best_score', score);
+            }
+
+            if (maxStreak > currentBestStreak) {
+                localStorage.setItem('chemrush_best_streak', maxStreak);
+            }
+
+            localStorage.setItem('chemrush_last_score', `${score}/${total}`);
+            loadStats();
+        }
+
+        /* ==================== NAVIGATION & SETUP ==================== */
+        function showScreen(screenId) {
+            document.getElementById('screen-setup').classList.add('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-results').classList.add('hidden');
+
+            document.getElementById(`screen-${screenId}`).classList.remove('hidden');
+
+            if (screenId === 'setup') {
+                clearInterval(state.timer);
+                loadStats();
+            }
+        }
+
+        function selectTopic(topic) {
+            state.selectedTopic = topic;
+            document.querySelectorAll('.topic-btn').forEach(btn => {
+                btn.classList.remove('border-cyan-500', 'bg-cyan-500/10');
+                btn.classList.add('border-slate-700', 'bg-slate-800/80');
+            });
+
+            const activeBtn = document.getElementById(`btn-topic-${topic}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-slate-700', 'bg-slate-800/80');
+                activeBtn.classList.add('border-cyan-500', 'bg-cyan-500/10');
+            }
+        }
+
+        function selectCount(count) {
+            state.questionCount = count;
+            document.querySelectorAll('.count-btn').forEach(btn => {
+                btn.classList.remove('border-cyan-500', 'bg-cyan-500/20', 'text-cyan-400');
+                btn.classList.add('border-slate-700', 'bg-slate-800/80', 'text-slate-300');
+            });
+
+            const activeBtn = document.getElementById(`btn-count-${count}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-slate-700', 'bg-slate-800/80', 'text-slate-300');
+                activeBtn.classList.add('border-cyan-500', 'bg-cyan-500/20', 'text-cyan-400');
+            }
+        }
+
+        /* ==================== QUIZ LOGIC ==================== */
+        function generateQuestionPool() {
+            let pool = [];
+
+            if (state.selectedTopic === 'mixed') {
+                Object.keys(QUESTION_BANK).forEach(cat => {
+                    QUESTION_BANK[cat].forEach(q => {
+                        pool.push({ ...q, categoryKey: cat });
+                    });
+                });
+            } else {
+                QUESTION_BANK[state.selectedTopic].forEach(q => {
+                    pool.push({ ...q, categoryKey: state.selectedTopic });
+                });
+            }
+
+            // Shuffle pool using Fisher-Yates
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            return pool.slice(0, state.questionCount);
+        }
+
+        function startGame() {
+            initAudio();
+            state.questions = generateQuestionPool();
+            state.currentQuestionIdx = 0;
+            state.score = 0;
+            state.streak = 0;
+            state.maxStreakInRound = 0;
+            state.missedQuestions = [];
+
+            showScreen('game');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            state.isAnswering = false;
+            const q = state.questions[state.currentQuestionIdx];
+            const total = state.questions.length;
+
+            // UI Elements Update
+            document.getElementById('game-progress').textContent = `Q ${state.currentQuestionIdx + 1}/${total}`;
+            document.getElementById('game-score').textContent = state.score;
+            document.getElementById('game-streak').textContent = state.streak;
+            document.getElementById('question-category').textContent = CATEGORY_TITLES[q.categoryKey];
+            document.getElementById('question-text').textContent = q.item;
+
+            // Hide feedback
+            const feedbackBanner = document.getElementById('feedback-banner');
+            feedbackBanner.classList.add('hidden');
+
+            // Render Options
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const options = CATEGORY_OPTIONS[q.categoryKey];
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 hover:border-cyan-500/60 font-bold text-sm text-left text-slate-100 transition touch-active flex justify-between items-center';
+                btn.innerHTML = `<span>${opt}</span> <i class="fa-regular fa-circle text-slate-600"></i>`;
+                btn.onclick = () => handleAnswer(opt, btn);
+                container.appendChild(btn);
+            });
+
+            startTimer();
+        }
+
+        /* ==================== TIMER ENGINE ==================== */
+        function startTimer() {
+            clearInterval(state.timer);
+            state.timeRemaining = 5.0;
+
+            const timerBar = document.getElementById('game-timer-bar');
+            const timerText = document.getElementById('timer-text');
+
+            timerBar.style.width = '100%';
+            timerBar.className = 'timer-progress h-full w-full rounded-full bg-cyan-400 shadow-md shadow-cyan-400/50';
+
+            const startTime = Date.now();
+            const duration = 5000;
+
+            state.timer = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, duration - elapsed);
+                state.timeRemaining = (remaining / 1000).toFixed(1);
+
+                const pct = (remaining / duration) * 100;
+                timerBar.style.width = `${pct}%`;
+                timerText.innerHTML = `<i class="fa-regular fa-clock"></i> ${state.timeRemaining}s`;
+
+                // Color Shifts & Tick Sounds
+                if (remaining <= 2000) {
+                    timerBar.className = 'timer-progress h-full w-full rounded-full bg-rose-500 shadow-md shadow-rose-500/50 animate-pulse-fast';
+                    if (Math.floor(remaining) % 500 < 50) playSound('tick');
+                } else if (remaining <= 3500) {
+                    timerBar.className = 'timer-progress h-full w-full rounded-full bg-amber-400 shadow-md shadow-amber-400/50';
+                }
+
+                if (remaining <= 0) {
+                    clearInterval(state.timer);
+                    handleAnswer(null, null); // Time Out
+                }
+            }, state.timerIntervalMs);
+        }
+
+        /* ==================== ANSWER EVALUATION ==================== */
+        function handleAnswer(selectedOpt, btnElement) {
+            if (state.isAnswering) return;
+            state.isAnswering = true;
+            clearInterval(state.timer);
+
+            const q = state.questions[state.currentQuestionIdx];
+            const isCorrect = (selectedOpt === q.answer);
+
+            const feedbackBanner = document.getElementById('feedback-banner');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackText = document.getElementById('feedback-text');
+
+            // Disable all option buttons
+            const optionBtns = document.querySelectorAll('.option-btn');
+            optionBtns.forEach(btn => {
+                btn.disabled = true;
+                const text = btn.querySelector('span').textContent;
+                
+                if (text === q.answer) {
+                    btn.classList.remove('bg-slate-800/90', 'border-slate-700');
+                    btn.classList.add('bg-emerald-500/20', 'border-emerald-500', 'text-emerald-300');
+                    btn.querySelector('i').className = 'fa-solid fa-circle-check text-emerald-400';
+                }
+            });
+
+            if (isCorrect) {
+                playSound('correct');
+                state.score++;
+                state.streak++;
+                if (state.streak > state.maxStreakInRound) {
+                    state.maxStreakInRound = state.streak;
+                }
+
+                if (btnElement) {
+                    btnElement.classList.add('animate-bounce-short');
+                }
+
+                feedbackBanner.className = 'glass-panel rounded-2xl p-4 border border-emerald-500/40 bg-emerald-500/10 animate-fade-in space-y-1';
+                feedbackTitle.className = 'flex items-center gap-2 font-bold text-sm text-emerald-400';
+                feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-check"></i> Correct! (+1)`;
+            } else {
+                playSound('wrong');
+                state.streak = 0; // Reset streak
+                state.missedQuestions.push({
+                    item: q.item,
+                    userAns: selectedOpt || 'Time Expired',
+                    correctAns: q.answer,
+                    explanation: q.exp,
+                    category: CATEGORY_TITLES[q.categoryKey]
+                });
+
+                if (btnElement) {
+                    btnElement.classList.remove('bg-slate-800/90', 'border-slate-700');
+                    btnElement.classList.add('bg-rose-500/20', 'border-rose-500', 'text-rose-300', 'animate-shake');
+                    btnElement.querySelector('i').className = 'fa-solid fa-circle-xmark text-rose-400';
+                }
+
+                document.getElementById('question-card').classList.add('animate-shake');
+                setTimeout(() => document.getElementById('question-card').classList.remove('animate-shake'), 400);
+
+                feedbackBanner.className = 'glass-panel rounded-2xl p-4 border border-rose-500/40 bg-rose-500/10 animate-fade-in space-y-1';
+                feedbackTitle.className = 'flex items-center gap-2 font-bold text-sm text-rose-400';
+                feedbackTitle.innerHTML = selectedOpt === null 
+                    ? `<i class="fa-solid fa-clock"></i> Time's Up!` 
+                    : `<i class="fa-solid fa-circle-xmark"></i> Incorrect!`;
+            }
+
+            feedbackText.textContent = q.exp;
+            feedbackBanner.classList.remove('hidden');
+
+            // Update Header Stats Immediately
+            document.getElementById('game-score').textContent = state.score;
+            document.getElementById('game-streak').textContent = state.streak;
+
+            // Advance to Next Question after brief delay
+            setTimeout(() => {
+                state.currentQuestionIdx++;
+                if (state.currentQuestionIdx < state.questions.length) {
+                    renderQuestion();
+                } else {
+                    finishQuiz();
+                }
+            }, 1400);
+        }
+
+        /* ==================== FINISH & RESULTS ==================== */
+        function finishQuiz() {
+            clearInterval(state.timer);
+            const total = state.questions.length;
+            const accuracy = Math.round((state.score / total) * 100);
+
+            // Save Stats to LocalStorage
+            saveStats(state.score, total, state.maxStreakInRound);
+
+            // Update Results Screen UI
+            document.getElementById('res-score').textContent = `${state.score}/${total}`;
+            document.getElementById('res-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('res-streak').textContent = state.maxStreakInRound;
+
+            const badge = document.getElementById('result-badge');
+            const title = document.getElementById('result-title');
+            const sub = document.getElementById('result-subtitle');
+
+            if (accuracy >= 90) {
+                badge.className = 'inline-flex w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 items-center justify-center text-3xl mb-1';
+                badge.innerHTML = `<i class="fa-solid fa-trophy"></i>`;
+                title.textContent = "Outstanding Chemistry Master!";
+                sub.textContent = "Lightning fast and super accurate! You really know your concepts!";
+                triggerConfetti();
+            } else if (accuracy >= 70) {
+                badge.className = 'inline-flex w-16 h-16 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 items-center justify-center text-3xl mb-1';
+                badge.innerHTML = `<i class="fa-solid fa-award"></i>`;
+                title.textContent = "Great Job!";
+                sub.textContent = "Solid chemistry knowledge! Keep sharpening your speed.";
+            } else {
+                badge.className = 'inline-flex w-16 h-16 rounded-2xl bg-violet-500/20 text-violet-400 border border-violet-500/30 items-center justify-center text-3xl mb-1';
+                badge.innerHTML = `<i class="fa-solid fa-flask-vial"></i>`;
+                title.textContent = "Practice Makes Perfect!";
+                sub.textContent = "Review your missed questions below and try another round!";
+            }
+
+            // Render Missed Questions
+            const missedList = document.getElementById('missed-list');
+            const missedBadge = document.getElementById('missed-count-badge');
+            missedList.innerHTML = '';
+
+            missedBadge.textContent = `${state.missedQuestions.length} Missed`;
+
+            if (state.missedQuestions.length === 0) {
+                missedList.innerHTML = `
+                    <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center text-emerald-300 text-xs font-bold">
+                        🎉 Perfect Round! You didn't miss a single question!
+                    </div>
+                `;
+            } else {
+                state.missedQuestions.forEach(m => {
+                    const card = document.createElement('div');
+                    card.className = 'p-3 rounded-2xl bg-slate-800/90 border border-slate-700/80 space-y-1 text-xs';
+                    card.innerHTML = `
+                        <div class="flex justify-between font-bold text-white">
+                            <span>${m.item}</span>
+                            <span class="text-[10px] text-cyan-400">${m.category}</span>
+                        </div>
+                        <div class="flex gap-3 text-[11px]">
+                            <span class="text-rose-400">You: ${m.userAns}</span>
+                            <span class="text-emerald-400 font-bold">Correct: ${m.correctAns}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 italic pt-1 border-t border-slate-700/50">${m.explanation}</p>
+                    `;
+                    missedList.appendChild(card);
+                });
+            }
+
+            showScreen('results');
+        }
+
+        function triggerConfetti() {
+            try {
+                confetti({
+                    particleCount: 80,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            } catch (e) {}
+        }
+
+        /* ==================== QUIT & MODALS ==================== */
+        function confirmQuit() {
+            clearInterval(state.timer);
+            document.getElementById('quit-modal').classList.remove('hidden');
+        }
+
+        function closeQuitModal() {
+            document.getElementById('quit-modal').classList.add('hidden');
+            if (state.currentQuestionIdx < state.questions.length && !state.isAnswering) {
+                startTimer();
+            }
+        }
+
+        function exitQuiz() {
+            closeQuitModal();
+            showScreen('setup');
+        }
+
+        /* ==================== INITIALIZATION ==================== */
+        window.onload = function() {
+            selectTopic('mixed');
+            selectCount(10);
+            loadStats();
+        };
+    </script>
+</body>
+</html>
