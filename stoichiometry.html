@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stoichiometry Master (Non 1:1 Mole Ratios)</title>
+    <title>Stoichiometry Master - Pro Practice & Game</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -117,8 +117,8 @@
                     <select id="practiceTypeSelect" onchange="generatePracticeProblem()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-chem-500 outline-none">
                         <option value="mixed">🔀 Mixed Problem Types (1-4)</option>
                         <option value="mass-mass">⚖️ 1) Mass to Mass (g ➔ g)</option>
-                        <option value="mass-volume">🧪 2) Mass to Volume / Molarity</option>
-                        <option value="titration">💧 3) Titration Variation</option>
+                        <option value="mass-volume">🧪 2) Mass to Volume / Molarity (Non-Gas)</option>
+                        <option value="titration">💧 3) Titration Variation (M₁V₁/n₁ = M₂V₂/n₂)</option>
                         <option value="mass-conc">⚗️ 4) Mass / Target Concentration</option>
                     </select>
                 </div>
@@ -138,7 +138,7 @@
 
                 <!-- Balanced Chemical Reaction Display -->
                 <div class="p-4 bg-slate-50 dark:bg-slate-900/80 rounded-xl border border-slate-200/80 dark:border-slate-700 text-center">
-                    <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Balanced Equation</p>
+                    <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Balanced Chemical Equation</p>
                     <div id="practiceEquation" class="text-lg sm:text-xl font-bold font-mono text-slate-900 dark:text-white overflow-x-auto py-1">
                         <!-- Dynamic Equation -->
                     </div>
@@ -146,7 +146,7 @@
 
                 <!-- Problem Statement -->
                 <div class="space-y-2">
-                    <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Question</h3>
+                    <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Question Prompt</h3>
                     <div id="practiceQuestionText" class="text-base sm:text-lg text-slate-800 dark:text-slate-100 font-medium leading-relaxed">
                         Loading problem...
                     </div>
@@ -156,18 +156,19 @@
                 <div class="space-y-3 pt-2">
                     <div class="flex flex-col sm:flex-row gap-3">
                         <div class="relative flex-1">
-                            <input type="number" step="any" id="practiceAnswerInput" placeholder="Enter answer..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-lg font-mono focus:ring-2 focus:ring-chem-500 outline-none pr-16" onkeypress="if(event.key==='Enter') checkPracticeAnswer()">
-                            <span id="practiceUnitTag" class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-medium">g</span>
+                            <input type="number" step="any" id="practiceAnswerInput" placeholder="Enter calculated value..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-lg font-mono focus:ring-2 focus:ring-chem-500 outline-none pr-16" onkeypress="if(event.key==='Enter') checkPracticeAnswer()">
+                            <span id="practiceUnitTag" class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-semibold">g</span>
                         </div>
                         <button id="practiceSubmitBtn" onclick="checkPracticeAnswer()" class="px-6 py-3 bg-chem-600 hover:bg-chem-700 active:bg-chem-800 text-white font-semibold rounded-xl transition shadow-md flex items-center justify-center gap-2 min-w-[120px]">
                             Check <i class="fa-solid fa-check"></i>
                         </button>
                     </div>
 
-                    <!-- Quick Keypad helpers for Mobile -->
+                    <!-- On-screen Quick Keypad helpers for Mobile -->
                     <div class="flex gap-2 flex-wrap text-xs">
                         <button onclick="appendInput('.')" class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-md font-mono font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-300">.</button>
-                        <button onclick="appendInput('e')" class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-md font-mono font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-300">x10^ (e)</button>
+                        <button onclick="appendInput('e')" class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-md font-mono font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-300">×10ⁿ (e)</button>
+                        <button onclick="backspaceInput()" class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-md font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-300"><i class="fa-solid fa-backspace"></i></button>
                         <button onclick="clearInput()" class="px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-md font-semibold hover:bg-red-200">Clear</button>
                     </div>
                 </div>
@@ -199,8 +200,8 @@
                     <i class="fa-solid fa-stopwatch"></i>
                 </div>
                 <div>
-                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Stoichiometry Game Challenge</h2>
-                    <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Test your accuracy and speed with non-1:1 chemical reaction calculations!</p>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Stoichiometry Speed Challenge</h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Test your chemical calculation speed and accuracy with non 1:1 mole ratios!</p>
                 </div>
 
                 <!-- Game Setup Controls -->
@@ -242,7 +243,7 @@
                             <i class="fa-solid fa-clock"></i> <span>00:00</span>
                         </div>
                         <button onclick="stopGame()" class="text-xs px-2.5 py-1 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 text-red-600 dark:text-red-400 font-semibold rounded-lg">
-                            Quit
+                            Stop / Quit
                         </button>
                     </div>
                 </div>
@@ -259,12 +260,20 @@
                 <div class="space-y-3">
                     <div class="flex flex-col sm:flex-row gap-3">
                         <div class="relative flex-1">
-                            <input type="number" step="any" id="gameAnswerInput" placeholder="Enter answer..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-lg font-mono focus:ring-2 focus:ring-chem-500 outline-none pr-16" onkeypress="if(event.key==='Enter') submitGameAnswer()">
-                            <span id="gameUnitTag" class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-medium">g</span>
+                            <input type="number" step="any" id="gameAnswerInput" placeholder="Enter calculated value..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-lg font-mono focus:ring-2 focus:ring-chem-500 outline-none pr-16" onkeypress="if(event.key==='Enter') submitGameAnswer()">
+                            <span id="gameUnitTag" class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-semibold">g</span>
                         </div>
                         <button onclick="submitGameAnswer()" class="px-6 py-3 bg-chem-600 hover:bg-chem-700 active:bg-chem-800 text-white font-semibold rounded-xl transition shadow-md min-w-[120px]">
                             Submit <i class="fa-solid fa-arrow-right ml-1"></i>
                         </button>
+                    </div>
+
+                    <!-- On-screen Quick Keypad helpers for Mobile -->
+                    <div class="flex gap-2 flex-wrap text-xs">
+                        <button onclick="appendInput('.')" class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-md font-mono font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-300">.</button>
+                        <button onclick="appendInput('e')" class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-md font-mono font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-300">×10ⁿ (e)</button>
+                        <button onclick="backspaceInput()" class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-md font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-300"><i class="fa-solid fa-backspace"></i></button>
+                        <button onclick="clearInput()" class="px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-md font-semibold hover:bg-red-200">Clear</button>
                     </div>
                 </div>
 
@@ -311,12 +320,12 @@
                 <div class="flex flex-wrap justify-between items-center gap-2">
                     <div>
                         <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <i class="fa-solid fa-chart-pie text-chem-500"></i> Local Performance Dashboard
+                            <i class="fa-solid fa-chart-pie text-chem-500"></i> Local Personal Dashboard
                         </h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">All progress and scores are automatically saved locally on your device.</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">All statistics and history are saved locally in your browser (`localStorage`).</p>
                     </div>
                     <span class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-semibold flex items-center gap-1.5">
-                        <i class="fa-solid fa-database"></i> Saved Locally
+                        <i class="fa-solid fa-database"></i> Local Sync
                     </span>
                 </div>
 
@@ -353,7 +362,7 @@
 
                 <!-- Reset Statistics Button -->
                 <div class="border-t border-slate-100 dark:border-slate-700 pt-4 flex justify-between items-center">
-                    <span class="text-xs text-slate-400">Data persists in local browser storage (`localStorage`).</span>
+                    <span class="text-xs text-slate-400">Data persists across sessions locally.</span>
                     <button onclick="resetStats()" class="px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg font-medium transition flex items-center gap-1.5">
                         <i class="fa-solid fa-trash-can"></i> Reset All Stats
                     </button>
@@ -400,23 +409,15 @@
                     </div>
                 </div>
 
-                <!-- Common Atomic Masses Table -->
-                <div>
-                    <h4 class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs mb-3 text-chem-600 dark:text-chem-400">Standard Atomic Masses (g/mol)</h4>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">H: 1.008</div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">C: 12.011</div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">N: 14.007</div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">O: 15.999</div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">Na: 22.990</div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">Al: 26.982</div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">S: 32.060</div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">Cl: 35.450</div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">K: 39.098</div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">Ca: 40.078</div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">Fe: 55.845</div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">Cu: 63.546</div>
-                    </div>
+                <!-- Rules Reminder -->
+                <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800/50 text-amber-900 dark:text-amber-200 text-xs space-y-1">
+                    <p class="font-bold"><i class="fa-solid fa-circle-info mr-1"></i> Problem Solving & Chemistry Rules:</p>
+                    <ul class="list-disc list-inside space-y-1 pl-1">
+                        <li><strong>Rule 1:</strong> Compound molar masses are always provided directly in the problem prompt.</li>
+                        <li><strong>Rule 2:</strong> Water ($\ce{H2O}$) is never selected as a target or given species in calculations.</li>
+                        <li><strong>Rule 3:</strong> Acids are treated strictly as aqueous solutions ($M$, $mL$) or titration titrants and are never measured directly by mass (grams).</li>
+                        <li><strong>Rule 4:</strong> Gases and pure metals are excluded from solution volume and concentration calculations.</li>
+                    </ul>
                 </div>
             </div>
             <!-- Modal Footer -->
@@ -451,19 +452,26 @@
             questions: []
         };
 
-        // 26 Comprehensive Reactions with NON 1:1 mole ratios
+        /*
+          28 Chemical Reactions Database (All Non-1:1 mole ratios)
+          Flags:
+            isAcid: boolean (acids are never measured in mass grams; strictly solution/titration)
+            isGas: boolean (gases excluded from solution/titration calculations)
+            isWater: boolean (water excluded from calculations)
+            canBeSolution: boolean (true for soluble acids, bases, and soluble salts)
+        */
         const REACTION_DATABASE = [
             {
                 id: "rxn-1",
                 category: "Acid-Base Neutralization",
                 equationLatex: "\\ce{2 H3PO4 + 3 Ca(OH)2 -> Ca3(PO4)2 + 6 H2O}",
                 reactants: [
-                    { name: "Phosphoric Acid", formula: "H3PO4", formulaLatex: "\\ce{H3PO4}", coef: 2, mw: 97.994 },
-                    { name: "Calcium Hydroxide", formula: "Ca(OH)2", formulaLatex: "\\ce{Ca(OH)2}", coef: 3, mw: 74.093 }
+                    { name: "Phosphoric Acid", formula: "H3PO4", formulaLatex: "\\ce{H3PO4}", coef: 2, mw: 97.99, isAcid: true, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Calcium Hydroxide", formula: "Ca(OH)2", formulaLatex: "\\ce{Ca(OH)2}", coef: 3, mw: 74.09, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Calcium Phosphate", formula: "Ca3(PO4)2", formulaLatex: "\\ce{Ca3(PO4)2}", coef: 1, mw: 310.18 },
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 6, mw: 18.015 }
+                    { name: "Calcium Phosphate", formula: "Ca3(PO4)2", formulaLatex: "\\ce{Ca3(PO4)2}", coef: 1, mw: 310.18, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 6, mw: 18.02, isAcid: false, isGas: false, isWater: true, canBeSolution: false }
                 ]
             },
             {
@@ -471,12 +479,12 @@
                 category: "Combustion",
                 equationLatex: "\\ce{2 C8H18 + 25 O2 -> 16 CO2 + 18 H2O}",
                 reactants: [
-                    { name: "Octane", formula: "C8H18", formulaLatex: "\\ce{C8H18}", coef: 2, mw: 114.23 },
-                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 25, mw: 31.998 }
+                    { name: "Octane", formula: "C8H18", formulaLatex: "\\ce{C8H18}", coef: 2, mw: 114.23, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 25, mw: 32.00, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ],
                 products: [
-                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 16, mw: 44.01 },
-                    { name: "Water Vapor", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 18, mw: 18.015 }
+                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 16, mw: 44.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Water Vapor", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 18, mw: 18.02, isAcid: false, isGas: true, isWater: true, canBeSolution: false }
                 ]
             },
             {
@@ -484,25 +492,25 @@
                 category: "Precipitation",
                 equationLatex: "\\ce{3 AgNO3 + Na3PO4 -> Ag3PO4 v + 3 NaNO3}",
                 reactants: [
-                    { name: "Silver Nitrate", formula: "AgNO3", formulaLatex: "\\ce{AgNO3}", coef: 3, mw: 169.87 },
-                    { name: "Sodium Phosphate", formula: "Na3PO4", formulaLatex: "\\ce{Na3PO4}", coef: 1, mw: 163.94 }
+                    { name: "Silver Nitrate", formula: "AgNO3", formulaLatex: "\\ce{AgNO3}", coef: 3, mw: 169.87, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Sodium Phosphate", formula: "Na3PO4", formulaLatex: "\\ce{Na3PO4}", coef: 1, mw: 163.94, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Silver Phosphate", formula: "Ag3PO4", formulaLatex: "\\ce{Ag3PO4}", coef: 1, mw: 418.58 },
-                    { name: "Sodium Nitrate", formula: "NaNO3", formulaLatex: "\\ce{NaNO3}", coef: 3, mw: 84.994 }
+                    { name: "Silver Phosphate", formula: "Ag3PO4", formulaLatex: "\\ce{Ag3PO4}", coef: 1, mw: 418.58, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Sodium Nitrate", formula: "NaNO3", formulaLatex: "\\ce{NaNO3}", coef: 3, mw: 85.00, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ]
             },
             {
                 id: "rxn-4",
-                category: "Single Replacement & Gas",
+                category: "Single Replacement",
                 equationLatex: "\\ce{2 Al + 3 H2SO4 -> Al2(SO4)3 + 3 H2 ^}",
                 reactants: [
-                    { name: "Aluminum", formula: "Al", formulaLatex: "\\ce{Al}", coef: 2, mw: 26.982 },
-                    { name: "Sulfuric Acid", formula: "H2SO4", formulaLatex: "\\ce{H2SO4}", coef: 3, mw: 98.079 }
+                    { name: "Aluminum Metal", formula: "Al", formulaLatex: "\\ce{Al}", coef: 2, mw: 26.98, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Sulfuric Acid", formula: "H2SO4", formulaLatex: "\\ce{H2SO4}", coef: 3, mw: 98.08, isAcid: true, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Aluminum Sulfate", formula: "Al2(SO4)3", formulaLatex: "\\ce{Al2(SO4)3}", coef: 1, mw: 342.15 },
-                    { name: "Hydrogen Gas", formula: "H2", formulaLatex: "\\ce{H2}", coef: 3, mw: 2.016 }
+                    { name: "Aluminum Sulfate", formula: "Al2(SO4)3", formulaLatex: "\\ce{Al2(SO4)3}", coef: 1, mw: 342.15, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Hydrogen Gas", formula: "H2", formulaLatex: "\\ce{H2}", coef: 3, mw: 2.02, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ]
             },
             {
@@ -510,12 +518,12 @@
                 category: "Precipitation",
                 equationLatex: "\\ce{3 CaCl2 + 2 Na3PO4 -> Ca3(PO4)2 v + 6 NaCl}",
                 reactants: [
-                    { name: "Calcium Chloride", formula: "CaCl2", formulaLatex: "\\ce{CaCl2}", coef: 3, mw: 110.98 },
-                    { name: "Sodium Phosphate", formula: "Na3PO4", formulaLatex: "\\ce{Na3PO4}", coef: 2, mw: 163.94 }
+                    { name: "Calcium Chloride", formula: "CaCl2", formulaLatex: "\\ce{CaCl2}", coef: 3, mw: 110.98, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Sodium Phosphate", formula: "Na3PO4", formulaLatex: "\\ce{Na3PO4}", coef: 2, mw: 163.94, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Calcium Phosphate", formula: "Ca3(PO4)2", formulaLatex: "\\ce{Ca3(PO4)2}", coef: 1, mw: 310.18 },
-                    { name: "Sodium Chloride", formula: "NaCl", formulaLatex: "\\ce{NaCl}", coef: 6, mw: 58.44 }
+                    { name: "Calcium Phosphate", formula: "Ca3(PO4)2", formulaLatex: "\\ce{Ca3(PO4)2}", coef: 1, mw: 310.18, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Sodium Chloride", formula: "NaCl", formulaLatex: "\\ce{NaCl}", coef: 6, mw: 58.44, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ]
             },
             {
@@ -523,13 +531,13 @@
                 category: "Gas Evolution",
                 equationLatex: "\\ce{2 NaHCO3 + H2SO4 -> Na2SO4 + 2 CO2 ^ + 2 H2O}",
                 reactants: [
-                    { name: "Sodium Bicarbonate", formula: "NaHCO3", formulaLatex: "\\ce{NaHCO3}", coef: 2, mw: 84.007 },
-                    { name: "Sulfuric Acid", formula: "H2SO4", formulaLatex: "\\ce{H2SO4}", coef: 1, mw: 98.079 }
+                    { name: "Sodium Bicarbonate", formula: "NaHCO3", formulaLatex: "\\ce{NaHCO3}", coef: 2, mw: 84.01, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Sulfuric Acid", formula: "H2SO4", formulaLatex: "\\ce{H2SO4}", coef: 1, mw: 98.08, isAcid: true, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Sodium Sulfate", formula: "Na2SO4", formulaLatex: "\\ce{Na2SO4}", coef: 1, mw: 142.04 },
-                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 2, mw: 44.01 },
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 2, mw: 18.015 }
+                    { name: "Sodium Sulfate", formula: "Na2SO4", formulaLatex: "\\ce{Na2SO4}", coef: 1, mw: 142.04, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 2, mw: 44.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 2, mw: 18.02, isAcid: false, isGas: false, isWater: true, canBeSolution: false }
                 ]
             },
             {
@@ -537,11 +545,11 @@
                 category: "Synthesis / Oxidation",
                 equationLatex: "\\ce{4 Fe + 3 O2 -> 2 Fe2O3}",
                 reactants: [
-                    { name: "Iron", formula: "Fe", formulaLatex: "\\ce{Fe}", coef: 4, mw: 55.845 },
-                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 3, mw: 31.998 }
+                    { name: "Iron Metal", formula: "Fe", formulaLatex: "\\ce{Fe}", coef: 4, mw: 55.85, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 3, mw: 32.00, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ],
                 products: [
-                    { name: "Iron(III) Oxide", formula: "Fe2O3", formulaLatex: "\\ce{Fe2O3}", coef: 2, mw: 159.69 }
+                    { name: "Iron(III) Oxide", formula: "Fe2O3", formulaLatex: "\\ce{Fe2O3}", coef: 2, mw: 159.69, isAcid: false, isGas: false, isWater: false, canBeSolution: false }
                 ]
             },
             {
@@ -549,25 +557,25 @@
                 category: "Combustion",
                 equationLatex: "\\ce{2 C4H10 + 13 O2 -> 8 CO2 + 10 H2O}",
                 reactants: [
-                    { name: "Butane", formula: "C4H10", formulaLatex: "\\ce{C4H10}", coef: 2, mw: 58.12 },
-                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 13, mw: 31.998 }
+                    { name: "Butane", formula: "C4H10", formulaLatex: "\\ce{C4H10}", coef: 2, mw: 58.12, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 13, mw: 32.00, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ],
                 products: [
-                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 8, mw: 44.01 },
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 10, mw: 18.015 }
+                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 8, mw: 44.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 10, mw: 18.02, isAcid: false, isGas: true, isWater: true, canBeSolution: false }
                 ]
             },
             {
                 id: "rxn-9",
-                category: "Acid-Base Titration",
+                category: "Acid-Base Neutralization",
                 equationLatex: "\\ce{H2SO4 + 2 NaOH -> Na2SO4 + 2 H2O}",
                 reactants: [
-                    { name: "Sulfuric Acid", formula: "H2SO4", formulaLatex: "\\ce{H2SO4}", coef: 1, mw: 98.079 },
-                    { name: "Sodium Hydroxide", formula: "NaOH", formulaLatex: "\\ce{NaOH}", coef: 2, mw: 39.997 }
+                    { name: "Sulfuric Acid", formula: "H2SO4", formulaLatex: "\\ce{H2SO4}", coef: 1, mw: 98.08, isAcid: true, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Sodium Hydroxide", formula: "NaOH", formulaLatex: "\\ce{NaOH}", coef: 2, mw: 40.00, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Sodium Sulfate", formula: "Na2SO4", formulaLatex: "\\ce{Na2SO4}", coef: 1, mw: 142.04 },
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 2, mw: 18.015 }
+                    { name: "Sodium Sulfate", formula: "Na2SO4", formulaLatex: "\\ce{Na2SO4}", coef: 1, mw: 142.04, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 2, mw: 18.02, isAcid: false, isGas: false, isWater: true, canBeSolution: false }
                 ]
             },
             {
@@ -575,12 +583,12 @@
                 category: "Single Replacement",
                 equationLatex: "\\ce{3 Mg + 2 H3PO4 -> Mg3(PO4)2 + 3 H2 ^}",
                 reactants: [
-                    { name: "Magnesium", formula: "Mg", formulaLatex: "\\ce{Mg}", coef: 3, mw: 24.305 },
-                    { name: "Phosphoric Acid", formula: "H3PO4", formulaLatex: "\\ce{H3PO4}", coef: 2, mw: 97.994 }
+                    { name: "Magnesium Metal", formula: "Mg", formulaLatex: "\\ce{Mg}", coef: 3, mw: 24.31, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Phosphoric Acid", formula: "H3PO4", formulaLatex: "\\ce{H3PO4}", coef: 2, mw: 97.99, isAcid: true, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Magnesium Phosphate", formula: "Mg3(PO4)2", formulaLatex: "\\ce{Mg3(PO4)2}", coef: 1, mw: 262.86 },
-                    { name: "Hydrogen Gas", formula: "H2", formulaLatex: "\\ce{H2}", coef: 3, mw: 2.016 }
+                    { name: "Magnesium Phosphate", formula: "Mg3(PO4)2", formulaLatex: "\\ce{Mg3(PO4)2}", coef: 1, mw: 262.86, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Hydrogen Gas", formula: "H2", formulaLatex: "\\ce{H2}", coef: 3, mw: 2.02, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ]
             },
             {
@@ -588,11 +596,11 @@
                 category: "Decomposition",
                 equationLatex: "\\ce{2 KClO3 -> 2 KCl + 3 O2 ^}",
                 reactants: [
-                    { name: "Potassium Chlorate", formula: "KClO3", formulaLatex: "\\ce{KClO3}", coef: 2, mw: 122.55 }
+                    { name: "Potassium Chlorate", formula: "KClO3", formulaLatex: "\\ce{KClO3}", coef: 2, mw: 122.55, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Potassium Chloride", formula: "KCl", formulaLatex: "\\ce{KCl}", coef: 2, mw: 74.551 },
-                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 3, mw: 31.998 }
+                    { name: "Potassium Chloride", formula: "KCl", formulaLatex: "\\ce{KCl}", coef: 2, mw: 74.55, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 3, mw: 32.00, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ]
             },
             {
@@ -600,12 +608,12 @@
                 category: "Precipitation",
                 equationLatex: "\\ce{Pb(NO3)2 + 2 KI -> PbI2 v + 2 KNO3}",
                 reactants: [
-                    { name: "Lead(II) Nitrate", formula: "Pb(NO3)2", formulaLatex: "\\ce{Pb(NO3)2}", coef: 1, mw: 331.20 },
-                    { name: "Potassium Iodide", formula: "KI", formulaLatex: "\\ce{KI}", coef: 2, mw: 166.00 }
+                    { name: "Lead(II) Nitrate", formula: "Pb(NO3)2", formulaLatex: "\\ce{Pb(NO3)2}", coef: 1, mw: 331.20, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Potassium Iodide", formula: "KI", formulaLatex: "\\ce{KI}", coef: 2, mw: 166.00, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Lead(II) Iodide", formula: "PbI2", formulaLatex: "\\ce{PbI2}", coef: 1, mw: 461.01 },
-                    { name: "Potassium Nitrate", formula: "KNO3", formulaLatex: "\\ce{KNO3}", coef: 2, mw: 101.10 }
+                    { name: "Lead(II) Iodide", formula: "PbI2", formulaLatex: "\\ce{PbI2}", coef: 1, mw: 461.01, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Potassium Nitrate", formula: "KNO3", formulaLatex: "\\ce{KNO3}", coef: 2, mw: 101.10, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ]
             },
             {
@@ -613,12 +621,12 @@
                 category: "Acid-Base Neutralization",
                 equationLatex: "\\ce{2 Al(OH)3 + 3 H2SO4 -> Al2(SO4)3 + 6 H2O}",
                 reactants: [
-                    { name: "Aluminum Hydroxide", formula: "Al(OH)3", formulaLatex: "\\ce{Al(OH)3}", coef: 2, mw: 78.00 },
-                    { name: "Sulfuric Acid", formula: "H2SO4", formulaLatex: "\\ce{H2SO4}", coef: 3, mw: 98.079 }
+                    { name: "Aluminum Hydroxide", formula: "Al(OH)3", formulaLatex: "\\ce{Al(OH)3}", coef: 2, mw: 78.00, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Sulfuric Acid", formula: "H2SO4", formulaLatex: "\\ce{H2SO4}", coef: 3, mw: 98.08, isAcid: true, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Aluminum Sulfate", formula: "Al2(SO4)3", formulaLatex: "\\ce{Al2(SO4)3}", coef: 1, mw: 342.15 },
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 6, mw: 18.015 }
+                    { name: "Aluminum Sulfate", formula: "Al2(SO4)3", formulaLatex: "\\ce{Al2(SO4)3}", coef: 1, mw: 342.15, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 6, mw: 18.02, isAcid: false, isGas: false, isWater: true, canBeSolution: false }
                 ]
             },
             {
@@ -626,12 +634,12 @@
                 category: "Combustion",
                 equationLatex: "\\ce{2 C2H6 + 7 O2 -> 4 CO2 + 6 H2O}",
                 reactants: [
-                    { name: "Ethane", formula: "C2H6", formulaLatex: "\\ce{C2H6}", coef: 2, mw: 30.07 },
-                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 7, mw: 31.998 }
+                    { name: "Ethane", formula: "C2H6", formulaLatex: "\\ce{C2H6}", coef: 2, mw: 30.07, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 7, mw: 32.00, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ],
                 products: [
-                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 4, mw: 44.01 },
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 6, mw: 18.015 }
+                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 4, mw: 44.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 6, mw: 18.02, isAcid: false, isGas: true, isWater: true, canBeSolution: false }
                 ]
             },
             {
@@ -639,12 +647,12 @@
                 category: "Redox Reduction",
                 equationLatex: "\\ce{Fe2O3 + 3 CO -> 2 Fe + 3 CO2}",
                 reactants: [
-                    { name: "Iron(III) Oxide", formula: "Fe2O3", formulaLatex: "\\ce{Fe2O3}", coef: 1, mw: 159.69 },
-                    { name: "Carbon Monoxide", formula: "CO", formulaLatex: "\\ce{CO}", coef: 3, mw: 28.01 }
+                    { name: "Iron(III) Oxide", formula: "Fe2O3", formulaLatex: "\\ce{Fe2O3}", coef: 1, mw: 159.69, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Carbon Monoxide", formula: "CO", formulaLatex: "\\ce{CO}", coef: 3, mw: 28.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ],
                 products: [
-                    { name: "Iron Metal", formula: "Fe", formulaLatex: "\\ce{Fe}", coef: 2, mw: 55.845 },
-                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 3, mw: 44.01 }
+                    { name: "Iron Metal", formula: "Fe", formulaLatex: "\\ce{Fe}", coef: 2, mw: 55.85, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 3, mw: 44.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ]
             },
             {
@@ -652,12 +660,12 @@
                 category: "Precipitation",
                 equationLatex: "\\ce{3 BaCl2 + 2 K3PO4 -> Ba3(PO4)2 v + 6 KCl}",
                 reactants: [
-                    { name: "Barium Chloride", formula: "BaCl2", formulaLatex: "\\ce{BaCl2}", coef: 3, mw: 208.23 },
-                    { name: "Potassium Phosphate", formula: "K3PO4", formulaLatex: "\\ce{K3PO4}", coef: 2, mw: 212.27 }
+                    { name: "Barium Chloride", formula: "BaCl2", formulaLatex: "\\ce{BaCl2}", coef: 3, mw: 208.23, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Potassium Phosphate", formula: "K3PO4", formulaLatex: "\\ce{K3PO4}", coef: 2, mw: 212.27, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Barium Phosphate", formula: "Ba3(PO4)2", formulaLatex: "\\ce{Ba3(PO4)2}", coef: 1, mw: 601.93 },
-                    { name: "Potassium Chloride", formula: "KCl", formulaLatex: "\\ce{KCl}", coef: 6, mw: 74.551 }
+                    { name: "Barium Phosphate", formula: "Ba3(PO4)2", formulaLatex: "\\ce{Ba3(PO4)2}", coef: 1, mw: 601.93, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Potassium Chloride", formula: "KCl", formulaLatex: "\\ce{KCl}", coef: 6, mw: 74.55, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ]
             },
             {
@@ -665,24 +673,24 @@
                 category: "Decomposition / Gas",
                 equationLatex: "\\ce{2 NaN3 -> 2 Na + 3 N2 ^}",
                 reactants: [
-                    { name: "Sodium Azide", formula: "NaN3", formulaLatex: "\\ce{NaN3}", coef: 2, mw: 65.01 }
+                    { name: "Sodium Azide", formula: "NaN3", formulaLatex: "\\ce{NaN3}", coef: 2, mw: 65.01, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Sodium", formula: "Na", formulaLatex: "\\ce{Na}", coef: 2, mw: 22.99 },
-                    { name: "Nitrogen Gas", formula: "N2", formulaLatex: "\\ce{N2}", coef: 3, mw: 28.013 }
+                    { name: "Sodium Metal", formula: "Na", formulaLatex: "\\ce{Na}", coef: 2, mw: 22.99, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Nitrogen Gas", formula: "N2", formulaLatex: "\\ce{N2}", coef: 3, mw: 28.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ]
             },
             {
                 id: "rxn-18",
-                category: "Industrial Synthesis",
+                category: "Industrial Oxidation",
                 equationLatex: "\\ce{4 NH3 + 5 O2 -> 4 NO + 6 H2O}",
                 reactants: [
-                    { name: "Ammonia", formula: "NH3", formulaLatex: "\\ce{NH3}", coef: 4, mw: 17.031 },
-                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 5, mw: 31.998 }
+                    { name: "Ammonia", formula: "NH3", formulaLatex: "\\ce{NH3}", coef: 4, mw: 17.03, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 5, mw: 32.00, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ],
                 products: [
-                    { name: "Nitric Oxide", formula: "NO", formulaLatex: "\\ce{NO}", coef: 4, mw: 30.006 },
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 6, mw: 18.015 }
+                    { name: "Nitric Oxide", formula: "NO", formulaLatex: "\\ce{NO}", coef: 4, mw: 30.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 6, mw: 18.02, isAcid: false, isGas: true, isWater: true, canBeSolution: false }
                 ]
             },
             {
@@ -690,11 +698,11 @@
                 category: "Decomposition",
                 equationLatex: "\\ce{2 H2O2 -> 2 H2O + O2 ^}",
                 reactants: [
-                    { name: "Hydrogen Peroxide", formula: "H2O2", formulaLatex: "\\ce{H2O2}", coef: 2, mw: 34.015 }
+                    { name: "Hydrogen Peroxide", formula: "H2O2", formulaLatex: "\\ce{H2O2}", coef: 2, mw: 34.01, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 2, mw: 18.015 },
-                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 1, mw: 31.998 }
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 2, mw: 18.02, isAcid: false, isGas: false, isWater: true, canBeSolution: false },
+                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 1, mw: 32.00, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ]
             },
             {
@@ -702,13 +710,13 @@
                 category: "Redox / Gas",
                 equationLatex: "\\ce{Cu + 4 HNO3 -> Cu(NO3)2 + 2 NO2 ^ + 2 H2O}",
                 reactants: [
-                    { name: "Copper", formula: "Cu", formulaLatex: "\\ce{Cu}", coef: 1, mw: 63.546 },
-                    { name: "Nitric Acid", formula: "HNO3", formulaLatex: "\\ce{HNO3}", coef: 4, mw: 63.01 }
+                    { name: "Copper Metal", formula: "Cu", formulaLatex: "\\ce{Cu}", coef: 1, mw: 63.55, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Nitric Acid", formula: "HNO3", formulaLatex: "\\ce{HNO3}", coef: 4, mw: 63.01, isAcid: true, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Copper(II) Nitrate", formula: "Cu(NO3)2", formulaLatex: "\\ce{Cu(NO3)2}", coef: 1, mw: 187.56 },
-                    { name: "Nitrogen Dioxide", formula: "NO2", formulaLatex: "\\ce{NO2}", coef: 2, mw: 46.0055 },
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 2, mw: 18.015 }
+                    { name: "Copper(II) Nitrate", formula: "Cu(NO3)2", formulaLatex: "\\ce{Cu(NO3)2}", coef: 1, mw: 187.56, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Nitrogen Dioxide", formula: "NO2", formulaLatex: "\\ce{NO2}", coef: 2, mw: 46.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 2, mw: 18.02, isAcid: false, isGas: false, isWater: true, canBeSolution: false }
                 ]
             },
             {
@@ -716,11 +724,11 @@
                 category: "Direct Synthesis",
                 equationLatex: "\\ce{2 Al + 3 Cl2 -> 2 AlCl3}",
                 reactants: [
-                    { name: "Aluminum", formula: "Al", formulaLatex: "\\ce{Al}", coef: 2, mw: 26.982 },
-                    { name: "Chlorine Gas", formula: "Cl2", formulaLatex: "\\ce{Cl2}", coef: 3, mw: 70.90 }
+                    { name: "Aluminum Metal", formula: "Al", formulaLatex: "\\ce{Al}", coef: 2, mw: 26.98, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Chlorine Gas", formula: "Cl2", formulaLatex: "\\ce{Cl2}", coef: 3, mw: 70.90, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ],
                 products: [
-                    { name: "Aluminum Chloride", formula: "AlCl3", formulaLatex: "\\ce{AlCl3}", coef: 2, mw: 133.34 }
+                    { name: "Aluminum Chloride", formula: "AlCl3", formulaLatex: "\\ce{AlCl3}", coef: 2, mw: 133.34, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
                 ]
             },
             {
@@ -728,13 +736,13 @@
                 category: "Acid Action / Gas",
                 equationLatex: "\\ce{CaCO3 + 2 HCl -> CaCl2 + CO2 ^ + H2O}",
                 reactants: [
-                    { name: "Calcium Carbonate", formula: "CaCO3", formulaLatex: "\\ce{CaCO3}", coef: 1, mw: 100.09 },
-                    { name: "Hydrochloric Acid", formula: "HCl", formulaLatex: "\\ce{HCl}", coef: 2, mw: 36.46 }
+                    { name: "Calcium Carbonate", formula: "CaCO3", formulaLatex: "\\ce{CaCO3}", coef: 1, mw: 100.09, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Hydrochloric Acid", formula: "HCl", formulaLatex: "\\ce{HCl}", coef: 2, mw: 36.46, isAcid: true, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Calcium Chloride", formula: "CaCl2", formulaLatex: "\\ce{CaCl2}", coef: 1, mw: 110.98 },
-                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 1, mw: 44.01 },
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 1, mw: 18.015 }
+                    { name: "Calcium Chloride", formula: "CaCl2", formulaLatex: "\\ce{CaCl2}", coef: 1, mw: 110.98, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 1, mw: 44.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 1, mw: 18.02, isAcid: false, isGas: false, isWater: true, canBeSolution: false }
                 ]
             },
             {
@@ -742,12 +750,12 @@
                 category: "Neutralization",
                 equationLatex: "\\ce{2 Fe(OH)3 + 3 H2SO4 -> Fe2(SO4)3 + 6 H2O}",
                 reactants: [
-                    { name: "Iron(III) Hydroxide", formula: "Fe(OH)3", formulaLatex: "\\ce{Fe(OH)3}", coef: 2, mw: 106.87 },
-                    { name: "Sulfuric Acid", formula: "H2SO4", formulaLatex: "\\ce{H2SO4}", coef: 3, mw: 98.079 }
+                    { name: "Iron(III) Hydroxide", formula: "Fe(OH)3", formulaLatex: "\\ce{Fe(OH)3}", coef: 2, mw: 106.87, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Sulfuric Acid", formula: "H2SO4", formulaLatex: "\\ce{H2SO4}", coef: 3, mw: 98.08, isAcid: true, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Iron(III) Sulfate", formula: "Fe2(SO4)3", formulaLatex: "\\ce{Fe2(SO4)3}", coef: 1, mw: 399.88 },
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 6, mw: 18.015 }
+                    { name: "Iron(III) Sulfate", formula: "Fe2(SO4)3", formulaLatex: "\\ce{Fe2(SO4)3}", coef: 1, mw: 399.88, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 6, mw: 18.02, isAcid: false, isGas: false, isWater: true, canBeSolution: false }
                 ]
             },
             {
@@ -755,12 +763,12 @@
                 category: "Combustion",
                 equationLatex: "\\ce{2 C3H6 + 9 O2 -> 6 CO2 + 6 H2O}",
                 reactants: [
-                    { name: "Propene", formula: "C3H6", formulaLatex: "\\ce{C3H6}", coef: 2, mw: 42.08 },
-                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 9, mw: 31.998 }
+                    { name: "Propene", formula: "C3H6", formulaLatex: "\\ce{C3H6}", coef: 2, mw: 42.08, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Oxygen Gas", formula: "O2", formulaLatex: "\\ce{O2}", coef: 9, mw: 32.00, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ],
                 products: [
-                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 6, mw: 44.01 },
-                    { name: "Water Vapor", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 6, mw: 18.015 }
+                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 6, mw: 44.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Water Vapor", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 6, mw: 18.02, isAcid: false, isGas: true, isWater: true, canBeSolution: false }
                 ]
             },
             {
@@ -768,13 +776,13 @@
                 category: "Redox Neutralization",
                 equationLatex: "\\ce{3 Cu + 8 HNO3 -> 3 Cu(NO3)2 + 2 NO ^ + 4 H2O}",
                 reactants: [
-                    { name: "Copper", formula: "Cu", formulaLatex: "\\ce{Cu}", coef: 3, mw: 63.546 },
-                    { name: "Nitric Acid", formula: "HNO3", formulaLatex: "\\ce{HNO3}", coef: 8, mw: 63.01 }
+                    { name: "Copper Metal", formula: "Cu", formulaLatex: "\\ce{Cu}", coef: 3, mw: 63.55, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Nitric Acid", formula: "HNO3", formulaLatex: "\\ce{HNO3}", coef: 8, mw: 63.01, isAcid: true, isGas: false, isWater: false, canBeSolution: true }
                 ],
                 products: [
-                    { name: "Copper(II) Nitrate", formula: "Cu(NO3)2", formulaLatex: "\\ce{Cu(NO3)2}", coef: 3, mw: 187.56 },
-                    { name: "Nitric Oxide", formula: "NO", formulaLatex: "\\ce{NO}", coef: 2, mw: 30.006 },
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 4, mw: 18.015 }
+                    { name: "Copper(II) Nitrate", formula: "Cu(NO3)2", formulaLatex: "\\ce{Cu(NO3)2}", coef: 3, mw: 187.56, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Nitric Oxide", formula: "NO", formulaLatex: "\\ce{NO}", coef: 2, mw: 30.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false },
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 4, mw: 18.02, isAcid: false, isGas: false, isWater: true, canBeSolution: false }
                 ]
             },
             {
@@ -782,12 +790,38 @@
                 category: "Gas Absorption",
                 equationLatex: "\\ce{2 LiOH + CO2 -> Li2CO3 + H2O}",
                 reactants: [
-                    { name: "Lithium Hydroxide", formula: "LiOH", formulaLatex: "\\ce{LiOH}", coef: 2, mw: 23.95 },
-                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 1, mw: 44.01 }
+                    { name: "Lithium Hydroxide", formula: "LiOH", formulaLatex: "\\ce{LiOH}", coef: 2, mw: 23.95, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Carbon Dioxide", formula: "CO2", formulaLatex: "\\ce{CO2}", coef: 1, mw: 44.01, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
                 ],
                 products: [
-                    { name: "Lithium Carbonate", formula: "Li2CO3", formulaLatex: "\\ce{Li2CO3}", coef: 1, mw: 73.89 },
-                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 1, mw: 18.015 }
+                    { name: "Lithium Carbonate", formula: "Li2CO3", formulaLatex: "\\ce{Li2CO3}", coef: 1, mw: 73.89, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Water", formula: "H2O", formulaLatex: "\\ce{H2O}", coef: 1, mw: 18.02, isAcid: false, isGas: false, isWater: true, canBeSolution: false }
+                ]
+            },
+            {
+                id: "rxn-27",
+                category: "Single Replacement",
+                equationLatex: "\\ce{2 Cr + 6 HCl -> 2 CrCl3 + 3 H2 ^}",
+                reactants: [
+                    { name: "Chromium Metal", formula: "Cr", formulaLatex: "\\ce{Cr}", coef: 2, mw: 52.00, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Hydrochloric Acid", formula: "HCl", formulaLatex: "\\ce{HCl}", coef: 6, mw: 36.46, isAcid: true, isGas: false, isWater: false, canBeSolution: true }
+                ],
+                products: [
+                    { name: "Chromium(III) Chloride", formula: "CrCl3", formulaLatex: "\\ce{CrCl3}", coef: 2, mw: 158.36, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Hydrogen Gas", formula: "H2", formulaLatex: "\\ce{H2}", coef: 3, mw: 2.02, isAcid: false, isGas: true, isWater: false, canBeSolution: false }
+                ]
+            },
+            {
+                id: "rxn-28",
+                category: "Double Replacement",
+                equationLatex: "\\ce{Al2(SO4)3 + 3 Ca(OH)2 -> 2 Al(OH)3 v + 3 CaSO4 v}",
+                reactants: [
+                    { name: "Aluminum Sulfate", formula: "Al2(SO4)3", formulaLatex: "\\ce{Al2(SO4)3}", coef: 1, mw: 342.15, isAcid: false, isGas: false, isWater: false, canBeSolution: true },
+                    { name: "Calcium Hydroxide", formula: "Ca(OH)2", formulaLatex: "\\ce{Ca(OH)2}", coef: 3, mw: 74.09, isAcid: false, isGas: false, isWater: false, canBeSolution: true }
+                ],
+                products: [
+                    { name: "Aluminum Hydroxide", formula: "Al(OH)3", formulaLatex: "\\ce{Al(OH)3}", coef: 2, mw: 78.00, isAcid: false, isGas: false, isWater: false, canBeSolution: false },
+                    { name: "Calcium Sulfate", formula: "CaSO4", formulaLatex: "\\ce{CaSO4}", coef: 3, mw: 136.14, isAcid: false, isGas: false, isWater: false, canBeSolution: false }
                 ]
             }
         ];
@@ -844,6 +878,240 @@
             }
         }
 
+        /**
+         * Dynamic Problem Generator Engine with Strict Rules:
+         * RULE 1: Molar Mass Provided explicitly in problem badge/prompt.
+         * RULE 2: Exclude Water (H2O) as given or target species in ALL calculations.
+         * RULE 3: Exclude Acids from being measured or calculated in mass (grams). Acids are measured via Molarity and Volume (mL).
+         * RULE 4: Exclude Gases and Pure Metals from solution/concentration/titration calculations.
+         * RULE 5: Strict Directionality—Products are produced by reactants; products are never used to prepare reactants.
+         */
+        function generateProblem(forcedType = 'mixed') {
+            let type = forcedType;
+            if (type === 'mixed') {
+                const types = ['mass-mass', 'mass-volume', 'titration', 'mass-conc'];
+                type = types[Math.floor(Math.random() * types.length)];
+            }
+
+            // Filter eligible reactions based on strict chemical context criteria
+            let eligibleReactions = REACTION_DATABASE;
+            if (type === 'mass-mass') {
+                eligibleReactions = REACTION_DATABASE.filter(rxn => {
+                    const species = [...rxn.reactants, ...rxn.products];
+                    return species.filter(s => !s.isWater && !s.isAcid).length >= 2;
+                });
+            } else if (type === 'titration') {
+                // Titration requires two REACTANT solutions that neutralize/react together
+                eligibleReactions = REACTION_DATABASE.filter(rxn => {
+                    const reactantSolutions = rxn.reactants.filter(s => s.canBeSolution);
+                    return reactantSolutions.length >= 2;
+                });
+            } else if (type === 'mass-volume') {
+                eligibleReactions = REACTION_DATABASE.filter(rxn => {
+                    const species = [...rxn.reactants, ...rxn.products];
+                    const solutions = species.filter(s => s.canBeSolution);
+                    const massSolidsOrSolutes = species.filter(s => !s.isGas && !s.isWater && !s.isAcid);
+                    return solutions.length >= 1 && massSolidsOrSolutes.length >= 1;
+                });
+            } else if (type === 'mass-conc') {
+                // Mass-conc requires a non-acid/gas/water REACTANT (compA) and a solution PRODUCT (compB)
+                eligibleReactions = REACTION_DATABASE.filter(rxn => {
+                    const massReactants = rxn.reactants.filter(s => !s.isGas && !s.isWater && !s.isAcid);
+                    const solutionProducts = rxn.products.filter(s => s.canBeSolution);
+                    return massReactants.length >= 1 && solutionProducts.length >= 1;
+                });
+            }
+
+            const rxn = eligibleReactions[Math.floor(Math.random() * eligibleReactions.length)];
+            const isReactant = (species) => rxn.reactants.some(r => r.formula === species.formula);
+
+            let compA, compB;
+            if (type === 'mass-mass') {
+                const validMassSpecies = [...rxn.reactants, ...rxn.products].filter(s => !s.isWater && !s.isAcid);
+                compA = validMassSpecies[Math.floor(Math.random() * validMassSpecies.length)];
+                do {
+                    compB = validMassSpecies[Math.floor(Math.random() * validMassSpecies.length)];
+                } while (compA === compB);
+            } else if (type === 'titration') {
+                // Titration strictly picks from REACTANT solutions
+                const validReactantSolutions = rxn.reactants.filter(s => s.canBeSolution);
+                compA = validReactantSolutions[Math.floor(Math.random() * validReactantSolutions.length)];
+                do {
+                    compB = validReactantSolutions[Math.floor(Math.random() * validReactantSolutions.length)];
+                } while (compA === compB);
+            } else if (type === 'mass-conc') {
+                // Target concentration: compA MUST be a reactant, compB MUST be a product
+                const validReactants = rxn.reactants.filter(s => !s.isGas && !s.isWater && !s.isAcid);
+                compA = validReactants[Math.floor(Math.random() * validReactants.length)];
+                const validProductSolutions = rxn.products.filter(s => s.canBeSolution);
+                compB = validProductSolutions[Math.floor(Math.random() * validProductSolutions.length)];
+            } else { // mass-volume
+                const validSolutions = [...rxn.reactants, ...rxn.products].filter(s => s.canBeSolution);
+                compB = validSolutions[Math.floor(Math.random() * validSolutions.length)];
+                const validMassSpecies = [...rxn.reactants, ...rxn.products].filter(s => !s.isGas && !s.isWater && !s.isAcid && s !== compB);
+                compA = validMassSpecies[Math.floor(Math.random() * validMassSpecies.length)];
+            }
+
+            let questionTextHTML = "";
+            let targetAnswer = 0;
+            let targetUnit = "g";
+            let steps = [];
+
+            const randVal = (min, max, decimals = 1) => parseFloat((Math.random() * (max - min) + min).toFixed(decimals));
+            const texA = renderTexToHTML(compA.formulaLatex);
+            const texB = renderTexToHTML(compB.formulaLatex);
+
+            const isReactantA = isReactant(compA);
+            const isReactantB = isReactant(compB);
+
+            // Helper to build explicit Molar Mass display
+            const buildMolarMassBadge = (compList) => {
+                const badgeItems = compList.map(c => `<span>${renderTexToHTML(c.formulaLatex)} = <strong>${c.mw.toFixed(2)} g/mol</strong></span>`).join('<span class="text-slate-300 dark:text-slate-600">•</span>');
+                return `<div class="mt-3 p-2.5 bg-slate-100 dark:bg-slate-900/70 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-xs font-mono text-slate-700 dark:text-slate-300 flex flex-wrap gap-x-3 gap-y-1 items-center"><span class="font-bold font-sans text-chem-600 dark:text-chem-400"><i class="fa-solid fa-weight-hanging mr-1"></i>Given Molar Masses:</span> ${badgeItems}</div>`;
+            };
+
+            if (type === 'mass-mass') {
+                targetUnit = "g";
+                const massA = randVal(5.0, 180.0, 1);
+                const molesA = massA / compA.mw;
+                const molesB = molesA * (compB.coef / compA.coef);
+                const massB = molesB * compB.mw;
+                targetAnswer = massB;
+
+                let phrasing = "";
+                if (isReactantA && isReactantB) {
+                    phrasing = `How many grams of ${compB.name} (${texB}) are required to react completely with ${massA} g of ${compA.name} (${texA})?`;
+                } else if (isReactantA && !isReactantB) {
+                    phrasing = `How many grams of ${compB.name} (${texB}) are produced when ${massA} g of ${compA.name} (${texA}) reacts completely?`;
+                } else if (!isReactantA && isReactantB) {
+                    phrasing = `How many grams of ${compB.name} (${texB}) are required to produce ${massA} g of ${compA.name} (${texA})?`;
+                } else {
+                    phrasing = `How many grams of ${compB.name} (${texB}) are produced alongside ${massA} g of ${compA.name} (${texA})?`;
+                }
+
+                questionTextHTML = phrasing + buildMolarMassBadge([compA, compB]);
+
+                steps = [
+                    { 
+                        title: "Step 1: Convert Mass A to Moles A", 
+                        latex: `n_{\\text{A}} = \\frac{${massA}\\text{ g}}{${compA.mw.toFixed(2)}\\text{ g/mol}} = ${molesA.toFixed(4)}\\text{ mol } ${compA.formulaLatex}` 
+                    },
+                    { 
+                        title: "Step 2: Apply Mole Ratio (Stoichiometry)", 
+                        latex: `n_{\\text{B}} = ${molesA.toFixed(4)}\\text{ mol} \\times \\left( \\frac{${compB.coef}\\text{ mol } ${compB.formulaLatex}}{${compA.coef}\\text{ mol } ${compA.formulaLatex}} \\right) = ${molesB.toFixed(4)}\\text{ mol } ${compB.formulaLatex}` 
+                    },
+                    { 
+                        title: "Step 3: Convert Moles B to Mass B", 
+                        latex: `m_{\\text{B}} = ${molesB.toFixed(4)}\\text{ mol} \\times ${compB.mw.toFixed(2)}\\text{ g/mol} = \\mathbf{${massB.toFixed(2)}\\text{ g}}` 
+                    }
+                ];
+
+            } else if (type === 'mass-volume') {
+                targetUnit = "mL";
+                const massA = randVal(10.0, 120.0, 1);
+                const molarityB = randVal(0.2, 2.5, 2);
+                const molesA = massA / compA.mw;
+                const molesB = molesA * (compB.coef / compA.coef);
+                const volL = molesB / molarityB;
+                const volML = volL * 1000;
+                targetAnswer = volML;
+
+                let phrasing = "";
+                if (isReactantA && isReactantB) {
+                    phrasing = `What volume in mL of a ${molarityB} M solution of ${compB.name} (${texB}) is required to react completely with ${massA} g of ${compA.name} (${texA})?`;
+                } else if (isReactantA && !isReactantB) {
+                    phrasing = `What volume in mL of a ${molarityB} M solution of ${compB.name} (${texB}) is produced when ${massA} g of ${compA.name} (${texA}) reacts completely?`;
+                } else if (!isReactantA && isReactantB) {
+                    phrasing = `What volume in mL of a ${molarityB} M solution of ${compB.name} (${texB}) is required to produce ${massA} g of ${compA.name} (${texA})?`;
+                } else {
+                    phrasing = `What volume in mL of a ${molarityB} M solution of ${compB.name} (${texB}) is produced alongside ${massA} g of ${compA.name} (${texA})?`;
+                }
+
+                questionTextHTML = phrasing + buildMolarMassBadge([compA]);
+
+                steps = [
+                    { 
+                        title: "Step 1: Calculate moles of given species A", 
+                        latex: `n_{\\text{A}} = \\frac{${massA}\\text{ g}}{${compA.mw.toFixed(2)}\\text{ g/mol}} = ${molesA.toFixed(4)}\\text{ mol } ${compA.formulaLatex}` 
+                    },
+                    { 
+                        title: "Step 2: Convert to moles of target solution species B via mole ratio", 
+                        latex: `n_{\\text{B}} = ${molesA.toFixed(4)}\\text{ mol} \\times \\left( \\frac{${compB.coef}\\text{ mol } ${compB.formulaLatex}}{${compA.coef}\\text{ mol } ${compA.formulaLatex}} \\right) = ${molesB.toFixed(4)}\\text{ mol } ${compB.formulaLatex}` 
+                    },
+                    { 
+                        title: "Step 3: Calculate required Volume in mL (V = n / M)", 
+                        latex: `V = \\frac{${molesB.toFixed(4)}\\text{ mol}}{${molarityB}\\text{ M}} = ${volL.toFixed(4)}\\text{ L} \\implies \\mathbf{${volML.toFixed(1)}\\text{ mL}}` 
+                    }
+                ];
+
+            } else if (type === 'titration') {
+                targetUnit = "M";
+                const volA_mL = randVal(15.0, 50.0, 1);
+                const volB_mL = randVal(20.0, 60.0, 1);
+                const molarityB = randVal(0.1, 1.5, 2);
+
+                const molesB = (volB_mL / 1000) * molarityB;
+                const molesA = molesB * (compA.coef / compB.coef);
+                const molarityA = molesA / (volA_mL / 1000);
+                targetAnswer = molarityA;
+
+                questionTextHTML = `In a titration, ${volA_mL} mL of ${compA.name} (${texA}) solution is neutralized by ${volB_mL} mL of ${molarityB} M ${compB.name} (${texB}). What is the molarity (M) of the ${compA.name} solution?` +
+                    buildMolarMassBadge([compA, compB]);
+
+                steps = [
+                    { 
+                        title: "Step 1: Calculate moles of known titrant B used", 
+                        latex: `n_{\\text{B}} = ${molarityB}\\text{ M} \\times ${(volB_mL/1000).toFixed(4)}\\text{ L} = ${molesB.toFixed(5)}\\text{ mol } ${compB.formulaLatex}` 
+                    },
+                    { 
+                        title: "Step 2: Stoichiometric mole ratio conversion", 
+                        latex: `n_{\\text{A}} = ${molesB.toFixed(5)}\\text{ mol} \\times \\left( \\frac{${compA.coef}\\text{ mol } ${compA.formulaLatex}}{${compB.coef}\\text{ mol } ${compB.formulaLatex}} \\right) = ${molesA.toFixed(5)}\\text{ mol } ${compA.formulaLatex}` 
+                    },
+                    { 
+                        title: "Step 3: Determine unknown Molarity A (M = n / V)", 
+                        latex: `M_{\\text{A}} = \\frac{${molesA.toFixed(5)}\\text{ mol}}{${(volA_mL/1000).toFixed(4)}\\text{ L}} = \\mathbf{${molarityA.toFixed(3)}\\text{ M}}` 
+                    }
+                ];
+
+            } else if (type === 'mass-conc') {
+                targetUnit = "g";
+                const targetMolarity = randVal(0.15, 2.0, 2);
+                const targetVolumeML = randVal(100.0, 1000.0, 0);
+
+                const molesNeeded = targetMolarity * (targetVolumeML / 1000);
+                const molesReactant = molesNeeded * (compA.coef / compB.coef);
+                const massReactant = molesReactant * compA.mw;
+                targetAnswer = massReactant;
+
+                questionTextHTML = `How many grams of reactant ${compA.name} (${texA}) are needed to produce enough solute ${compB.name} (${texB}) to prepare ${targetVolumeML} mL of a ${targetMolarity} M solution?` +
+                    buildMolarMassBadge([compA, compB]);
+
+                steps = [
+                    { 
+                        title: "Step 1: Calculate total moles of target solute product B needed", 
+                        latex: `n_{\\text{needed}} = ${targetMolarity}\\text{ M} \\times ${(targetVolumeML/1000).toFixed(3)}\\text{ L} = ${molesNeeded.toFixed(4)}\\text{ mol } ${compB.formulaLatex}` 
+                    },
+                    { 
+                        title: "Step 2: Convert to moles of required reactant A via mole ratio", 
+                        latex: `n_{\\text{reactant}} = ${molesNeeded.toFixed(4)}\\text{ mol} \\times \\left( \\frac{${compA.coef}\\text{ mol } ${compA.formulaLatex}}{${compB.coef}\\text{ mol } ${compB.formulaLatex}} \\right) = ${molesReactant.toFixed(4)}\\text{ mol } ${compA.formulaLatex}` 
+                    },
+                    { 
+                        title: "Step 3: Convert moles of reactant A to grams", 
+                        latex: `m = ${molesReactant.toFixed(4)}\\text{ mol} \\times ${compA.mw.toFixed(2)}\\text{ g/mol} = \\mathbf{${massReactant.toFixed(2)}\\text{ g}}` 
+                    }
+                ];
+            }
+
+            return {
+                reaction: rxn,
+                type: type,
+                questionTextHTML: questionTextHTML,
+                targetAnswer: targetAnswer,
+                unit: targetUnit,
+                steps: steps
+            };
+        }
+
         window.onload = function() {
             initTheme();
             loadUserStats();
@@ -862,7 +1130,7 @@
                 'mass-mass': 'Mass ➔ Mass (g)',
                 'mass-volume': 'Mass ➔ Solution Vol (mL)',
                 'titration': 'Titration Molarity (M)',
-                'mass-conc': 'Mass for Target Molarity'
+                'mass-conc': 'Mass for Target Concentration'
             };
             document.getElementById('practiceTypeBadge').innerText = typeLabels[currentPracticeProblem.type] || 'Stoichiometry';
 
@@ -916,6 +1184,50 @@
                 icon.className = 'fa-solid fa-chevron-right text-xs';
                 btnText.innerText = 'Show Step-by-Step Solution Breakdown';
             }
+        }
+
+        function checkPracticeAnswer() {
+            const inputVal = parseFloat(document.getElementById('practiceAnswerInput').value);
+            const feedbackBox = document.getElementById('practiceFeedback');
+
+            if (isNaN(inputVal)) {
+                feedbackBox.className = "rounded-xl p-4 border bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-800";
+                feedbackBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation mr-1'></i> Please enter a numerical value.";
+                feedbackBox.classList.remove('hidden');
+                return;
+            }
+
+            const expected = currentPracticeProblem.targetAnswer;
+            const percentDiff = Math.abs((inputVal - expected) / expected) * 100;
+            const isCorrect = percentDiff <= 2.5;
+
+            userStats.practiceAttempted = (userStats.practiceAttempted || 0) + 1;
+
+            if (isCorrect) {
+                userStats.practiceCorrect = (userStats.practiceCorrect || 0) + 1;
+                userStats.currentStreak += 1;
+                if (userStats.currentStreak > userStats.bestStreak) {
+                    userStats.bestStreak = userStats.currentStreak;
+                }
+                saveUserStats();
+
+                feedbackBox.className = "rounded-xl p-4 border bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:border-emerald-800 space-y-1";
+                feedbackBox.innerHTML = `
+                    <p class="font-bold text-base flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500"></i> Excellent! Correct Answer.</p>
+                    <p class="text-xs">Your answer: <strong>${inputVal}</strong> ${currentPracticeProblem.unit} (Exact: ${expected.toFixed(2)} ${currentPracticeProblem.unit}). Current Streak: <strong>${userStats.currentStreak} 🔥</strong></p>
+                `;
+            } else {
+                userStats.currentStreak = 0;
+                saveUserStats();
+
+                feedbackBox.className = "rounded-xl p-4 border bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-900/30 dark:text-rose-200 dark:border-rose-800 space-y-1";
+                feedbackBox.innerHTML = `
+                    <p class="font-bold text-base flex items-center gap-2"><i class="fa-solid fa-circle-xmark text-rose-500"></i> Not quite right.</p>
+                    <p class="text-xs">Expected: <strong>${expected.toFixed(2)} ${currentPracticeProblem.unit}</strong>. Expand solution steps below to inspect mole ratios!</p>
+                `;
+            }
+
+            feedbackBox.classList.remove('hidden');
         }
 
         function selectQuestionCount(count) {
@@ -1015,10 +1327,53 @@
         }
 
         function stopGame() {
-            if (confirm("Are you sure you want to quit the current game?")) {
+            if (confirm("Are you sure you want to stop the current game?")) {
                 clearInterval(gameState.timerInterval);
                 resetGameToSetup();
             }
+        }
+
+        function finishGame() {
+            clearInterval(gameState.timerInterval);
+            document.getElementById('gamePlayCard').classList.add('hidden');
+            document.getElementById('gameSummaryCard').classList.remove('hidden');
+
+            const scorePct = Math.round((gameState.score / gameState.totalQuestions) * 100);
+            document.getElementById('summaryScore').innerText = `${scorePct}% (${gameState.score}/${gameState.totalQuestions})`;
+
+            const mins = Math.floor(gameState.elapsedSeconds / 60).toString().padStart(2, '0');
+            const secs = (gameState.elapsedSeconds % 60).toString().padStart(2, '0');
+            const timeStr = gameState.timerEnabled ? `${mins}:${secs}` : 'Untimed';
+            document.getElementById('summaryTime').innerText = timeStr;
+
+            // Update persistent record
+            userStats.lastScore = scorePct;
+            if (userStats.bestScore === null || scorePct > userStats.bestScore) {
+                userStats.bestScore = scorePct;
+            }
+
+            // Append to game history log
+            if (!userStats.gameHistory) userStats.gameHistory = [];
+            userStats.gameHistory.push({
+                date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                scorePct: scorePct,
+                score: gameState.score,
+                totalQ: gameState.totalQuestions,
+                time: timeStr
+            });
+
+            saveUserStats();
+
+            // Trigger celebration confetti on good score
+            if (scorePct >= 80) {
+                triggerConfetti();
+            }
+        }
+
+        function resetGameToSetup() {
+            document.getElementById('gameSummaryCard').classList.add('hidden');
+            document.getElementById('gamePlayCard').classList.add('hidden');
+            document.getElementById('gameSetupCard').classList.remove('hidden');
         }
 
         function saveUserStats() {
@@ -1068,7 +1423,7 @@
         }
 
         function resetStats() {
-            if(confirm("Are you sure you want to reset your score history, streaks, and local statistics?")) {
+            if (confirm("Are you sure you want to reset your score history, streaks, and local statistics?")) {
                 userStats = {
                     currentStreak: 0,
                     bestStreak: 0,
@@ -1080,253 +1435,6 @@
                 };
                 saveUserStats();
             }
-        }
-
-        /**
-         * Dynamic Problem Generator Engine with LaTeX support & Explicit Molar Masses
-         */
-        function generateProblem(forcedType = 'mixed') {
-            const rxn = REACTION_DATABASE[Math.floor(Math.random() * REACTION_DATABASE.length)];
-            
-            // Choose type
-            let type = forcedType;
-            if (type === 'mixed') {
-                const types = ['mass-mass', 'mass-volume', 'titration', 'mass-conc'];
-                type = types[Math.floor(Math.random() * types.length)];
-            }
-
-            // Randomly select 1 reactant/product species
-            let compA, compB;
-            const allSpecies = [...rxn.reactants, ...rxn.products];
-            compA = allSpecies[Math.floor(Math.random() * allSpecies.length)];
-            do {
-                compB = allSpecies[Math.floor(Math.random() * allSpecies.length)];
-            } while (compA === compB);
-
-            let questionTextHTML = "";
-            let targetAnswer = 0;
-            let targetUnit = "g";
-            let steps = [];
-
-            // Helper randomizer
-            const randVal = (min, max, decimals = 1) => parseFloat((Math.random() * (max - min) + min).toFixed(decimals));
-
-            const texA = renderTexToHTML(compA.formulaLatex);
-            const texB = renderTexToHTML(compB.formulaLatex);
-
-            // Molar mass badge template helper
-            const buildMolarMassBadge = (compList) => {
-                const badgeItems = compList.map(c => `<span>${renderTexToHTML(c.formulaLatex)} = <strong>${c.mw.toFixed(2)} g/mol</strong></span>`).join('<span class="text-slate-300 dark:text-slate-600">•</span>');
-                return `<div class="mt-3 p-2.5 bg-slate-100 dark:bg-slate-900/70 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-xs font-mono text-slate-700 dark:text-slate-300 flex flex-wrap gap-x-3 gap-y-1 items-center"><span class="font-bold font-sans text-chem-600 dark:text-chem-400"><i class="fa-solid fa-weight-hanging mr-1"></i>Given Molar Masses:</span> ${badgeItems}</div>`;
-            };
-
-            if (type === 'mass-mass') {
-                targetUnit = "g";
-                const massA = randVal(5.0, 180.0, 1);
-                const molesA = massA / compA.mw;
-                const molesB = molesA * (compB.coef / compA.coef);
-                const massB = molesB * compB.mw;
-                targetAnswer = massB;
-
-                questionTextHTML = `How many grams of ${compB.name} (${texB}) are involved when ${massA} g of ${compA.name} (${texA}) reacts completely?` +
-                    buildMolarMassBadge([compA, compB]);
-
-                steps = [
-                    { 
-                        title: "Step 1: Convert Mass A to Moles A", 
-                        latex: `n_{\\text{A}} = \\frac{${massA}\\text{ g}}{${compA.mw.toFixed(2)}\\text{ g/mol}} = ${molesA.toFixed(4)}\\text{ mol } ${compA.formulaLatex}` 
-                    },
-                    { 
-                        title: "Step 2: Apply Mole Ratio (Non 1:1 Ratio)", 
-                        latex: `n_{\\text{B}} = ${molesA.toFixed(4)}\\text{ mol} \\times \\left( \\frac{${compB.coef}\\text{ mol } ${compB.formulaLatex}}{${compA.coef}\\text{ mol } ${compA.formulaLatex}} \\right) = ${molesB.toFixed(4)}\\text{ mol } ${compB.formulaLatex}` 
-                    },
-                    { 
-                        title: "Step 3: Convert Moles B to Target Mass B", 
-                        latex: `m_{\\text{B}} = ${molesB.toFixed(4)}\\text{ mol} \\times ${compB.mw.toFixed(2)}\\text{ g/mol} = \\mathbf{${massB.toFixed(2)}\\text{ g}}` 
-                    }
-                ];
-
-            } else if (type === 'mass-volume') {
-                targetUnit = "mL";
-                const massA = randVal(10.0, 120.0, 1);
-                const molarityB = randVal(0.2, 2.5, 2);
-                const molesA = massA / compA.mw;
-                const molesB = molesA * (compB.coef / compA.coef);
-                const volL = molesB / molarityB;
-                const volML = volL * 1000;
-                targetAnswer = volML;
-
-                questionTextHTML = `What volume in mL of a ${molarityB} M solution of ${compB.name} (${texB}) is required to react completely with ${massA} g of ${compA.name} (${texA})?` +
-                    buildMolarMassBadge([compA]);
-
-                steps = [
-                    { 
-                        title: "Step 1: Calculate moles of reactant A", 
-                        latex: `n_{\\text{A}} = \\frac{${massA}\\text{ g}}{${compA.mw.toFixed(2)}\\text{ g/mol}} = ${molesA.toFixed(4)}\\text{ mol } ${compA.formulaLatex}` 
-                    },
-                    { 
-                        title: "Step 2: Convert to moles of target solution B", 
-                        latex: `n_{\\text{B}} = ${molesA.toFixed(4)}\\text{ mol} \\times \\left( \\frac{${compB.coef}\\text{ mol } ${compB.formulaLatex}}{${compA.coef}\\text{ mol } ${compA.formulaLatex}} \\right) = ${molesB.toFixed(4)}\\text{ mol } ${compB.formulaLatex}` 
-                    },
-                    { 
-                        title: "Step 3: Calculate required Volume in mL", 
-                        latex: `V = \\frac{${molesB.toFixed(4)}\\text{ mol}}{${molarityB}\\text{ M}} = ${volL.toFixed(4)}\\text{ L} \\implies \\mathbf{${volML.toFixed(1)}\\text{ mL}}` 
-                    }
-                ];
-
-            } else if (type === 'titration') {
-                targetUnit = "M";
-                const volA_mL = randVal(15.0, 50.0, 1);
-                const volB_mL = randVal(20.0, 60.0, 1);
-                const molarityB = randVal(0.1, 1.5, 2);
-
-                const molesB = (volB_mL / 1000) * molarityB;
-                const molesA = molesB * (compA.coef / compB.coef);
-                const molarityA = molesA / (volA_mL / 1000);
-                targetAnswer = molarityA;
-
-                questionTextHTML = `In a titration, ${volA_mL} mL of ${compA.name} (${texA}) solution is neutralized by ${volB_mL} mL of ${molarityB} M ${compB.name} (${texB}). What is the molarity (M) of the ${compA.name} solution?` +
-                    buildMolarMassBadge([compA, compB]);
-
-                steps = [
-                    { 
-                        title: "Step 1: Moles of known titrant B used", 
-                        latex: `n_{\\text{B}} = ${molarityB}\\text{ M} \\times ${(volB_mL/1000).toFixed(4)}\\text{ L} = ${molesB.toFixed(5)}\\text{ mol } ${compB.formulaLatex}` 
-                    },
-                    { 
-                        title: "Step 2: Stoichiometric mole ratio conversion", 
-                        latex: `n_{\\text{A}} = ${molesB.toFixed(5)}\\text{ mol} \\times \\left( \\frac{${compA.coef}\\text{ mol } ${compA.formulaLatex}}{${compB.coef}\\text{ mol } ${compB.formulaLatex}} \\right) = ${molesA.toFixed(5)}\\text{ mol } ${compA.formulaLatex}` 
-                    },
-                    { 
-                        title: "Step 3: Determine unknown Molarity A", 
-                        latex: `M_{\\text{A}} = \\frac{${molesA.toFixed(5)}\\text{ mol}}{${(volA_mL/1000).toFixed(4)}\\text{ L}} = \\mathbf{${molarityA.toFixed(3)}\\text{ M}}` 
-                    }
-                ];
-
-            } else if (type === 'mass-conc') {
-                targetUnit = "g";
-                const targetMolarity = randVal(0.15, 2.0, 2);
-                const targetVolumeML = randVal(100.0, 1000.0, 0);
-
-                const molesNeeded = targetMolarity * (targetVolumeML / 1000);
-                const molesReactant = molesNeeded * (compA.coef / compB.coef);
-                const massReactant = molesReactant * compA.mw;
-                targetAnswer = massReactant;
-
-                questionTextHTML = `How many grams of ${compA.name} (${texA}) are needed to produce enough ${compB.name} (${texB}) to prepare ${targetVolumeML} mL of a ${targetMolarity} M solution?` +
-                    buildMolarMassBadge([compA, compB]);
-
-                steps = [
-                    { 
-                        title: "Step 1: Calculate total moles of target solution needed", 
-                        latex: `n_{\\text{needed}} = ${targetMolarity}\\text{ M} \\times ${(targetVolumeML/1000).toFixed(3)}\\text{ L} = ${molesNeeded.toFixed(4)}\\text{ mol } ${compB.formulaLatex}` 
-                    },
-                    { 
-                        title: "Step 2: Convert to moles of required reactant via mole ratio", 
-                        latex: `n_{\\text{reactant}} = ${molesNeeded.toFixed(4)}\\text{ mol} \\times \\left( \\frac{${compA.coef}\\text{ mol } ${compA.formulaLatex}}{${compB.coef}\\text{ mol } ${compB.formulaLatex}} \\right) = ${molesReactant.toFixed(4)}\\text{ mol } ${compA.formulaLatex}` 
-                    },
-                    { 
-                        title: "Step 3: Convert moles of reactant to grams", 
-                        latex: `m = ${molesReactant.toFixed(4)}\\text{ mol} \\times ${compA.mw.toFixed(2)}\\text{ g/mol} = \\mathbf{${massReactant.toFixed(2)}\\text{ g}}` 
-                    }
-                ];
-            }
-
-            return {
-                reaction: rxn,
-                type: type,
-                questionTextHTML: questionTextHTML,
-                targetAnswer: targetAnswer,
-                unit: targetUnit,
-                steps: steps
-            };
-        }
-
-        function checkPracticeAnswer() {
-            const inputVal = parseFloat(document.getElementById('practiceAnswerInput').value);
-            const feedbackBox = document.getElementById('practiceFeedback');
-
-            if (isNaN(inputVal)) {
-                feedbackBox.className = "rounded-xl p-4 border bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-800";
-                feedbackBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation mr-1'></i> Please enter a valid numerical value.";
-                feedbackBox.classList.remove('hidden');
-                return;
-            }
-
-            const expected = currentPracticeProblem.targetAnswer;
-            const percentDiff = Math.abs((inputVal - expected) / expected) * 100;
-            const isCorrect = percentDiff <= 2.5;
-
-            userStats.practiceAttempted = (userStats.practiceAttempted || 0) + 1;
-
-            if (isCorrect) {
-                userStats.practiceCorrect = (userStats.practiceCorrect || 0) + 1;
-                userStats.currentStreak += 1;
-                if (userStats.currentStreak > userStats.bestStreak) {
-                    userStats.bestStreak = userStats.currentStreak;
-                }
-                saveUserStats();
-
-                feedbackBox.className = "rounded-xl p-4 border bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:border-emerald-800 space-y-1";
-                feedbackBox.innerHTML = `
-                    <p class="font-bold text-base flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500"></i> Excellent! Correct Answer.</p>
-                    <p class="text-xs">Your value: <strong>${inputVal}</strong> ${currentPracticeProblem.unit} (Exact: ${expected.toFixed(2)} ${currentPracticeProblem.unit}). Current Streak: <strong>${userStats.currentStreak} 🔥</strong></p>
-                `;
-            } else {
-                userStats.currentStreak = 0;
-                saveUserStats();
-
-                feedbackBox.className = "rounded-xl p-4 border bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-900/30 dark:text-rose-200 dark:border-rose-800 space-y-1";
-                feedbackBox.innerHTML = `
-                    <p class="font-bold text-base flex items-center gap-2"><i class="fa-solid fa-circle-xmark text-rose-500"></i> Not quite right.</p>
-                    <p class="text-xs">Expected: <strong>${expected.toFixed(2)} ${currentPracticeProblem.unit}</strong>. Toggle steps below to check your stoichiometry ratios!</p>
-                `;
-            }
-
-            feedbackBox.classList.remove('hidden');
-        }
-
-        function finishGame() {
-            clearInterval(gameState.timerInterval);
-            document.getElementById('gamePlayCard').classList.add('hidden');
-            document.getElementById('gameSummaryCard').classList.remove('hidden');
-
-            const scorePct = Math.round((gameState.score / gameState.totalQuestions) * 100);
-            document.getElementById('summaryScore').innerText = `${scorePct}% (${gameState.score}/${gameState.totalQuestions})`;
-
-            const mins = Math.floor(gameState.elapsedSeconds / 60).toString().padStart(2, '0');
-            const secs = (gameState.elapsedSeconds % 60).toString().padStart(2, '0');
-            const timeStr = gameState.timerEnabled ? `${mins}:${secs}` : 'Untimed';
-            document.getElementById('summaryTime').innerText = timeStr;
-
-            // Update persistent record
-            userStats.lastScore = scorePct;
-            if (userStats.bestScore === null || scorePct > userStats.bestScore) {
-                userStats.bestScore = scorePct;
-            }
-
-            // Append to game history log
-            if (!userStats.gameHistory) userStats.gameHistory = [];
-            userStats.gameHistory.push({
-                date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-                scorePct: scorePct,
-                score: gameState.score,
-                totalQ: gameState.totalQuestions,
-                time: timeStr
-            });
-
-            saveUserStats();
-
-            // Trigger celebration confetti on good score
-            if (scorePct >= 80) {
-                triggerConfetti();
-            }
-        }
-
-        function resetGameToSetup() {
-            document.getElementById('gameSummaryCard').classList.add('hidden');
-            document.getElementById('gamePlayCard').classList.add('hidden');
-            document.getElementById('gameSetupCard').classList.remove('hidden');
         }
 
         function switchTab(tab) {
@@ -1345,10 +1453,16 @@
             });
         }
 
-        // Quick Input Helper
+        // Quick Input Keypad Helpers
         function appendInput(char) {
             const activeInput = currentMode === 'game' ? document.getElementById('gameAnswerInput') : document.getElementById('practiceAnswerInput');
             activeInput.value += char;
+            activeInput.focus();
+        }
+
+        function backspaceInput() {
+            const activeInput = currentMode === 'game' ? document.getElementById('gameAnswerInput') : document.getElementById('practiceAnswerInput');
+            activeInput.value = activeInput.value.slice(0, -1);
             activeInput.focus();
         }
 
@@ -1366,7 +1480,7 @@
             document.getElementById('refModal').classList.add('hidden');
         }
 
-        // Confetti Generator
+        // Confetti Animation Helper
         function triggerConfetti() {
             const canvas = document.getElementById('confettiCanvas');
             const ctx = canvas.getContext('2d');
