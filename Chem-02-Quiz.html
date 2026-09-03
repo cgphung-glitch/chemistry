@@ -235,13 +235,23 @@
                         </div>
                     </button>
 
+                    <button data-topic="5" class="topic-btn glass-card p-3.5 rounded-xl text-left flex items-start space-x-3 border-2 border-transparent hover:border-slate-600">
+                        <div class="w-9 h-9 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-flask-vial text-base"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-100">5. Empirical Formula</div>
+                            <div class="text-xs text-slate-400">Reduce a Molecular Formula to its Simplest Ratio</div>
+                        </div>
+                    </button>
+
                     <button data-topic="mix" class="topic-btn sm:col-span-2 glass-card p-3.5 rounded-xl text-left flex items-start space-x-3 border-2 border-transparent hover:border-slate-600">
                         <div class="w-9 h-9 rounded-lg bg-pink-500/20 text-pink-400 flex items-center justify-center shrink-0 mt-0.5">
                             <i class="fa-solid fa-shuffle text-base"></i>
                         </div>
                         <div>
-                            <div class="font-bold text-sm text-slate-100">5. Mixed Mastery</div>
-                            <div class="text-xs text-slate-400">Comprehensive mixture of Topics 1 through 4</div>
+                            <div class="font-bold text-sm text-slate-100">6. Mixed Mastery</div>
+                            <div class="text-xs text-slate-400">Comprehensive mixture of Topics 1 through 5</div>
                         </div>
                     </button>
                 </div>
@@ -543,6 +553,17 @@
                         <li><strong>James Chadwick:</strong> Discovered the neutral Neutron in the nucleus.</li>
                     </ul>
                 </div>
+
+                <!-- Topic 5 Ref -->
+                <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-rose-400 mb-1 text-sm"><i class="fa-solid fa-flask-vial mr-1"></i> Topic 5: Empirical Formula</h4>
+                    <ul class="list-disc list-inside text-slate-300 space-y-1">
+                        <li>The empirical formula shows the <strong>simplest whole-number ratio</strong> of atoms in a compound.</li>
+                        <li>Find it by dividing every subscript in the molecular formula by their <strong>greatest common divisor (GCD)</strong>.</li>
+                        <li><em>Example:</em> Glucose \(\text{C}_6\text{H}_{12}\text{O}_6\) has subscripts 6, 12, 6 (GCD = 6), giving the empirical formula \(\text{CH}_2\text{O}\).</li>
+                        <li>If the GCD of all subscripts is 1, the molecular and empirical formulas are identical (e.g., \(\text{CH}_2\text{O}\) for formaldehyde).</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -740,6 +761,26 @@
                 { id: "rutherford_2", scientist: "Ernest Rutherford", concept: "Discovery of Atomic Nucleus & Nuclear Model", keyDetails: "Proved that almost all atomic mass and positive charge is concentrated in a microscopic center." },
                 { id: "chadwick_1", scientist: "James Chadwick", concept: "Discovery of the Neutron", keyDetails: "Bombarded beryllium with alpha particles to prove the existence of neutral nuclear particles." },
                 { id: "chadwick_2", scientist: "James Chadwick", concept: "Neutral Subatomic Particles in Nucleus", keyDetails: "Proved neutrons have roughly the same mass as protons but carry zero electric charge." }
+            ],
+
+            // Topic 5 Data Base — Molecular formulas for Empirical Formula reduction
+            topic5Formulas: [
+                { name: "Glucose", elements: ["C", "H", "O"], counts: [6, 12, 6] },
+                { name: "Hydrogen Peroxide", elements: ["H", "O"], counts: [2, 2] },
+                { name: "Benzene", elements: ["C", "H"], counts: [6, 6] },
+                { name: "Ethane", elements: ["C", "H"], counts: [2, 6] },
+                { name: "Acetic Acid", elements: ["C", "H", "O"], counts: [2, 4, 2] },
+                { name: "Propene", elements: ["C", "H"], counts: [3, 6] },
+                { name: "Octane", elements: ["C", "H"], counts: [8, 18] },
+                { name: "Naphthalene", elements: ["C", "H"], counts: [10, 8] },
+                { name: "Hydrazine", elements: ["N", "H"], counts: [2, 4] },
+                { name: "Diborane", elements: ["B", "H"], counts: [2, 6] },
+                { name: "Dinitrogen Tetroxide", elements: ["N", "O"], counts: [2, 4] },
+                { name: "Butane", elements: ["C", "H"], counts: [4, 10] },
+                { name: "Formaldehyde", elements: ["C", "H", "O"], counts: [1, 2, 1] },
+                { name: "Ribose", elements: ["C", "H", "O"], counts: [5, 10, 5] },
+                { name: "Oxalic Acid", elements: ["C", "H", "O"], counts: [2, 2, 4] },
+                { name: "Sucrose", elements: ["C", "H", "O"], counts: [12, 22, 11] }
             ]
         };
 
@@ -945,6 +986,83 @@
             }
         }
 
+        // Empirical Formula Helper Functions
+        function gcdTwoNums(a, b) {
+            return b === 0 ? a : gcdTwoNums(b, a % b);
+        }
+
+        function gcdOfCounts(counts) {
+            return counts.reduce((a, b) => gcdTwoNums(a, b));
+        }
+
+        function toSubscriptDigits(num) {
+            const subDigits = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉'];
+            return String(num).split('').map(d => subDigits[parseInt(d, 10)]).join('');
+        }
+
+        function formatChemFormula(elements, counts) {
+            return elements.map((el, i) => (counts[i] === 1 ? el : el + toSubscriptDigits(counts[i]))).join('');
+        }
+
+        // Topic 5 Generator
+        function generateTopic5Question() {
+            const compound = DATASET.topic5Formulas[Math.floor(Math.random() * DATASET.topic5Formulas.length)];
+            const counts = compound.counts;
+            const elements = compound.elements;
+            const g = gcdOfCounts(counts);
+            const empiricalCounts = counts.map(c => c / g);
+
+            const molecularStr = formatChemFormula(elements, counts);
+            const empiricalStr = formatChemFormula(elements, empiricalCounts);
+
+            let optionsMap = new Map();
+            optionsMap.set(empiricalStr, true);
+
+            // Distractor: the unreduced molecular formula itself (a common student error)
+            if (g > 1 && molecularStr !== empiricalStr) {
+                optionsMap.set(molecularStr, true);
+            }
+
+            // Distractor: a partial (incomplete) reduction using a smaller divisor of g
+            if (g > 1) {
+                for (let d = 2; d < g; d++) {
+                    if (g % d === 0) {
+                        const partialStr = formatChemFormula(elements, counts.map(c => c / d));
+                        if (!optionsMap.has(partialStr)) {
+                            optionsMap.set(partialStr, true);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Fill any remaining slots with plausible near-miss ratios
+            let attempts = 0;
+            while (optionsMap.size < 4 && attempts < 40) {
+                attempts++;
+                const idx = Math.floor(Math.random() * empiricalCounts.length);
+                const delta = Math.random() < 0.5 ? 1 : -1;
+                const tweaked = [...empiricalCounts];
+                tweaked[idx] = Math.max(1, tweaked[idx] + delta);
+                const tweakedStr = formatChemFormula(elements, tweaked);
+                if (!optionsMap.has(tweakedStr)) {
+                    optionsMap.set(tweakedStr, true);
+                }
+            }
+
+            const optionsArr = Array.from(optionsMap.keys()).sort(() => Math.random() - 0.5);
+            const sig = `T5_${compound.name}`;
+
+            return {
+                signature: sig,
+                category: "Topic 5: Empirical Formula",
+                text: `What is the <strong class="text-rose-300">empirical formula</strong> of ${molecularStr} (${compound.name})?`,
+                options: optionsArr,
+                correctAnswer: empiricalStr,
+                explanation: `The molecular formula ${molecularStr} has subscripts (${counts.join(', ')}) with a greatest common divisor of <strong>${g}</strong>. Dividing every subscript by ${g} gives the simplest whole-number ratio, the empirical formula: <strong>${empiricalStr}</strong>.`
+            };
+        }
+
         // Master Question Fetcher enforcing NON-REPETITION GUARDS
         function getUniqueNextQuestion(topicKey) {
             let candidate = null;
@@ -956,14 +1074,15 @@
 
                 let activeTopic = topicKey;
                 if (topicKey === "mix") {
-                    const pool = ["1", "2", "3", "4"];
+                    const pool = ["1", "2", "3", "4", "5"];
                     activeTopic = pool[Math.floor(Math.random() * pool.length)];
                 }
 
                 if (activeTopic === "1") candidate = generateTopic1Question();
                 else if (activeTopic === "2") candidate = generateTopic2Question();
                 else if (activeTopic === "3") candidate = generateTopic3Question();
-                else candidate = generateTopic4Question();
+                else if (activeTopic === "4") candidate = generateTopic4Question();
+                else candidate = generateTopic5Question();
 
                 const sig = candidate.signature;
 
