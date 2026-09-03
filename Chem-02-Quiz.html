@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ChemMaster - Chemistry Practice & Interactive Periodic Table</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- KaTeX CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b1329;
+            color: #f8fafc;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(51, 65, 85, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:active {
+            transform: scale(0.98);
+        }
+
+        .btn-gradient-primary {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+        }
+
+        .timer-bar {
+            transition: width 0.05s linear;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
+        }
+
+        /* Periodic Table Grid Cell Styling */
+        .pt-cell {
+            aspect-ratio: 1;
+            min-width: 36px;
+            min-height: 42px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            user-select: none;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .pt-cell:hover {
+            transform: scale(1.15);
+            z-index: 20;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        /* Group Colors */
+        .bg-alkali { background-color: rgba(239, 68, 68, 0.25); border-color: rgba(239, 68, 68, 0.5); color: #fca5a5; }
+        .bg-alkaline { background-color: rgba(249, 115, 22, 0.25); border-color: rgba(249, 115, 22, 0.5); color: #fdba74; }
+        .bg-transition { background-color: rgba(234, 179, 8, 0.2); border-color: rgba(234, 179, 8, 0.4); color: #fde047; }
+        .bg-post-transition { background-color: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.4); color: #86efac; }
+        .bg-metalloid { background-color: rgba(20, 184, 166, 0.25); border-color: rgba(20, 184, 166, 0.5); color: #99f6e4; }
+        .bg-pnictogen { background-color: rgba(168, 85, 247, 0.25); border-color: rgba(168, 85, 247, 0.5); color: #e9d5ff; }
+        .bg-chalcogen { background-color: rgba(236, 72, 153, 0.25); border-color: rgba(236, 72, 153, 0.5); color: #fbcfe8; }
+        .bg-halogen { background-color: rgba(6, 182, 212, 0.25); border-color: rgba(6, 182, 212, 0.5); color: #a5f3fc; }
+        .bg-noble { background-color: rgba(59, 130, 246, 0.25); border-color: rgba(59, 130, 246, 0.5); color: #bfdbfe; }
+        .bg-lanthanide { background-color: rgba(14, 165, 233, 0.2); border-color: rgba(14, 165, 233, 0.4); color: #7dd3fc; }
+        .bg-actinide { background-color: rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.4); color: #fca5a5; }
+        .bg-nonmetal { background-color: rgba(100, 116, 139, 0.3); border-color: rgba(100, 116, 139, 0.5); color: #cbd5e1; }
+        
+        .katex { font-size: 1.1em; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-cyan-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-40 glass-panel px-4 py-3 shadow-xl border-b border-slate-800">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchView('viewMenu')">
+                <div class="w-10 h-10 rounded-xl btn-gradient-primary flex items-center justify-center text-white shadow-md shadow-cyan-500/20">
+                    <i class="fa-solid font-bold text-xl fa-flask"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">ChemMaster</h1>
+                    <p class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Interactive Chemistry Lab</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-1.5 sm:space-x-2">
+                <!-- Periodic Table Modal Button -->
+                <button id="btnOpenPT" class="px-2.5 py-1.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/80 border border-purple-500/40 text-purple-300 font-semibold text-xs flex items-center space-x-1.5 transition shadow">
+                    <i class="fa-solid fa-table-cells text-purple-400"></i>
+                    <span class="hidden sm:inline">Periodic Table</span>
+                </button>
+
+                <!-- Reference Sheet Modal Button -->
+                <button id="btnOpenReference" class="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-cyan-400 font-semibold text-xs flex items-center space-x-1.5 transition">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span class="hidden sm:inline">Cheat Sheet</span>
+                </button>
+
+                <!-- High Score Badge -->
+                <div class="flex items-center space-x-1.5 bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-700 text-xs">
+                    <i class="fa-solid fa-trophy text-amber-400"></i>
+                    <span class="text-slate-400 hidden sm:inline">Best:</span>
+                    <span id="headerHighScore" class="font-bold text-amber-400">0</span>
+                </div>
+                
+                <!-- Streak Badge -->
+                <div class="flex items-center space-x-1.5 bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-700 text-xs">
+                    <i class="fa-solid fa-fire text-orange-500"></i>
+                    <span id="headerStreak" class="font-bold text-orange-400">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-4xl w-full mx-auto p-4 flex-1 flex flex-col justify-center">
+
+        <!-- VIEW 1: Main Menu & Mode Selection -->
+        <div id="viewMenu" class="space-y-5 py-2">
+            
+            <!-- Dashboard Stats Card -->
+            <div class="glass-panel rounded-2xl p-5 relative overflow-hidden shadow-2xl">
+                <div class="absolute -right-6 -bottom-6 text-slate-700/15 text-9xl pointer-events-none">
+                    <i class="fa-solid fa-atom"></i>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h2 class="text-xl font-extrabold text-slate-100">Chemistry Skill Lab</h2>
+                            <p class="text-slate-400 text-xs">Zero repeating questions per quiz • Smart 10-q practice buffer</p>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">v3.0 Perfect KaTeX</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-4 gap-2 text-center bg-slate-900/80 p-3 rounded-xl border border-slate-800/80">
+                        <div>
+                            <div class="text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Played</div>
+                            <div id="statTotalGames" class="text-sm sm:text-base font-extrabold text-slate-200">0</div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Last Score</div>
+                            <div id="statLastScore" class="text-sm sm:text-base font-extrabold text-cyan-400">0</div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-400 font-semibold">High Score</div>
+                            <div id="statHighScore" class="text-sm sm:text-base font-extrabold text-amber-400">0</div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Best Streak</div>
+                            <div id="statMaxStreak" class="text-sm sm:text-base font-extrabold text-orange-400">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Topic Selection Grid -->
+            <div>
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2.5">
+                    <i class="fa-solid fa-layer-group text-cyan-400 mr-1.5"></i> 1. Select Chemistry Topic
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="topicButtonsContainer">
+                    
+                    <button data-topic="1" class="topic-btn glass-card p-3.5 rounded-xl text-left flex items-start space-x-3 border-2 border-cyan-500 bg-cyan-950/20">
+                        <div class="w-9 h-9 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-atom text-base"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-100">1. Subatomic Particles</div>
+                            <div class="text-xs text-slate-400">Protons, Neutrons & Electrons in Isotopes</div>
+                        </div>
+                    </button>
+
+                    <button data-topic="2" class="topic-btn glass-card p-3.5 rounded-xl text-left flex items-start space-x-3 border-2 border-transparent hover:border-slate-600">
+                        <div class="w-9 h-9 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-table-cells text-base"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-100">2. Element Groups</div>
+                            <div class="text-xs text-slate-400">Alkali, Halogens, Noble Gases, Chalcogens...</div>
+                        </div>
+                    </button>
+
+                    <button data-topic="3" class="topic-btn glass-card p-3.5 rounded-xl text-left flex items-start space-x-3 border-2 border-transparent hover:border-slate-600">
+                        <div class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-vial text-base"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-100">3. Compound Types</div>
+                            <div class="text-xs text-slate-400">Molecular, Ionic, Acid, Base & Hydrates</div>
+                        </div>
+                    </button>
+
+                    <button data-topic="4" class="topic-btn glass-card p-3.5 rounded-xl text-left flex items-start space-x-3 border-2 border-transparent hover:border-slate-600">
+                        <div class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-microscope text-base"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-100">4. Atomic Discoveries</div>
+                            <div class="text-xs text-slate-400">Dalton, Thomson, Millikan, Rutherford, Chadwick</div>
+                        </div>
+                    </button>
+
+                    <button data-topic="mix" class="topic-btn sm:col-span-2 glass-card p-3.5 rounded-xl text-left flex items-start space-x-3 border-2 border-transparent hover:border-slate-600">
+                        <div class="w-9 h-9 rounded-lg bg-pink-500/20 text-pink-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-shuffle text-base"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-100">5. Mixed Mastery</div>
+                            <div class="text-xs text-slate-400">Comprehensive mixture of Topics 1 through 4</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mode Selection Cards -->
+            <div>
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2.5">
+                    <i class="fa-solid fa-gamepad text-cyan-400 mr-1.5"></i> 2. Select Mode
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="btnSelectPractice" class="mode-btn glass-panel p-4 rounded-xl text-center border-2 border-cyan-500 bg-cyan-950/30">
+                        <i class="fa-solid fa-graduation-cap text-2xl text-cyan-400 mb-1"></i>
+                        <div class="font-bold text-sm text-slate-100">Practice Mode</div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">Untimed • Explanations • No repeats in 10 Qs</div>
+                    </button>
+
+                    <button id="btnSelectTimed" class="mode-btn glass-panel p-4 rounded-xl text-center border-2 border-transparent hover:border-slate-600">
+                        <i class="fa-solid fa-bolt text-2xl text-amber-400 mb-1"></i>
+                        <div class="font-bold text-sm text-slate-100">Speed Challenge</div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">10s timer • Zero repeated questions</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Speed Challenge Question Count (Only in Timed Mode) -->
+            <div id="timedSettings" class="hidden space-y-2 bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
+                <label class="block text-xs font-bold text-slate-300">Choose Quiz Length:</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button data-count="10" class="q-count-btn py-2 text-xs font-bold rounded-lg bg-cyan-600 text-white shadow">10 Questions</button>
+                    <button data-count="20" class="q-count-btn py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">20 Questions</button>
+                    <button data-count="30" class="q-count-btn py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">30 Questions</button>
+                </div>
+            </div>
+
+            <!-- Start Game Button -->
+            <button id="btnStartGame" class="w-full py-4 rounded-xl btn-gradient-primary font-extrabold text-base text-white shadow-lg shadow-cyan-500/25 active:scale-[0.99] transition-all flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-play"></i>
+                <span>START SESSION</span>
+            </button>
+        </div>
+
+        <!-- VIEW 2: Active Question View -->
+        <div id="viewQuiz" class="hidden space-y-4 py-2">
+            
+            <!-- Quiz Session Header Bar -->
+            <div class="flex items-center justify-between glass-panel p-3 rounded-xl text-xs shadow-lg">
+                <div class="flex items-center space-x-2">
+                    <span id="quizTopicBadge" class="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">Topic 1</span>
+                    <span id="quizQuestionCounter" class="text-slate-300 font-bold bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">Q 1/10</span>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-1 text-amber-400 font-extrabold">
+                        <i class="fa-solid fa-star text-xs"></i>
+                        <span id="quizScore">0</span>
+                    </div>
+                    <button id="btnStopQuiz" class="px-3 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold border border-red-500/30 flex items-center space-x-1 transition">
+                        <i class="fa-solid fa-stop text-[10px]"></i>
+                        <span>Exit</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Timer Bar (Speed Mode) -->
+            <div id="timerContainer" class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700 relative">
+                <div id="timerBar" class="timer-bar bg-gradient-to-r from-emerald-400 via-amber-400 to-red-500 h-full w-full"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="glass-panel p-5 sm:p-6 rounded-2xl min-h-[170px] flex flex-col justify-center relative shadow-xl">
+                <div id="questionCategory" class="text-[10px] font-extrabold uppercase tracking-widest text-cyan-400 mb-1">Topic Name</div>
+                <div id="questionText" class="text-base sm:text-lg font-extrabold text-slate-100 leading-relaxed">
+                    Loading question...
+                </div>
+            </div>
+
+            <!-- Options Container -->
+            <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Injected dynamically -->
+            </div>
+
+            <!-- Explanatory Feedback Box -->
+            <div id="feedbackBox" class="hidden glass-panel p-4 rounded-xl border-l-4 border-emerald-500 shadow-xl transition-all">
+                <div class="flex items-start space-x-3">
+                    <div id="feedbackIcon" class="text-xl text-emerald-400 mt-0.5">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div class="flex-1 text-xs sm:text-sm">
+                        <div id="feedbackTitle" class="font-extrabold text-slate-200 mb-1">Correct!</div>
+                        <div id="feedbackDetail" class="text-slate-300 leading-relaxed">Explanation detail...</div>
+                    </div>
+                </div>
+                <button id="btnNextQuestion" class="mt-3.5 w-full py-3 rounded-xl btn-gradient-primary font-extrabold text-xs text-white flex items-center justify-center space-x-2 shadow-lg">
+                    <span>Continue to Next Question</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 3: Final Session Summary / Results -->
+        <div id="viewResults" class="hidden py-4 text-center space-y-5">
+            <div class="glass-panel p-6 rounded-2xl space-y-4 shadow-2xl">
+                <div id="resultBadge" class="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-400 flex items-center justify-center mx-auto text-3xl shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-extrabold text-slate-100">Session Complete!</h2>
+                    <p id="resultSubtitle" class="text-xs text-slate-400 mt-1">Great practice run. Keep sharpening your chemistry skills!</p>
+                </div>
+
+                <!-- Final Stats Breakdown -->
+                <div class="grid grid-cols-3 gap-2.5">
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Final Score</div>
+                        <div id="resultScore" class="text-xl font-extrabold text-amber-400">0</div>
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Accuracy</div>
+                        <div id="resultAccuracy" class="text-xl font-extrabold text-emerald-400">0%</div>
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Streak Peak</div>
+                        <div id="resultStreak" class="text-xl font-extrabold text-orange-400">0</div>
+                    </div>
+                </div>
+
+                <!-- Breakdown by Topic -->
+                <div class="text-left bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                    <div class="text-xs font-bold text-slate-300 mb-2 flex items-center justify-between">
+                        <span>Category Breakdown</span>
+                        <span id="resultTotalAnswered" class="text-[10px] text-slate-400">0 answered</span>
+                    </div>
+                    <div id="resultBreakdown" class="space-y-2 text-xs">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+
+                <div class="pt-2 flex flex-col sm:flex-row gap-3">
+                    <button id="btnRestartQuiz" class="flex-1 py-3 rounded-xl btn-gradient-primary font-extrabold text-sm text-white shadow-lg">
+                        <i class="fa-solid fa-rotate-right mr-1.5"></i> Play Again
+                    </button>
+                    <button id="btnReturnMenu" class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 font-extrabold text-sm text-slate-200 border border-slate-700">
+                        <i class="fa-solid fa-house mr-1.5"></i> Main Menu
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- INTERACTIVE PERIODIC TABLE MODAL -->
+    <div id="modalPT" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-2 sm:p-4">
+        <div class="glass-panel w-full max-w-5xl max-h-[92vh] rounded-2xl flex flex-col border border-purple-500/30 shadow-2xl">
+            <!-- Modal Header -->
+            <div class="p-3.5 border-b border-slate-800 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-2">
+                    <div class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-table-cells text-sm"></i>
+                    </div>
+                    <h3 class="font-extrabold text-slate-100 text-sm sm:text-base">Interactive Periodic Table</h3>
+                </div>
+                <button id="btnClosePT" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-3 sm:p-4 overflow-y-auto space-y-3 custom-scrollbar flex-1">
+                
+                <!-- Group Color Legend -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-[10px] font-semibold text-slate-300">
+                    <div class="flex items-center space-x-1.5 bg-slate-900/60 p-1.5 rounded border border-slate-800">
+                        <span class="w-3 h-3 rounded bg-alkali border border-red-500/50"></span>
+                        <span>Alkali Metals</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 bg-slate-900/60 p-1.5 rounded border border-slate-800">
+                        <span class="w-3 h-3 rounded bg-alkaline border border-orange-500/50"></span>
+                        <span>Alkaline Earth</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 bg-slate-900/60 p-1.5 rounded border border-slate-800">
+                        <span class="w-3 h-3 rounded bg-pnictogen border border-purple-500/50"></span>
+                        <span>Pnictogens (G15)</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 bg-slate-900/60 p-1.5 rounded border border-slate-800">
+                        <span class="w-3 h-3 rounded bg-chalcogen border border-pink-500/50"></span>
+                        <span>Chalcogens (G16)</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 bg-slate-900/60 p-1.5 rounded border border-slate-800">
+                        <span class="w-3 h-3 rounded bg-halogen border border-cyan-500/50"></span>
+                        <span>Halogens (G17)</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 bg-slate-900/60 p-1.5 rounded border border-slate-800">
+                        <span class="w-3 h-3 rounded bg-noble border border-blue-500/50"></span>
+                        <span>Noble Gases (G18)</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 bg-slate-900/60 p-1.5 rounded border border-slate-800">
+                        <span class="w-3 h-3 rounded bg-transition border border-yellow-500/50"></span>
+                        <span>Transition Metals</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 bg-slate-900/60 p-1.5 rounded border border-slate-800">
+                        <span class="w-3 h-3 rounded bg-metalloid border border-teal-500/50"></span>
+                        <span>Metalloids</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 bg-slate-900/60 p-1.5 rounded border border-slate-800">
+                        <span class="w-3 h-3 rounded bg-nonmetal border border-slate-500/50"></span>
+                        <span>Other Nonmetals</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 bg-slate-900/60 p-1.5 rounded border border-slate-800">
+                        <span class="w-3 h-3 rounded bg-post-transition border border-emerald-500/50"></span>
+                        <span>Post-Transition</span>
+                    </div>
+                </div>
+
+                <!-- Scrollable Grid Container for PT -->
+                <div class="overflow-x-auto pb-2 custom-scrollbar">
+                    <div id="ptGrid" class="grid grid-cols-[repeat(18,minmax(38px,1fr))] gap-1 min-w-[700px] p-2 bg-slate-950/70 rounded-xl border border-slate-800">
+                        <!-- Periodic Table elements dynamically inserted here -->
+                    </div>
+                </div>
+
+                <!-- Element Detail Card Drawer -->
+                <div id="ptDetailCard" class="hidden bg-slate-900/90 p-3.5 rounded-xl border border-slate-700 flex items-center space-x-4">
+                    <div id="ptDetailBadge" class="w-14 h-14 rounded-xl flex flex-col items-center justify-center border font-bold shrink-0 bg-slate-800 border-slate-600">
+                        <span id="ptDetailZ" class="text-[9px] text-slate-400">1</span>
+                        <span id="ptDetailSymbol" class="text-xl leading-tight">H</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h4 id="ptDetailName" class="font-extrabold text-slate-100 text-sm">Hydrogen</h4>
+                            <span id="ptDetailCategory" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-800 text-cyan-400 border border-slate-700">Nonmetal</span>
+                        </div>
+                        <p id="ptDetailDesc" class="text-xs text-slate-300 mt-1">Group 1, Period 1</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- CHEAT SHEET / REFERENCE MODAL -->
+    <div id="modalReference" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-2xl max-h-[85vh] rounded-2xl flex flex-col border border-slate-700 shadow-2xl">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-book-open text-cyan-400"></i>
+                    <h3 class="font-extrabold text-slate-100 text-base">Chemistry Cheat Sheet & Reference</h3>
+                </div>
+                <button id="btnCloseReference" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <div id="cheatSheetContent" class="p-4 overflow-y-auto space-y-4 text-xs custom-scrollbar leading-relaxed">
+                <!-- Topic 1 Ref -->
+                <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-cyan-400 mb-1 text-sm"><i class="fa-solid fa-atom mr-1"></i> Topic 1: Subatomic Particles Formulae</h4>
+                    <ul class="list-disc list-inside text-slate-300 space-y-1">
+                        <li><strong>Protons:</strong> \(p = Z\) (Atomic Number)</li>
+                        <li><strong>Neutrons:</strong> \(n = A - Z\) (Mass Number minus Atomic Number)</li>
+                        <li><strong>Electrons:</strong> \(e^- = p - C\) (Protons minus Charge)</li>
+                        <li><em>Example:</em> For \(^{35}_{17}\text{Cl}^-\): \(p = 17\), \(n = 35 - 17 = 18\), \(e^- = 17 - (-1) = 18\).</li>
+                    </ul>
+                </div>
+
+                <!-- Topic 2 Ref -->
+                <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-purple-400 mb-1 text-sm"><i class="fa-solid fa-table-cells mr-1"></i> Topic 2: Periodic Groups</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-300">
+                        <div><strong>Alkali Metals (Grp 1):</strong> Li, Na, K, Rb, Cs, Fr</div>
+                        <div><strong>Alkaline Earth (Grp 2):</strong> Be, Mg, Ca, Sr, Ba, Ra</div>
+                        <div><strong>Pnictogens (Grp 15):</strong> N, P, As, Sb, Bi</div>
+                        <div><strong>Chalcogens (Grp 16):</strong> O, S, Se, Te, Po</div>
+                        <div><strong>Halogens (Grp 17):</strong> F, Cl, Br, I, At</div>
+                        <div><strong>Noble Gases (Grp 18):</strong> He, Ne, Ar, Kr, Xe, Rn</div>
+                    </div>
+                </div>
+
+                <!-- Topic 3 Ref -->
+                <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-emerald-400 mb-1 text-sm"><i class="fa-solid fa-vial mr-1"></i> Topic 3: Compound Types</h4>
+                    <ul class="list-disc list-inside text-slate-300 space-y-1">
+                        <li><strong>Molecular (Covalent):</strong> Nonmetal + Nonmetal (e.g., \(\text{CO}_2\), \(\text{H}_2\text{O}\), \(\text{NH}_3\)).</li>
+                        <li><strong>Ionic:</strong> Metal + Nonmetal or Polyatomic Ions (e.g., \(\text{NaCl}\), \(\text{MgCl}_2\), \(\text{KNO}_3\)).</li>
+                        <li><strong>Acid:</strong> Yields \(\text{H}^+\) in solution, usually starts with H (e.g., \(\text{HCl}\), \(\text{H}_2\text{SO}_4\), \(\text{HNO}_3\)).</li>
+                        <li><strong>Base:</strong> Yields \(\text{OH}^-\) or accepts \(\text{H}^+\) (e.g., \(\text{NaOH}\), \(\text{KOH}\), \(\text{NH}_3\)).</li>
+                        <li><strong>Hydrate:</strong> Ionic crystal with bound water molecules (e.g., \(\text{CuSO}_4 \cdot 5\text{H}_2\text{O}\)).</li>
+                    </ul>
+                </div>
+
+                <!-- Topic 4 Ref -->
+                <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-amber-400 mb-1 text-sm"><i class="fa-solid fa-microscope mr-1"></i> Topic 4: Key Atomic Discoveries</h4>
+                    <ul class="list-disc list-inside text-slate-300 space-y-1">
+                        <li><strong>John Dalton:</strong> Atomic Theory, Solid Sphere model, Fixed mass ratios.</li>
+                        <li><strong>J.J. Thomson:</strong> Cathode Ray Tube, Discovered Electrons, Plum Pudding Model.</li>
+                        <li><strong>Robert Millikan:</strong> Oil Drop Experiment, Calculated Charge of Electron (\(1.602 \times 10^{-19}\text{ C}\)).</li>
+                        <li><strong>Ernest Rutherford:</strong> Gold Foil Experiment, Dense positively charged Nucleus.</li>
+                        <li><strong>James Chadwick:</strong> Discovered the neutral Neutron in the nucleus.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-3 text-center text-xs text-slate-500 border-t border-slate-800/80">
+        <p>ChemMaster Chemistry Practice Lab &bull; Dynamic Non-Repeating Question Engine</p>
+    </footer>
+
+    <script>
+        // Universal KaTeX Helper Functions to prevent raw LaTeX output
+        function renderLatexToString(latexStr) {
+            try {
+                return katex.renderToString(latexStr, { throwOnError: false, displayMode: false });
+            } catch (e) {
+                console.warn("KaTeX render error:", e);
+                return latexStr;
+            }
+        }
+
+        // Parse any string containing \( ... \), $ ... $, or display mode
+        function formatTextWithMath(str) {
+            if (!str) return '';
+            
+            // Replace \( ... \)
+            let processed = str.replace(/\\\((.*?)\\\)/g, (match, latex) => {
+                return renderLatexToString(latex);
+            });
+
+            // Replace $ ... $
+            processed = processed.replace(/\$(.*?)\$/g, (match, latex) => {
+                return renderLatexToString(latex);
+            });
+
+            return processed;
+        }
+
+        function renderMathInContainer(containerElem) {
+            if (!containerElem) return;
+            const walker = document.createTreeWalker(containerElem, NodeFilter.SHOW_TEXT, null, false);
+            const textNodes = [];
+            while (walker.nextNode()) {
+                textNodes.push(walker.currentNode);
+            }
+
+            textNodes.forEach(node => {
+                const text = node.nodeValue;
+                if (text.includes('\\(') || text.includes('$')) {
+                    const span = document.createElement('span');
+                    span.innerHTML = formatTextWithMath(text);
+                    node.parentNode.replaceChild(span, node);
+                }
+            });
+        }
+
+        // Periodic Table Dataset
+        const PERIODIC_TABLE_DATA = [
+            { z: 1, sym: "H", name: "Hydrogen", row: 1, col: 1, cat: "nonmetal" },
+            { z: 2, sym: "He", name: "Helium", row: 1, col: 18, cat: "noble" },
+            { z: 3, sym: "Li", name: "Lithium", row: 2, col: 1, cat: "alkali" },
+            { z: 4, sym: "Be", name: "Beryllium", row: 2, col: 2, cat: "alkaline" },
+            { z: 5, sym: "B", name: "Boron", row: 2, col: 13, cat: "metalloid" },
+            { z: 6, sym: "C", name: "Carbon", row: 2, col: 14, cat: "nonmetal" },
+            { z: 7, sym: "N", name: "Nitrogen", row: 2, col: 15, cat: "pnictogen" },
+            { z: 8, sym: "O", name: "Oxygen", row: 2, col: 16, cat: "chalcogen" },
+            { z: 9, sym: "F", name: "Fluorine", row: 2, col: 17, cat: "halogen" },
+            { z: 10, sym: "Ne", name: "Neon", row: 2, col: 18, cat: "noble" },
+            { z: 11, sym: "Na", name: "Sodium", row: 3, col: 1, cat: "alkali" },
+            { z: 12, sym: "Mg", name: "Magnesium", row: 3, col: 2, cat: "alkaline" },
+            { z: 13, sym: "Al", name: "Aluminum", row: 3, col: 13, cat: "post-transition" },
+            { z: 14, sym: "Si", name: "Silicon", row: 3, col: 14, cat: "metalloid" },
+            { z: 15, sym: "P", name: "Phosphorus", row: 3, col: 15, cat: "pnictogen" },
+            { z: 16, sym: "S", name: "Sulfur", row: 3, col: 16, cat: "chalcogen" },
+            { z: 17, sym: "Cl", name: "Chlorine", row: 3, col: 17, cat: "halogen" },
+            { z: 18, sym: "Ar", name: "Argon", row: 3, col: 18, cat: "noble" },
+            { z: 19, sym: "K", name: "Potassium", row: 4, col: 1, cat: "alkali" },
+            { z: 20, sym: "Ca", name: "Calcium", row: 4, col: 2, cat: "alkaline" },
+            { z: 21, sym: "Sc", name: "Scandium", row: 4, col: 3, cat: "transition" },
+            { z: 22, sym: "Ti", name: "Titanium", row: 4, col: 4, cat: "transition" },
+            { z: 23, sym: "V", name: "Vanadium", row: 4, col: 5, cat: "transition" },
+            { z: 24, sym: "Cr", name: "Chromium", row: 4, col: 6, cat: "transition" },
+            { z: 25, sym: "Mn", name: "Manganese", row: 4, col: 7, cat: "transition" },
+            { z: 26, sym: "Fe", name: "Iron", row: 4, col: 8, cat: "transition" },
+            { z: 27, sym: "Co", name: "Cobalt", row: 4, col: 9, cat: "transition" },
+            { z: 28, sym: "Ni", name: "Nickel", row: 4, col: 10, cat: "transition" },
+            { z: 29, sym: "Cu", name: "Copper", row: 4, col: 11, cat: "transition" },
+            { z: 30, sym: "Zn", name: "Zinc", row: 4, col: 12, cat: "transition" },
+            { z: 31, sym: "Ga", name: "Gallium", row: 4, col: 13, cat: "post-transition" },
+            { z: 32, sym: "Ge", name: "Germanium", row: 4, col: 14, cat: "metalloid" },
+            { z: 33, sym: "As", name: "Arsenic", row: 4, col: 15, cat: "pnictogen" },
+            { z: 34, sym: "Se", name: "Selenium", row: 4, col: 16, cat: "chalcogen" },
+            { z: 35, sym: "Br", name: "Bromine", row: 4, col: 17, cat: "halogen" },
+            { z: 36, sym: "Kr", name: "Krypton", row: 4, col: 18, cat: "noble" },
+            { z: 37, sym: "Rb", name: "Rubidium", row: 5, col: 1, cat: "alkali" },
+            { z: 38, sym: "Sr", name: "Strontium", row: 5, col: 2, cat: "alkaline" },
+            { z: 47, sym: "Ag", name: "Silver", row: 5, col: 11, cat: "transition" },
+            { z: 50, sym: "Sn", name: "Tin", row: 5, col: 14, cat: "post-transition" },
+            { z: 51, sym: "Sb", name: "Antimony", row: 5, col: 15, cat: "pnictogen" },
+            { z: 52, sym: "Te", name: "Tellurium", row: 5, col: 16, cat: "chalcogen" },
+            { z: 53, sym: "I", name: "Iodine", row: 5, col: 17, cat: "halogen" },
+            { z: 54, sym: "Xe", name: "Xenon", row: 5, col: 18, cat: "noble" },
+            { z: 55, sym: "Cs", name: "Cesium", row: 6, col: 1, cat: "alkali" },
+            { z: 56, sym: "Ba", name: "Barium", row: 6, col: 2, cat: "alkaline" },
+            { z: 79, sym: "Au", name: "Gold", row: 6, col: 11, cat: "transition" },
+            { z: 80, sym: "Hg", name: "Mercury", row: 6, col: 12, cat: "transition" },
+            { z: 82, sym: "Pb", name: "Lead", row: 6, col: 14, cat: "post-transition" },
+            { z: 83, sym: "Bi", name: "Bismuth", row: 6, col: 15, cat: "pnictogen" },
+            { z: 84, sym: "Po", name: "Polonium", row: 6, col: 16, cat: "chalcogen" },
+            { z: 85, sym: "At", name: "Astatine", row: 6, col: 17, cat: "halogen" },
+            { z: 86, sym: "Rn", name: "Radon", row: 6, col: 18, cat: "noble" },
+            { z: 87, sym: "Fr", name: "Francium", row: 7, col: 1, cat: "alkali" },
+            { z: 88, sym: "Ra", name: "Radium", row: 7, col: 2, cat: "alkaline" },
+            { z: 92, sym: "U", name: "Uranium", row: 7, col: 3, cat: "actinide" }
+        ];
+
+        // Comprehensive Base Data Tables with Cleaned LaTeX String Notations
+        const DATASET = {
+            // Topic 1 Data Base
+            topic1Isotopes: [
+                { latexSymbol: "^{14}_{6}\\text{C}", name: "Carbon-14", z: 6, a: 14, charge: 0 },
+                { latexSymbol: "^{12}_{6}\\text{C}", name: "Carbon-12", z: 6, a: 12, charge: 0 },
+                { latexSymbol: "^{35}_{17}\\text{Cl}^-", name: "Chloride-35 ion", z: 17, a: 35, charge: -1 },
+                { latexSymbol: "^{37}_{17}\\text{Cl}", name: "Chlorine-37", z: 17, a: 37, charge: 0 },
+                { latexSymbol: "^{23}_{11}\\text{Na}^+", name: "Sodium-23 ion", z: 11, a: 23, charge: 1 },
+                { latexSymbol: "^{235}_{92}\\text{U}", name: "Uranium-235", z: 92, a: 235, charge: 0 },
+                { latexSymbol: "^{238}_{92}\\text{U}", name: "Uranium-238", z: 92, a: 238, charge: 0 },
+                { latexSymbol: "^{16}_{8}\\text{O}^{2-}", name: "Oxide-16 ion", z: 8, a: 16, charge: -2 },
+                { latexSymbol: "^{27}_{13}\\text{Al}^{3+}", name: "Aluminum-27 ion", z: 13, a: 27, charge: 3 },
+                { latexSymbol: "^{1}_{1}\\text{H}", name: "Protium (Hydrogen-1)", z: 1, a: 1, charge: 0 },
+                { latexSymbol: "^{2}_{1}\\text{H}", name: "Deuterium (Hydrogen-2)", z: 1, a: 2, charge: 0 },
+                { latexSymbol: "^{3}_{1}\\text{H}", name: "Tritium (Hydrogen-3)", z: 1, a: 3, charge: 0 },
+                { latexSymbol: "^{40}_{20}\\text{Ca}^{2+}", name: "Calcium-40 ion", z: 20, a: 40, charge: 2 },
+                { latexSymbol: "^{56}_{26}\\text{Fe}^{2+}", name: "Iron-56 (II) ion", z: 26, a: 56, charge: 2 },
+                { latexSymbol: "^{56}_{26}\\text{Fe}^{3+}", name: "Iron-56 (III) ion", z: 26, a: 56, charge: 3 },
+                { latexSymbol: "^{80}_{35}\\text{Br}^-", name: "Bromide-80 ion", z: 35, a: 80, charge: -1 },
+                { latexSymbol: "^{39}_{19}\\text{K}^+", name: "Potassium-39 ion", z: 19, a: 39, charge: 1 },
+                { latexSymbol: "^{24}_{12}\\text{Mg}^{2+}", name: "Magnesium-24 ion", z: 12, a: 24, charge: 2 },
+                { latexSymbol: "^{31}_{15}\\text{P}^{3-}", name: "Phosphide-31 ion", z: 15, a: 31, charge: -3 },
+                { latexSymbol: "^{32}_{16}\\text{S}^{2-}", name: "Sulfide-32 ion", z: 16, a: 32, charge: -2 },
+                { latexSymbol: "^{19}_{9}\\text{F}^-", name: "Fluoride-19 ion", z: 9, a: 19, charge: -1 },
+                { latexSymbol: "^{14}_{7}\\text{N}^{3-}", name: "Nitride-14 ion", z: 7, a: 14, charge: -3 },
+                { latexSymbol: "^{7}_{3}\\text{Li}^+", name: "Lithium-7 ion", z: 3, a: 7, charge: 1 },
+                { latexSymbol: "^{9}_{4}\\text{Be}^{2+}", name: "Beryllium-9 ion", z: 4, a: 9, charge: 2 }
+            ],
+
+            // Topic 2 Data Base
+            topic2Groups: [
+                { group: "Alkali Metals", groupNum: "Group 1", elements: ["Lithium (Li)", "Sodium (Na)", "Potassium (K)", "Rubidium (Rb)", "Cesium (Cs)", "Francium (Fr)"] },
+                { group: "Alkaline Earth Metals", groupNum: "Group 2", elements: ["Beryllium (Be)", "Magnesium (Mg)", "Calcium (Ca)", "Strontium (Sr)", "Barium (Ba)", "Radium (Ra)"] },
+                { group: "Pnictogens", groupNum: "Group 15", elements: ["Nitrogen (N)", "Phosphorus (P)", "Arsenic (As)", "Antimony (Sb)", "Bismuth (Bi)"] },
+                { group: "Chalcogens", groupNum: "Group 16", elements: ["Oxygen (O)", "Sulfur (S)", "Selenium (Se)", "Tellurium (Te)", "Polonium (Po)"] },
+                { group: "Halogens", groupNum: "Group 17", elements: ["Fluorine (F)", "Chlorine (Cl)", "Bromine (Br)", "Iodine (I)", "Astatine (At)"] },
+                { group: "Noble Gases", groupNum: "Group 18", elements: ["Helium (He)", "Neon (Ne)", "Argon (Ar)", "Krypton (Kr)", "Xenon (Xe)", "Radon (Rn)"] }
+            ],
+
+            // Topic 3 Data Base
+            topic3Compounds: [
+                { latexFormula: "\\text{HCl}", name: "Hydrochloric Acid", category: "Acid", desc: "Monoprotic strong mineral acid." },
+                { latexFormula: "\\text{H}_2\\text{SO}_4", name: "Sulfuric Acid", category: "Acid", desc: "Diprotic strong mineral acid." },
+                { latexFormula: "\\text{HNO}_3", name: "Nitric Acid", category: "Acid", desc: "Strong oxidizing inorganic acid." },
+                { latexFormula: "\\text{HC}_2\\text{H}_3\\text{O}_2", name: "Acetic Acid", category: "Acid", desc: "Weak organic carboxylic acid." },
+                { latexFormula: "\\text{H}_3\\text{PO}_4", name: "Phosphoric Acid", category: "Acid", desc: "Triprotic weak mineral acid." },
+                { latexFormula: "\\text{HBr}", name: "Hydrobromic Acid", category: "Acid", desc: "Strong halogen-based acid." },
+                { latexFormula: "\\text{NaCl}", name: "Sodium Chloride", category: "Ionic", desc: "Ionic compound formed by metal cation (Na\\(^+\\)) and nonmetal anion (Cl\\(^-\\))." },
+                { latexFormula: "\\text{MgCl}_2", name: "Magnesium Chloride", category: "Ionic", desc: "Ionic salt consisting of Mg\\(^{2+}\\) and Cl\\(^-\\)" },
+                { latexFormula: "\\text{KNO}_3", name: "Potassium Nitrate", category: "Ionic", desc: "Ionic salt of alkali metal and nitrate polyatomic anion." },
+                { latexFormula: "\\text{CaCO}_3", name: "Calcium Carbonate", category: "Ionic", desc: "Inorganic ionic salt found in limestone." },
+                { latexFormula: "\\text{Al}_2\\text{O}_3", name: "Aluminum Oxide", category: "Ionic", desc: "Ionic lattice composed of Al\\(^{3+}\\) cations and O\\(^{2-}\\) anions." },
+                { latexFormula: "\\text{Fe}_2\\text{O}_3", name: "Iron(III) Oxide", category: "Ionic", desc: "Ionic transition metal oxide salt." },
+                { latexFormula: "\\text{CO}_2", name: "Carbon Dioxide", category: "Molecular", desc: "Molecular covalent compound between nonmetal atoms." },
+                { latexFormula: "\\text{H}_2\\text{O}", name: "Water", category: "Molecular", desc: "Polar molecular covalent compound." },
+                { latexFormula: "\\text{C}_{12}\\text{H}_{22}\\text{O}_{11}", name: "Sucrose", category: "Molecular", desc: "Organic molecular compound held by covalent bonds." },
+                { latexFormula: "\\text{CH}_4", name: "Methane", category: "Molecular", desc: "Simple covalent molecular hydrocarbon." },
+                { latexFormula: "\\text{SF}_6", name: "Sulfur Hexafluoride", category: "Molecular", desc: "Covalent molecular compound with nonmetal sharing." },
+                { latexFormula: "\\text{N}_2\\text{O}_4", name: "Dinitrogen Tetroxide", category: "Molecular", desc: "Covalent nonmetal molecular oxide." },
+                { latexFormula: "\\text{NaOH}", name: "Sodium Hydroxide", category: "Base", desc: "Ionic base yielding hydroxide ions (OH\\(^-\\))." },
+                { latexFormula: "\\text{KOH}", name: "Potassium Hydroxide", category: "Base", desc: "Strong inorganic base producing OH\\(^-\\) ions." },
+                { latexFormula: "\\text{NH}_3", name: "Ammonia", category: "Base", desc: "Weak molecular base that accepts H\\(^+\\) ions." },
+                { latexFormula: "\\text{Ca(OH)}_2", name: "Calcium Hydroxide", category: "Base", desc: "Strong basic hydroxide compound." },
+                { latexFormula: "\\text{CuSO}_4 \\cdot 5\\text{H}_2\\text{O}", name: "Copper(II) Sulfate Pentahydrate", category: "Hydrate", desc: "Ionic crystal containing 5 bound water molecules." },
+                { latexFormula: "\\text{MgSO}_4 \\cdot 7\\text{H}_2\\text{O}", name: "Epsom Salt (Magnesium Sulfate Heptahydrate)", category: "Hydrate", desc: "Hydrate salt containing 7 water molecules per formula unit." },
+                { latexFormula: "\\text{CoCl}_2 \\cdot 6\\text{H}_2\\text{O}", name: "Cobalt(II) Chloride Hexahydrate", category: "Hydrate", desc: "Crystalline hydrate salt with 6 waters of hydration." },
+                { latexFormula: "\\text{Na}_2\\text{CO}_3 \\cdot 10\\text{H}_2\\text{O}", name: "Washing Soda (Sodium Carbonate Decahydrate)", category: "Hydrate", desc: "Hydrate salt holding 10 crystalline water molecules." }
+            ],
+
+            // Topic 4 Data Base
+            topic4Discoveries: [
+                { id: "dalton_1", scientist: "John Dalton", concept: "Atomic Theory of Matter", keyDetails: "Proposed that elements consist of indivisible spherical atoms and combine in whole-number ratios." },
+                { id: "dalton_2", scientist: "John Dalton", concept: "Solid Sphere Model", keyDetails: "Visualized atoms as solid billiard-ball-like spheres lacking internal subatomic structure." },
+                { id: "thomson_1", scientist: "J.J. Thomson", concept: "Discovery of Electron & Cathode Ray Tube", keyDetails: "Deflected cathode rays using electric fields to prove electrons are negatively charged particles." },
+                { id: "thomson_2", scientist: "J.J. Thomson", concept: "Plum Pudding Model", keyDetails: "Pictured the atom as a sphere of positive charge embedded with negatively charged electrons." },
+                { id: "millikan_1", scientist: "Robert Millikan", concept: "Oil Drop Experiment", keyDetails: "Balanced gravitational and electrostatic forces on charged oil drops to measure electron charge." },
+                { id: "millikan_2", scientist: "Robert Millikan", concept: "Calculation of Elementary Electron Charge", keyDetails: "Determined the charge value of an electron to be approximately \\(1.602 \\times 10^{-19}\\text{ C}\\)." },
+                { id: "rutherford_1", scientist: "Ernest Rutherford", concept: "Gold Foil Experiment", keyDetails: "Fired alpha particles at thin gold leaf; deflected particles proved a dense atomic core." },
+                { id: "rutherford_2", scientist: "Ernest Rutherford", concept: "Discovery of Atomic Nucleus & Nuclear Model", keyDetails: "Proved that almost all atomic mass and positive charge is concentrated in a microscopic center." },
+                { id: "chadwick_1", scientist: "James Chadwick", concept: "Discovery of the Neutron", keyDetails: "Bombarded beryllium with alpha particles to prove the existence of neutral nuclear particles." },
+                { id: "chadwick_2", scientist: "James Chadwick", concept: "Neutral Subatomic Particles in Nucleus", keyDetails: "Proved neutrons have roughly the same mass as protons but carry zero electric charge." }
+            ]
+        };
+
+        // Application State Management
+        let appState = {
+            selectedTopic: "1",
+            mode: "practice",
+            questionCount: 10,
+            currentQuestionIndex: 0,
+            score: 0,
+            streak: 0,
+            maxStreakInSession: 0,
+            currentQuestion: null,
+            timerInterval: null,
+            answersHistory: [],
+            
+            // NON-REPETITION GUARDS
+            quizUsedSignatures: new Set(),
+            practiceRecentQueue: []
+        };
+
+        // Persistent Statistics Record
+        let userStats = {
+            gamesPlayed: 0,
+            lastScore: 0,
+            highScore: 0,
+            maxStreak: 0,
+            totalCorrect: 0,
+            totalAnswered: 0
+        };
+
+        function loadStats() {
+            const saved = localStorage.getItem('chemmaster_v3.0_stats');
+            if (saved) {
+                try {
+                    userStats = { ...userStats, ...JSON.parse(saved) };
+                } catch(e) { console.error("Could not parse saved stats", e); }
+            }
+            updateStatsUI();
+        }
+
+        function saveStats() {
+            localStorage.setItem('chemmaster_v3.0_stats', JSON.stringify(userStats));
+            updateStatsUI();
+        }
+
+        function updateStatsUI() {
+            document.getElementById('statTotalGames').textContent = userStats.gamesPlayed;
+            document.getElementById('statLastScore').textContent = userStats.lastScore;
+            document.getElementById('statHighScore').textContent = userStats.highScore;
+            document.getElementById('statMaxStreak').textContent = userStats.maxStreak;
+            document.getElementById('headerHighScore').textContent = userStats.highScore;
+            document.getElementById('headerStreak').textContent = appState.streak;
+        }
+
+        // Topic 1 Generator
+        function generateTopic1Question() {
+            const isotope = DATASET.topic1Isotopes[Math.floor(Math.random() * DATASET.topic1Isotopes.length)];
+            const targetTypes = ["protons", "neutrons", "electrons"];
+            const target = targetTypes[Math.floor(Math.random() * targetTypes.length)];
+            
+            const protons = isotope.z;
+            const neutrons = isotope.a - isotope.z;
+            const electrons = isotope.z - isotope.charge;
+            const correctVal = target === "protons" ? protons : (target === "neutrons" ? neutrons : electrons);
+
+            const sig = `T1_${isotope.name}_${target}`;
+
+            let optionsSet = new Set([correctVal]);
+            let attempts = 0;
+            while (optionsSet.size < 4 && attempts < 30) {
+                attempts++;
+                let delta = (Math.floor(Math.random() * 4) + 1) * (Math.random() < 0.5 ? 1 : -1);
+                let val = Math.max(0, correctVal + delta);
+                optionsSet.add(val);
+            }
+
+            const optionsArr = Array.from(optionsSet).sort(() => Math.random() - 0.5);
+            const renderedIsotope = renderLatexToString(isotope.latexSymbol);
+
+            return {
+                signature: sig,
+                category: "Topic 1: Subatomic Particles",
+                text: `How many <strong class="text-cyan-300 underline font-extrabold">${target}</strong> are present in ${renderedIsotope} (${isotope.name})?`,
+                options: optionsArr.map(v => String(v)),
+                correctAnswer: String(correctVal),
+                explanation: `For ${renderedIsotope} (${isotope.name}):<br>` +
+                             `&bull; Protons = Atomic Number \\(Z = ${protons}\\)<br>` +
+                             `&bull; Neutrons = Mass Number minus \\(Z\\) = \\(${isotope.a} - ${protons} = ${neutrons}\\)<br>` +
+                             `&bull; Electrons = Protons minus Charge = \\(${protons} - (${isotope.charge}) = ${electrons}\\).`
+            };
+        }
+
+        // Topic 2 Generator
+        function generateTopic2Question() {
+            const groupData = DATASET.topic2Groups[Math.floor(Math.random() * DATASET.topic2Groups.length)];
+            const isForward = Math.random() > 0.5;
+
+            if (isForward) {
+                const correctElem = groupData.elements[Math.floor(Math.random() * groupData.elements.length)];
+                const otherElems = DATASET.topic2Groups
+                    .filter(g => g.group !== groupData.group)
+                    .flatMap(g => g.elements);
+
+                let distractors = [];
+                while (distractors.length < 3) {
+                    let rand = otherElems[Math.floor(Math.random() * otherElems.length)];
+                    if (!distractors.includes(rand) && rand !== correctElem) distractors.push(rand);
+                }
+
+                const options = [correctElem, ...distractors].sort(() => Math.random() - 0.5);
+                const sig = `T2_FWD_${groupData.group}_${correctElem}`;
+
+                return {
+                    signature: sig,
+                    category: "Topic 2: Periodic Table Groups",
+                    text: `Which element belongs to the <strong class="text-purple-300">${groupData.group} (${groupData.groupNum})</strong> family?`,
+                    options: options,
+                    correctAnswer: correctElem,
+                    explanation: `<strong>${correctElem}</strong> is an element in the <strong>${groupData.group}</strong> (${groupData.groupNum}).`
+                };
+            } else {
+                const elem = groupData.elements[Math.floor(Math.random() * groupData.elements.length)];
+                const correctGroup = groupData.group;
+                const allGroups = DATASET.topic2Groups.map(g => g.group);
+                
+                const options = [...allGroups].sort(() => Math.random() - 0.5).slice(0, 4);
+                if (!options.includes(correctGroup)) options[0] = correctGroup;
+                options.sort(() => Math.random() - 0.5);
+
+                const sig = `T2_REV_${elem}_${correctGroup}`;
+
+                return {
+                    signature: sig,
+                    category: "Topic 2: Periodic Table Groups",
+                    text: `To which chemical group does <strong class="text-purple-300">${elem}</strong> belong?`,
+                    options: options,
+                    correctAnswer: correctGroup,
+                    explanation: `<strong>${elem}</strong> belongs to the <strong>${correctGroup}</strong> family (${groupData.groupNum}).`
+                };
+            }
+        }
+
+        // Topic 3 Generator
+        function generateTopic3Question() {
+            const item = DATASET.topic3Compounds[Math.floor(Math.random() * DATASET.topic3Compounds.length)];
+            const categories = ["Molecular", "Ionic", "Acid", "Base", "Hydrate"];
+            const options = [...categories].sort(() => Math.random() - 0.5);
+
+            const sig = `T3_${item.name}_${item.category}`;
+            const renderedFormula = renderLatexToString(item.latexFormula);
+
+            return {
+                signature: sig,
+                category: "Topic 3: Compound Classification",
+                text: `Classify the chemical compound: ${renderedFormula} (<strong>${item.name}</strong>).`,
+                options: options,
+                correctAnswer: item.category,
+                explanation: `${renderedFormula} (<strong>${item.name}</strong>) is classified as a <strong>${item.category}</strong> compound. ${item.desc}`
+            };
+        }
+
+        // Topic 4 Generator
+        function generateTopic4Question() {
+            const disc = DATASET.topic4Discoveries[Math.floor(Math.random() * DATASET.topic4Discoveries.length)];
+            const isScientistQuestion = Math.random() > 0.5;
+
+            if (isScientistQuestion) {
+                const allScientists = ["John Dalton", "J.J. Thomson", "Robert Millikan", "Ernest Rutherford", "James Chadwick"];
+                const options = [...allScientists].sort(() => Math.random() - 0.5);
+                const sig = `T4_SCI_${disc.id}`;
+
+                return {
+                    signature: sig,
+                    category: "Topic 4: Atomic Discoveries",
+                    text: `Which scientist is credited with: <strong class="text-amber-300">"${disc.concept}"</strong>?`,
+                    options: options,
+                    correctAnswer: disc.scientist,
+                    explanation: `<strong>${disc.scientist}</strong>: ${disc.keyDetails}`
+                };
+            } else {
+                const concepts = DATASET.topic4Discoveries
+                    .filter(d => d.scientist !== disc.scientist)
+                    .map(d => d.concept);
+                
+                let wrongChoices = [];
+                while (wrongChoices.length < 3) {
+                    let rand = concepts[Math.floor(Math.random() * concepts.length)];
+                    if (!wrongChoices.includes(rand) && rand !== disc.concept) wrongChoices.push(rand);
+                }
+
+                const options = [disc.concept, ...wrongChoices].sort(() => Math.random() - 0.5);
+                const sig = `T4_CON_${disc.id}`;
+
+                return {
+                    signature: sig,
+                    category: "Topic 4: Atomic Discoveries",
+                    text: `Which landmark theory or discovery was pioneered by <strong class="text-amber-300">${disc.scientist}</strong>?`,
+                    options: options,
+                    correctAnswer: disc.concept,
+                    explanation: `<strong>${disc.scientist}</strong> developed or discovered "${disc.concept}". Details: ${disc.keyDetails}`
+                };
+            }
+        }
+
+        // Master Question Fetcher enforcing NON-REPETITION GUARDS
+        function getUniqueNextQuestion(topicKey) {
+            let candidate = null;
+            let attempts = 0;
+            const MAX_ATTEMPTS = 150;
+
+            while (attempts < MAX_ATTEMPTS) {
+                attempts++;
+
+                let activeTopic = topicKey;
+                if (topicKey === "mix") {
+                    const pool = ["1", "2", "3", "4"];
+                    activeTopic = pool[Math.floor(Math.random() * pool.length)];
+                }
+
+                if (activeTopic === "1") candidate = generateTopic1Question();
+                else if (activeTopic === "2") candidate = generateTopic2Question();
+                else if (activeTopic === "3") candidate = generateTopic3Question();
+                else candidate = generateTopic4Question();
+
+                const sig = candidate.signature;
+
+                if (appState.mode === 'timed') {
+                    if (!appState.quizUsedSignatures.has(sig)) {
+                        appState.quizUsedSignatures.add(sig);
+                        return candidate;
+                    }
+                } else {
+                    if (!appState.practiceRecentQueue.includes(sig)) {
+                        appState.practiceRecentQueue.push(sig);
+                        if (appState.practiceRecentQueue.length > 10) {
+                            appState.practiceRecentQueue.shift();
+                        }
+                        return candidate;
+                    }
+                }
+            }
+
+            if (appState.mode === 'timed') appState.quizUsedSignatures.clear();
+            else appState.practiceRecentQueue = [];
+            
+            return candidate;
+        }
+
+        function switchView(viewId) {
+            document.getElementById('viewMenu').classList.add('hidden');
+            document.getElementById('viewQuiz').classList.add('hidden');
+            document.getElementById('viewResults').classList.add('hidden');
+
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        // Topic Selector Buttons
+        document.querySelectorAll('.topic-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.topic-btn').forEach(b => {
+                    b.classList.remove('border-cyan-500', 'bg-cyan-950/20');
+                    b.classList.add('border-transparent');
+                });
+                btn.classList.add('border-cyan-500', 'bg-cyan-950/20');
+                btn.classList.remove('border-transparent');
+                appState.selectedTopic = btn.dataset.topic;
+            });
+        });
+
+        // Mode Selectors
+        const btnPractice = document.getElementById('btnSelectPractice');
+        const btnTimed = document.getElementById('btnSelectTimed');
+        const timedSettings = document.getElementById('timedSettings');
+
+        btnPractice.addEventListener('click', () => {
+            appState.mode = 'practice';
+            btnPractice.classList.add('border-cyan-500', 'bg-cyan-950/30');
+            btnPractice.classList.remove('border-transparent');
+            btnTimed.classList.remove('border-amber-500', 'bg-amber-950/30');
+            btnTimed.classList.add('border-transparent');
+            timedSettings.classList.add('hidden');
+        });
+
+        btnTimed.addEventListener('click', () => {
+            appState.mode = 'timed';
+            btnTimed.classList.add('border-amber-500', 'bg-amber-950/30');
+            btnTimed.classList.remove('border-transparent');
+            btnPractice.classList.remove('border-cyan-500', 'bg-cyan-950/30');
+            btnPractice.classList.add('border-transparent');
+            timedSettings.classList.remove('hidden');
+        });
+
+        // Question Count Buttons
+        document.querySelectorAll('.q-count-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.q-count-btn').forEach(b => {
+                    b.classList.remove('bg-cyan-600', 'text-white');
+                    b.classList.add('bg-slate-800', 'text-slate-300');
+                });
+                btn.classList.add('bg-cyan-600', 'text-white');
+                btn.classList.remove('bg-slate-800', 'text-slate-300');
+                appState.questionCount = parseInt(btn.dataset.count);
+            });
+        });
+
+        // Modal Controllers
+        const modalRef = document.getElementById('modalReference');
+        document.getElementById('btnOpenReference').addEventListener('click', () => {
+            modalRef.classList.remove('hidden');
+            renderMathInContainer(document.getElementById('cheatSheetContent'));
+        });
+        document.getElementById('btnCloseReference').addEventListener('click', () => modalRef.classList.add('hidden'));
+
+        const modalPT = document.getElementById('modalPT');
+        document.getElementById('btnOpenPT').addEventListener('click', () => {
+            modalPT.classList.remove('hidden');
+            renderPeriodicTable();
+        });
+        document.getElementById('btnClosePT').addEventListener('click', () => modalPT.classList.add('hidden'));
+
+        document.getElementById('btnStartGame').addEventListener('click', startQuiz);
+        document.getElementById('btnStopQuiz').addEventListener('click', stopQuiz);
+        document.getElementById('btnNextQuestion').addEventListener('click', advanceQuestion);
+        document.getElementById('btnRestartQuiz').addEventListener('click', startQuiz);
+        document.getElementById('btnReturnMenu').addEventListener('click', () => switchView('viewMenu'));
+
+        // Build Periodic Table Grid
+        function renderPeriodicTable() {
+            const grid = document.getElementById('ptGrid');
+            if (grid.children.length > 0) return; // render once
+
+            const gridMatrix = Array(7).fill(null).map(() => Array(18).fill(null));
+            PERIODIC_TABLE_DATA.forEach(elem => {
+                gridMatrix[elem.row - 1][elem.col - 1] = elem;
+            });
+
+            grid.innerHTML = '';
+            for (let r = 0; r < 7; r++) {
+                for (let c = 0; c < 18; c++) {
+                    const item = gridMatrix[r][c];
+                    const cell = document.createElement('div');
+
+                    if (item) {
+                        cell.className = `pt-cell bg-${item.cat}`;
+                        cell.innerHTML = `<span class="text-[8px] opacity-75">${item.z}</span><span class="font-extrabold text-xs">${item.sym}</span>`;
+                        cell.addEventListener('click', () => showPTElementDetail(item));
+                    } else {
+                        cell.className = 'opacity-0 pointer-events-none min-w-[36px] min-h-[42px]';
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function showPTElementDetail(elem) {
+            const detailCard = document.getElementById('ptDetailCard');
+            const badge = document.getElementById('ptDetailBadge');
+            
+            badge.className = `w-14 h-14 rounded-xl flex flex-col items-center justify-center border font-bold shrink-0 bg-${elem.cat}`;
+            document.getElementById('ptDetailZ').textContent = `Atomic No. ${elem.z}`;
+            document.getElementById('ptDetailSymbol').textContent = elem.sym;
+            document.getElementById('ptDetailName').textContent = elem.name;
+            
+            const catFormatted = elem.cat.replace('-', ' ').toUpperCase();
+            document.getElementById('ptDetailCategory').textContent = catFormatted;
+            document.getElementById('ptDetailDesc').textContent = `Group ${elem.col}, Period ${elem.row} • ${elem.name} (${elem.sym})`;
+            
+            detailCard.classList.remove('hidden');
+        }
+
+        function startQuiz() {
+            appState.currentQuestionIndex = 0;
+            appState.score = 0;
+            appState.streak = 0;
+            appState.maxStreakInSession = 0;
+            appState.answersHistory = [];
+            appState.quizUsedSignatures.clear();
+
+            const timerContainer = document.getElementById('timerContainer');
+            if (appState.mode === 'timed') {
+                timerContainer.classList.remove('hidden');
+            } else {
+                timerContainer.classList.add('hidden');
+            }
+
+            switchView('viewQuiz');
+            loadNextQuestion();
+        }
+
+        function loadNextQuestion() {
+            clearInterval(appState.timerInterval);
+
+            const total = appState.mode === 'timed' ? appState.questionCount : '∞';
+            document.getElementById('quizQuestionCounter').textContent = `Q ${appState.currentQuestionIndex + 1}/${total}`;
+            document.getElementById('quizScore').textContent = appState.score;
+            document.getElementById('headerStreak').textContent = appState.streak;
+
+            appState.currentQuestion = getUniqueNextQuestion(appState.selectedTopic);
+            const q = appState.currentQuestion;
+
+            document.getElementById('questionCategory').textContent = q.category;
+            
+            const qTextElem = document.getElementById('questionText');
+            qTextElem.innerHTML = formatTextWithMath(q.text);
+
+            document.getElementById('feedbackBox').classList.add('hidden');
+
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'glass-card p-4 rounded-xl text-left font-bold text-slate-200 hover:border-cyan-500/60 hover:bg-slate-800/80 transition-all flex items-center justify-between text-xs sm:text-sm border border-slate-700/60 shadow-md';
+                btn.innerHTML = `<span>${formatTextWithMath(option)}</span> <i class="fa-solid fa-chevron-right text-xs opacity-40"></i>`;
+                
+                btn.addEventListener('click', () => handleAnswer(option, btn));
+                optionsContainer.appendChild(btn);
+            });
+
+            if (appState.mode === 'timed') {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            const timerBar = document.getElementById('timerBar');
+            timerBar.style.width = '100%';
+
+            const startTime = Date.now();
+            const duration = 10000;
+
+            appState.timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, duration - elapsed);
+                const percent = (remaining / duration) * 100;
+
+                timerBar.style.width = `${percent}%`;
+
+                if (remaining <= 0) {
+                    clearInterval(appState.timerInterval);
+                    handleAnswer(null, null, true);
+                }
+            }, 50);
+        }
+
+        function handleAnswer(selectedOption, clickedBtn, isTimeout = false) {
+            clearInterval(appState.timerInterval);
+
+            const q = appState.currentQuestion;
+            const isCorrect = (selectedOption === q.correctAnswer);
+
+            appState.answersHistory.push({
+                category: q.category,
+                isCorrect: isCorrect
+            });
+
+            const optionBtns = document.querySelectorAll('#optionsContainer button');
+            optionBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('cursor-not-allowed');
+                
+                // Compare answer text safely
+                const optionSpanText = btn.querySelector('span') ? btn.querySelector('span').innerText.trim() : btn.innerText.trim();
+                
+                if (optionSpanText === q.correctAnswer || btn.innerText.includes(q.correctAnswer)) {
+                    btn.classList.remove('glass-card');
+                    btn.classList.add('bg-emerald-950/80', 'border-emerald-500', 'text-emerald-200');
+                }
+            });
+
+            if (clickedBtn && !isCorrect) {
+                clickedBtn.classList.remove('glass-card');
+                clickedBtn.classList.add('bg-red-950/80', 'border-red-500', 'text-red-200');
+            }
+
+            if (isCorrect) {
+                appState.score += 10 + (appState.streak * 2);
+                appState.streak++;
+                appState.maxStreakInSession = Math.max(appState.maxStreakInSession, appState.streak);
+            } else {
+                appState.streak = 0;
+            }
+
+            document.getElementById('quizScore').textContent = appState.score;
+            document.getElementById('headerStreak').textContent = appState.streak;
+
+            const feedbackBox = document.getElementById('feedbackBox');
+            const feedbackIcon = document.getElementById('feedbackIcon');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackDetail = document.getElementById('feedbackDetail');
+
+            feedbackBox.classList.remove('hidden');
+
+            if (isCorrect) {
+                feedbackBox.className = "glass-panel p-4 rounded-xl border-l-4 border-emerald-500 shadow-xl";
+                feedbackIcon.className = "text-xl text-emerald-400 mt-0.5";
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
+                feedbackTitle.textContent = "Correct!";
+                feedbackTitle.className = "font-extrabold text-emerald-400 mb-1";
+            } else if (isTimeout) {
+                feedbackBox.className = "glass-panel p-4 rounded-xl border-l-4 border-amber-500 shadow-xl";
+                feedbackIcon.className = "text-xl text-amber-400 mt-0.5";
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-clock"></i>`;
+                feedbackTitle.textContent = "Time's Up!";
+                feedbackTitle.className = "font-extrabold text-amber-400 mb-1";
+            } else {
+                feedbackBox.className = "glass-panel p-4 rounded-xl border-l-4 border-red-500 shadow-xl";
+                feedbackIcon.className = "text-xl text-red-400 mt-0.5";
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-xmark"></i>`;
+                feedbackTitle.textContent = "Incorrect";
+                feedbackTitle.className = "font-extrabold text-red-400 mb-1";
+            }
+
+            feedbackDetail.innerHTML = formatTextWithMath(q.explanation);
+        }
+
+        function advanceQuestion() {
+            appState.currentQuestionIndex++;
+            if (appState.mode === 'timed' && appState.currentQuestionIndex >= appState.questionCount) {
+                finishQuiz();
+            } else {
+                loadNextQuestion();
+            }
+        }
+
+        function stopQuiz() {
+            clearInterval(appState.timerInterval);
+            if (appState.answersHistory.length > 0) {
+                finishQuiz();
+            } else {
+                switchView('viewMenu');
+            }
+        }
+
+        function finishQuiz() {
+            clearInterval(appState.timerInterval);
+
+            const totalAnswered = appState.answersHistory.length;
+            const correctCount = appState.answersHistory.filter(a => a.isCorrect).length;
+            const accuracy = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
+
+            userStats.gamesPlayed++;
+            userStats.lastScore = appState.score;
+            userStats.totalCorrect += correctCount;
+            userStats.totalAnswered += totalAnswered;
+            if (appState.score > userStats.highScore) userStats.highScore = appState.score;
+            if (appState.maxStreakInSession > userStats.maxStreak) userStats.maxStreak = appState.maxStreakInSession;
+
+            saveStats();
+
+            document.getElementById('resultScore').textContent = appState.score;
+            document.getElementById('resultAccuracy').textContent = `${accuracy}%`;
+            document.getElementById('resultStreak').textContent = appState.maxStreakInSession;
+            document.getElementById('resultTotalAnswered').textContent = `${totalAnswered} questions attempted`;
+
+            const breakdownContainer = document.getElementById('resultBreakdown');
+            breakdownContainer.innerHTML = '';
+
+            const categoryStats = {};
+            appState.answersHistory.forEach(a => {
+                if (!categoryStats[a.category]) {
+                    categoryStats[a.category] = { correct: 0, total: 0 };
+                }
+                categoryStats[a.category].total++;
+                if (a.isCorrect) categoryStats[a.category].correct++;
+            });
+
+            for (const [cat, data] of Object.entries(categoryStats)) {
+                const catAcc = Math.round((data.correct / data.total) * 100);
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between text-slate-300 bg-slate-950/40 p-2 rounded-lg border border-slate-800/80";
+                row.innerHTML = `
+                    <span class="truncate max-w-[200px] font-semibold">${cat}</span>
+                    <span class="font-mono font-bold ${catAcc >= 70 ? 'text-emerald-400' : 'text-amber-400'}">${data.correct}/${data.total} (${catAcc}%)</span>
+                `;
+                breakdownContainer.appendChild(row);
+            }
+
+            switchView('viewResults');
+
+            if (accuracy >= 80 && totalAnswered >= 5 && typeof confetti === 'function') {
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        // Initialize application on window load
+        window.onload = function() {
+            loadStats();
+        };
+    </script>
+</body>
+</html>
