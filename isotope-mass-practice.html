@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isotope Chemistry Practice & Quiz App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        chem: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#0f172a',
+                            accent: '#10b981',
+                            purple: '#8b5cf6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- MathJax for rendering formulas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-full transition-colors duration-200">
+    <div id="app" class="max-w-md md:max-w-3xl mx-auto min-h-screen flex flex-col justify-between p-3 sm:p-5">
+        
+        <!-- HEADER / NAVBAR -->
+        <header class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-cyan-500/20">
+                    <i class="fa-solid fa-atom text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                        Isotope ChemLab
+                    </h1>
+                    <p class="text-xs text-slate-400">Atomic Mass & Abundance Practice</p>
+                </div>
+            </div>
+
+            <!-- Header Controls -->
+            <div class="flex items-center space-x-2">
+                <!-- Current Streak Badge -->
+                <div class="flex items-center bg-amber-950/70 text-amber-400 px-2.5 py-1 rounded-full text-xs font-semibold border border-amber-800/80" title="Current Streak">
+                    <i class="fa-solid fa-fire text-amber-500 mr-1.5"></i>
+                    <span id="streak-count">0</span>
+                </div>
+
+                <!-- Reference Sheet Trigger -->
+                <button id="btn-reference" title="Formula Sheet" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+                    <i class="fa-solid fa-book-open text-sm"></i>
+                </button>
+
+                <!-- Scratchpad Calc Trigger -->
+                <button id="btn-scratchpad" title="Quick Calculator" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+                    <i class="fa-solid fa-calculator text-sm"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-grow flex flex-col justify-between space-y-4">
+            
+            <!-- SCORES & HIGH SCORES DASHBOARD CARD -->
+            <div class="bg-slate-800/90 border border-slate-700/80 rounded-xl p-3 shadow-lg">
+                <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                    <div class="p-1.5 bg-slate-900/60 rounded-lg border border-slate-800">
+                        <span class="block text-[10px] text-slate-400 uppercase tracking-wider font-medium">Mode Score</span>
+                        <span id="dash-current-score" class="font-bold text-sm sm:text-base text-cyan-400">0</span>
+                    </div>
+                    <div class="p-1.5 bg-slate-900/60 rounded-lg border border-slate-800">
+                        <span class="block text-[10px] text-slate-400 uppercase tracking-wider font-medium">Last Quiz</span>
+                        <span id="dash-last-score" class="font-bold text-sm sm:text-base text-purple-400">--</span>
+                    </div>
+                    <div class="p-1.5 bg-slate-900/60 rounded-lg border border-slate-800">
+                        <span class="block text-[10px] text-slate-400 uppercase tracking-wider font-medium">High Score</span>
+                        <span id="dash-high-score" class="font-bold text-sm sm:text-base text-emerald-400">--</span>
+                    </div>
+                    <div class="p-1.5 bg-slate-900/60 rounded-lg border border-slate-800">
+                        <span class="block text-[10px] text-slate-400 uppercase tracking-wider font-medium">Best Streak</span>
+                        <span id="dash-best-streak" class="font-bold text-sm sm:text-base text-amber-400">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODE SELECTOR & PROGRESS BAR -->
+            <div>
+                <!-- GAME MODE TABS -->
+                <div class="grid grid-cols-4 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold mb-3">
+                    <button id="mode-endless" onclick="switchMode('endless')" class="py-2 rounded-lg text-center transition bg-slate-800 text-cyan-400 shadow">
+                        <i class="fa-solid fa-infinity mr-1 hidden sm:inline"></i>Endless
+                    </button>
+                    <button id="mode-q5" onclick="switchMode('q5')" class="py-2 rounded-lg text-center transition text-slate-400 hover:text-white">
+                        5 Quiz
+                    </button>
+                    <button id="mode-q10" onclick="switchMode('q10')" class="py-2 rounded-lg text-center transition text-slate-400 hover:text-white">
+                        10 Quiz
+                    </button>
+                    <button id="mode-q20" onclick="switchMode('q20')" class="py-2 rounded-lg text-center transition text-slate-400 hover:text-white">
+                        20 Quiz
+                    </button>
+                </div>
+
+                <!-- QUIZ PROGRESS BAR & TIMER HEADER (Visible in timed quiz modes) -->
+                <div id="quiz-progress-container" class="hidden mb-3 bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                    <div class="flex items-center justify-between text-xs font-semibold mb-1.5">
+                        <span id="quiz-question-counter" class="text-cyan-400">Question 1 of 5</span>
+                        <span id="quiz-timer" class="text-slate-300 font-mono"><i class="fa-regular fa-clock mr-1 text-slate-400"></i>00:00</span>
+                    </div>
+                    <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
+                        <div id="quiz-progress-bar" class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full transition-all duration-300" style="width: 20%;"></div>
+                    </div>
+                </div>
+
+                <!-- TOPIC SELECTOR TABS -->
+                <div class="grid grid-cols-2 gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold mb-3">
+                    <button id="tab-topic1" class="py-2 px-2.5 rounded-lg transition-all shadow-sm bg-slate-800 text-cyan-400 text-center">
+                        <i class="fa-solid fa-weight-hanging mr-1"></i>1. Calc Atomic Mass
+                    </button>
+                    <button id="tab-topic2" class="py-2 px-2.5 rounded-lg transition-all text-slate-400 hover:text-slate-200 text-center">
+                        <i class="fa-solid fa-percent mr-1"></i>2. Abundance & Mass Specs
+                    </button>
+                </div>
+
+                <!-- DIFFICULTY / ISOTOPE COUNT FILTER -->
+                <div class="flex items-center justify-between bg-slate-800/50 px-3 py-2 rounded-lg border border-slate-800 text-xs mb-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="font-medium text-slate-400">Isotopes Filter:</span>
+                        <select id="filter-isotopes" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 font-medium focus:outline-none focus:ring-1 focus:ring-cyan-500 text-slate-200">
+                            <option value="all">Any (3 to 6)</option>
+                            <option value="3">3 Isotopes</option>
+                            <option value="4">4 Isotopes</option>
+                            <option value="5+">5+ Isotopes</option>
+                        </select>
+                    </div>
+
+                    <div class="text-right text-slate-400 text-[11px]">
+                        Precision: <span class="font-mono text-cyan-400 font-bold">5 Dec. Places</span>
+                    </div>
+                </div>
+
+                <!-- PROBLEM CARD -->
+                <div id="problem-card" class="bg-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-xl border border-slate-700 transition-all">
+                    <!-- Element Info Header -->
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-700/80">
+                        <div class="flex items-center space-x-3">
+                            <div id="element-tile" class="w-12 h-12 rounded-xl bg-cyan-950/80 border-2 border-cyan-500/40 flex flex-col items-center justify-center font-bold text-cyan-300 shadow-inner">
+                                <span id="element-symbol" class="text-lg leading-none">Mg</span>
+                                <span id="element-number" class="text-[9px] opacity-75 mt-0.5">Z=12</span>
+                            </div>
+                            <div>
+                                <h2 id="element-name" class="font-bold text-base sm:text-lg text-white">Magnesium</h2>
+                                <p id="problem-prompt" class="text-xs text-slate-400">Calculate average atomic mass from relative abundances.</p>
+                            </div>
+                        </div>
+                        <button id="btn-next" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-medium transition flex items-center space-x-1">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                            <span class="hidden sm:inline">Skip Problem</span>
+                        </button>
+                    </div>
+
+                    <!-- ISOTOPE DATA TABLE / CARDS -->
+                    <div id="isotope-data-container" class="space-y-2 mb-4">
+                        <!-- Dynamic content injected here -->
+                    </div>
+
+                    <!-- INPUT AREA -->
+                    <div class="bg-slate-900/90 rounded-xl p-3.5 border border-slate-700/80">
+                        <!-- Topic 1 Single Input vs Topic 2 Dual Inputs -->
+                        <div id="single-input-container">
+                            <label id="input-label" for="user-answer" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                                Your Calculated Answer:
+                            </label>
+                            
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <div class="relative flex-grow">
+                                    <input type="number" id="user-answer" step="any" placeholder="e.g. 24.30500" 
+                                        class="w-full bg-slate-950 border-2 border-slate-700 focus:border-cyan-400 rounded-xl px-4 py-2.5 text-base sm:text-lg font-mono font-semibold focus:outline-none transition shadow-sm text-white">
+                                    <span id="input-unit" class="absolute right-3 top-3 text-xs font-semibold text-slate-400">amu</span>
+                                </div>
+
+                                <button id="btn-submit" class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-cyan-600/20 active:scale-95 transition flex items-center justify-center space-x-2">
+                                    <span>Submit</span>
+                                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Multi-part Input for Topic 2 (Abundance + Determined Average Atomic Mass) -->
+                        <div id="dual-input-container" class="hidden space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label id="input-label-t2-abund" for="user-answer-abund" class="block text-xs font-semibold text-amber-300 mb-1">
+                                        1. Missing % Abundance:
+                                    </label>
+                                    <div class="relative">
+                                        <input type="number" id="user-answer-abund" step="any" placeholder="e.g. 78.9900" 
+                                            class="w-full bg-slate-950 border-2 border-slate-700 focus:border-amber-400 rounded-xl px-3 py-2 text-sm font-mono font-semibold focus:outline-none transition text-white">
+                                        <span class="absolute right-3 top-2.5 text-xs font-semibold text-slate-400">%</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="user-answer-mass" class="block text-xs font-semibold text-cyan-300 mb-1">
+                                        2. Determined Avg Atomic Mass:
+                                    </label>
+                                    <div class="relative">
+                                        <input type="number" id="user-answer-mass" step="any" placeholder="e.g. 24.30500" 
+                                            class="w-full bg-slate-950 border-2 border-slate-700 focus:border-cyan-400 rounded-xl px-3 py-2 text-sm font-mono font-semibold focus:outline-none transition text-white">
+                                        <span class="absolute right-3 top-2.5 text-xs font-semibold text-slate-400">amu</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button id="btn-submit-dual" class="w-full py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-cyan-600/20 active:scale-95 transition flex items-center justify-center space-x-2">
+                                <span>Submit Both Answers</span>
+                                <i class="fa-solid fa-paper-plane text-xs"></i>
+                            </button>
+                        </div>
+
+                        <!-- Secondary action buttons -->
+                        <div class="flex items-center justify-between mt-3 text-xs">
+                            <button id="btn-hint" class="text-slate-400 hover:text-cyan-400 font-medium transition flex items-center space-x-1">
+                                <i class="fa-regular fa-lightbulb text-amber-400"></i>
+                                <span>Need a hint?</span>
+                            </button>
+                            <span class="text-slate-400 text-[11px]">Tolerance: ±0.02</span>
+                        </div>
+
+                        <!-- Hint Box -->
+                        <div id="hint-box" class="hidden mt-3 p-3 bg-amber-950/40 border border-amber-800/60 rounded-lg text-xs text-amber-300">
+                            <!-- Hint text injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- FEEDBACK & SOLUTION BREAKDOWN -->
+                    <div id="feedback-panel" class="hidden mt-4 transition-all">
+                        <!-- Success / Incorrect Status Banner -->
+                        <div id="status-banner" class="p-3 rounded-xl text-sm font-medium flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                <i id="status-icon" class="text-lg"></i>
+                                <span id="status-message"></span>
+                            </div>
+                            <span id="correct-answer-display" class="font-mono font-bold text-xs sm:text-sm"></span>
+                        </div>
+
+                        <!-- Next Question Button for Quiz Mode -->
+                        <button id="btn-quiz-advance" onclick="advanceQuizQuestion()" class="hidden w-full mb-3 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition flex items-center justify-center space-x-2 shadow-lg">
+                            <span>Next Question</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+
+                        <!-- Step by Step Solution Breakdown -->
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm">
+                            <h3 class="font-bold text-slate-200 flex items-center mb-2">
+                                <i class="fa-solid fa-square-root-variable text-cyan-400 mr-2"></i>
+                                Step-by-Step Solution
+                            </h3>
+                            <div id="solution-steps" class="space-y-2 font-mono text-slate-300 text-xs overflow-x-auto">
+                                <!-- Steps dynamically injected -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SESSION QUICK STATS BAR -->
+            <div class="bg-slate-800/80 rounded-xl p-2.5 border border-slate-700/80 flex items-center justify-around text-center shadow-sm">
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Total Solved</div>
+                    <div id="stat-total" class="font-bold text-sm sm:text-base text-slate-200">0</div>
+                </div>
+                <div class="h-6 w-px bg-slate-700"></div>
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Correct</div>
+                    <div id="stat-correct" class="font-bold text-sm sm:text-base text-emerald-400">0</div>
+                </div>
+                <div class="h-6 w-px bg-slate-700"></div>
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Accuracy</div>
+                    <div id="stat-accuracy" class="font-bold text-sm sm:text-base text-cyan-400">0%</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- QUIZ COMPLETED SUMMARY MODAL -->
+        <div id="modal-quiz-summary" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-700 text-center">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white text-3xl mx-auto mb-3 shadow-lg shadow-cyan-500/30">
+                    <i class="fa-solid fa-trophy animate-bounce"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-1">Quiz Completed!</h2>
+                <p id="quiz-summary-subtitle" class="text-xs text-slate-400 mb-4">5 Question Mode</p>
+
+                <!-- New High Score Badge -->
+                <div id="badge-new-highscore" class="hidden mb-4 inline-flex items-center space-x-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/50 px-3 py-1 rounded-full text-xs font-bold">
+                    <i class="fa-solid fa-star text-amber-400"></i>
+                    <span>NEW HIGH SCORE!</span>
+                </div>
+
+                <!-- Stats grid -->
+                <div class="grid grid-cols-3 gap-2 bg-slate-950 p-3 rounded-xl border border-slate-800 mb-5">
+                    <div>
+                        <span class="block text-[10px] text-slate-400 uppercase">Score</span>
+                        <span id="summary-score" class="text-lg font-bold text-cyan-400">0 / 0</span>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] text-slate-400 uppercase">Accuracy</span>
+                        <span id="summary-accuracy" class="text-lg font-bold text-emerald-400">0%</span>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] text-slate-400 uppercase">Time</span>
+                        <span id="summary-time" class="text-lg font-bold text-purple-400">0s</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <button onclick="restartQuiz()" class="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg transition">
+                        Play Again
+                    </button>
+                    <button onclick="closeQuizSummary()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl transition text-xs">
+                        Back to Endless Practice
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- REFERENCE FORMULA MODAL -->
+        <div id="modal-reference" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-slate-900 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-800 max-h-[85vh] overflow-y-auto">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+                    <h3 class="font-bold text-lg text-white flex items-center">
+                        <i class="fa-solid fa-book-bookmark text-cyan-400 mr-2"></i> Formula & Concept Reference
+                    </h3>
+                    <button class="modal-close p-1.5 text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4 text-xs sm:text-sm text-slate-300">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                        <h4 class="font-semibold text-cyan-400 mb-1">1. Average Atomic Mass Formula</h4>
+                        <div class="p-2 bg-slate-900 rounded font-mono text-center my-2 text-slate-100 border border-slate-800">
+                            \text{Avg Mass} = \sum \left(\text{Isotope Mass}_i \times \frac{\%\text{ Abundance}_i}{100}\right)
+                        </div>
+                        <p class="text-[11px] text-slate-400">Multiply each isotope's exact mass by its decimal abundance (percentage divided by 100) and sum all products together.</p>
+                    </div>
+
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                        <h4 class="font-semibold text-amber-400 mb-1">2. Atom Counts to Percent Abundance</h4>
+                        <div class="p-2 bg-slate-900 rounded font-mono text-center my-2 text-slate-100 border border-slate-800">
+                            \%\text{ Abundance}_i = \left(\frac{N_i}{N_{\text{total}}}\right) \times 100\%
+                        </div>
+                        <p class="text-[11px] text-slate-400">In mass spectrometry count samples, divide the number of atoms of isotope \(i\) by the total atom count in the sample, then multiply by 100%.</p>
+                    </div>
+                </div>
+
+                <button class="modal-close w-full mt-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl transition">
+                    Close Sheet
+                </button>
+            </div>
+        </div>
+
+        <!-- SCRATCHPAD CALCULATOR MODAL -->
+        <div id="modal-scratchpad" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-slate-900 rounded-2xl max-w-xs w-full p-4 shadow-2xl border border-slate-800">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
+                    <h3 class="font-bold text-sm text-white flex items-center">
+                        <i class="fa-solid fa-calculator text-cyan-400 mr-2"></i> Scratchpad Calculator
+                    </h3>
+                    <button class="scratchpad-close p-1 text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark text-base"></i>
+                    </button>
+                </div>
+
+                <div class="bg-slate-950 p-3 rounded-xl mb-3 text-right border border-slate-800">
+                    <div id="calc-expression" class="text-xs font-mono text-slate-500 min-h-[16px]"></div>
+                    <div id="calc-display" class="text-xl font-mono font-bold text-white truncate">0</div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-1.5 text-xs font-semibold">
+                    <button onclick="calcClear()" class="p-2.5 bg-rose-950/80 text-rose-300 rounded-lg">C</button>
+                    <button onclick="calcInput('(')" class="p-2.5 bg-slate-800 rounded-lg">(</button>
+                    <button onclick="calcInput(')')" class="p-2.5 bg-slate-800 rounded-lg">)</button>
+                    <button onclick="calcInput('/')" class="p-2.5 bg-cyan-950 text-cyan-300 rounded-lg">÷</button>
+
+                    <button onclick="calcInput('7')" class="p-2.5 bg-slate-800/80 rounded-lg">7</button>
+                    <button onclick="calcInput('8')" class="p-2.5 bg-slate-800/80 rounded-lg">8</button>
+                    <button onclick="calcInput('9')" class="p-2.5 bg-slate-800/80 rounded-lg">9</button>
+                    <button onclick="calcInput('*')" class="p-2.5 bg-cyan-950 text-cyan-300 rounded-lg">×</button>
+
+                    <button onclick="calcInput('4')" class="p-2.5 bg-slate-800/80 rounded-lg">4</button>
+                    <button onclick="calcInput('5')" class="p-2.5 bg-slate-800/80 rounded-lg">5</button>
+                    <button onclick="calcInput('6')" class="p-2.5 bg-slate-800/80 rounded-lg">6</button>
+                    <button onclick="calcInput('-')" class="p-2.5 bg-cyan-950 text-cyan-300 rounded-lg">−</button>
+
+                    <button onclick="calcInput('1')" class="p-2.5 bg-slate-800/80 rounded-lg">1</button>
+                    <button onclick="calcInput('2')" class="p-2.5 bg-slate-800/80 rounded-lg">2</button>
+                    <button onclick="calcInput('3')" class="p-2.5 bg-slate-800/80 rounded-lg">3</button>
+                    <button onclick="calcInput('+')" class="p-2.5 bg-cyan-950 text-cyan-300 rounded-lg">+</button>
+
+                    <button onclick="calcInput('0')" class="p-2.5 col-span-2 bg-slate-800/80 rounded-lg">0</button>
+                    <button onclick="calcInput('.')" class="p-2.5 bg-slate-800/80 rounded-lg">.</button>
+                    <button onclick="calcEquals()" class="p-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg">=</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Isotope Dataset with 3 to 6 isotopes per element (Mass values up to 5 decimal places precision).
+         */
+        const ELEMENT_DATASET = [
+            {
+                name: "Magnesium", symbol: "Mg", number: 12, avgMass: 24.30500,
+                isotopes: [
+                    { mass: 23.98504, abundance: 78.99000 },
+                    { mass: 24.98584, abundance: 10.00000 },
+                    { mass: 25.98259, abundance: 11.01000 }
+                ]
+            },
+            {
+                name: "Silicon", symbol: "Si", number: 14, avgMass: 28.08550,
+                isotopes: [
+                    { mass: 27.97693, abundance: 92.22970 },
+                    { mass: 28.97649, abundance: 4.68320 },
+                    { mass: 29.97377, abundance: 3.08710 }
+                ]
+            },
+            {
+                name: "Sulfur", symbol: "S", number: 16, avgMass: 32.06500,
+                isotopes: [
+                    { mass: 31.97207, abundance: 94.93000 },
+                    { mass: 32.97146, abundance: 0.76000 },
+                    { mass: 33.96787, abundance: 4.29000 },
+                    { mass: 35.96708, abundance: 0.02000 }
+                ]
+            },
+            {
+                name: "Calcium", symbol: "Ca", number: 20, avgMass: 40.07800,
+                isotopes: [
+                    { mass: 39.96259, abundance: 96.94100 },
+                    { mass: 41.95862, abundance: 0.64700 },
+                    { mass: 42.95877, abundance: 0.13500 },
+                    { mass: 43.95548, abundance: 2.08600 },
+                    { mass: 47.95253, abundance: 0.18700 }
+                ]
+            },
+            {
+                name: "Titanium", symbol: "Ti", number: 22, avgMass: 47.86700,
+                isotopes: [
+                    { mass: 45.95263, abundance: 8.25000 },
+                    { mass: 46.95176, abundance: 7.44000 },
+                    { mass: 47.94795, abundance: 73.72000 },
+                    { mass: 48.94787, abundance: 5.41000 },
+                    { mass: 49.94479, abundance: 5.18000 }
+                ]
+            },
+            {
+                name: "Chromium", symbol: "Cr", number: 24, avgMass: 51.99610,
+                isotopes: [
+                    { mass: 49.94604, abundance: 4.34500 },
+                    { mass: 51.94051, abundance: 83.78900 },
+                    { mass: 52.94065, abundance: 9.50100 },
+                    { mass: 53.93888, abundance: 2.36500 }
+                ]
+            },
+            {
+                name: "Iron", symbol: "Fe", number: 26, avgMass: 55.84500,
+                isotopes: [
+                    { mass: 53.93961, abundance: 5.84500 },
+                    { mass: 55.93494, abundance: 91.75400 },
+                    { mass: 56.93539, abundance: 2.11900 },
+                    { mass: 57.93328, abundance: 0.28200 }
+                ]
+            },
+            {
+                name: "Nickel", symbol: "Ni", number: 28, avgMass: 58.69340,
+                isotopes: [
+                    { mass: 57.93535, abundance: 68.07690 },
+                    { mass: 59.93079, abundance: 26.22310 },
+                    { mass: 60.93106, abundance: 1.13990 },
+                    { mass: 61.92835, abundance: 3.63450 },
+                    { mass: 63.92797, abundance: 0.92560 }
+                ]
+            },
+            {
+                name: "Zinc", symbol: "Zn", number: 30, avgMass: 65.38000,
+                isotopes: [
+                    { mass: 63.92914, abundance: 49.17000 },
+                    { mass: 65.92603, abundance: 27.73000 },
+                    { mass: 66.92713, abundance: 4.04000 },
+                    { mass: 67.92484, abundance: 18.45000 },
+                    { mass: 69.92532, abundance: 0.61000 }
+                ]
+            },
+            {
+                name: "Selenium", symbol: "Se", number: 34, avgMass: 78.96000,
+                isotopes: [
+                    { mass: 73.92248, abundance: 0.89000 },
+                    { mass: 75.91921, abundance: 9.37000 },
+                    { mass: 76.91991, abundance: 7.63000 },
+                    { mass: 77.91731, abundance: 23.77000 },
+                    { mass: 79.91652, abundance: 49.61000 },
+                    { mass: 81.91670, abundance: 8.73000 }
+                ]
+            },
+            {
+                name: "Krypton", symbol: "Kr", number: 36, avgMass: 83.79800,
+                isotopes: [
+                    { mass: 77.92036, abundance: 0.35000 },
+                    { mass: 79.91638, abundance: 2.28000 },
+                    { mass: 81.91348, abundance: 11.58000 },
+                    { mass: 82.91414, abundance: 11.49000 },
+                    { mass: 83.91151, abundance: 57.00000 },
+                    { mass: 85.91061, abundance: 17.30000 }
+                ]
+            },
+            {
+                name: "Strontium", symbol: "Sr", number: 38, avgMass: 87.62000,
+                isotopes: [
+                    { mass: 83.91343, abundance: 0.56000 },
+                    { mass: 85.90926, abundance: 9.86000 },
+                    { mass: 86.90888, abundance: 7.00000 },
+                    { mass: 87.90561, abundance: 82.58000 }
+                ]
+            },
+            {
+                name: "Lead", symbol: "Pb", number: 82, avgMass: 207.20000,
+                isotopes: [
+                    { mass: 203.97304, abundance: 1.40000 },
+                    { mass: 205.97447, abundance: 24.10000 },
+                    { mass: 206.97589, abundance: 22.10000 },
+                    { mass: 207.97665, abundance: 52.40000 }
+                ]
+            }
+        ];
+
+        // APP STATE
+        let currentState = {
+            gameMode: 'endless', // 'endless', 'q5', 'q10', 'q20'
+            topic: 1, // 1: Calc Avg Mass, 2: Sample Counts -> Calc % Abundance & Avg Atomic Mass
+            filterIso: 'all',
+            currentElement: null,
+            targetAnswer: null, // Topic 1 target
+            topic2TargetAbund: null, // Topic 2 targets
+            topic2TargetMass: null,
+            topic2AtomCounts: [],
+            missingIndex: null,
+            userSubmitted: false,
+            
+            // Quiz specifics
+            quizTotalQuestions: 0,
+            quizCurrentIndex: 0,
+            quizScore: 0,
+            quizStartTime: null,
+            quizTimerInterval: null,
+
+            // Overall Session & Persistent Stats
+            sessionTotal: 0,
+            sessionCorrect: 0,
+            currentStreak: 0,
+            bestStreak: parseInt(localStorage.getItem('chem_best_streak') || '0'),
+            lastScores: JSON.parse(localStorage.getItem('chem_last_scores') || '{}'),
+            highScores: JSON.parse(localStorage.getItem('chem_high_scores') || '{}')
+        };
+
+        // DOM ELEMENTS
+        const dom = {
+            tabTopic1: document.getElementById('tab-topic1'),
+            tabTopic2: document.getElementById('tab-topic2'),
+            filterIsotopes: document.getElementById('filter-isotopes'),
+            elementSymbol: document.getElementById('element-symbol'),
+            elementNumber: document.getElementById('element-number'),
+            elementName: document.getElementById('element-name'),
+            problemPrompt: document.getElementById('problem-prompt'),
+            isotopeContainer: document.getElementById('isotope-data-container'),
+            singleInputContainer: document.getElementById('single-input-container'),
+            dualInputContainer: document.getElementById('dual-input-container'),
+            inputLabel: document.getElementById('input-label'),
+            userAnswer: document.getElementById('user-answer'),
+            inputUnit: document.getElementById('input-unit'),
+            inputLabelT2Abund: document.getElementById('input-label-t2-abund'),
+            userAnswerAbund: document.getElementById('user-answer-abund'),
+            userAnswerMass: document.getElementById('user-answer-mass'),
+            btnSubmit: document.getElementById('btn-submit'),
+            btnSubmitDual: document.getElementById('btn-submit-dual'),
+            btnNext: document.getElementById('btn-next'),
+            btnQuizAdvance: document.getElementById('btn-quiz-advance'),
+            btnHint: document.getElementById('btn-hint'),
+            hintBox: document.getElementById('hint-box'),
+            feedbackPanel: document.getElementById('feedback-panel'),
+            statusBanner: document.getElementById('status-banner'),
+            statusIcon: document.getElementById('status-icon'),
+            statusMessage: document.getElementById('status-message'),
+            correctAnswerDisplay: document.getElementById('correct-answer-display'),
+            solutionSteps: document.getElementById('solution-steps'),
+            streakCount: document.getElementById('streak-count'),
+            statTotal: document.getElementById('stat-total'),
+            statCorrect: document.getElementById('stat-correct'),
+            statAccuracy: document.getElementById('stat-accuracy'),
+            
+            // Dashboard state
+            dashCurrentScore: document.getElementById('dash-current-score'),
+            dashLastScore: document.getElementById('dash-last-score'),
+            dashHighScore: document.getElementById('dash-high-score'),
+            dashBestStreak: document.getElementById('dash-best-streak'),
+
+            // Quiz elements
+            quizProgressContainer: document.getElementById('quiz-progress-container'),
+            quizQuestionCounter: document.getElementById('quiz-question-counter'),
+            quizProgressBar: document.getElementById('quiz-progress-bar'),
+            quizTimer: document.getElementById('quiz-timer'),
+            
+            // Modals
+            modalQuizSummary: document.getElementById('modal-quiz-summary'),
+            btnReference: document.getElementById('btn-reference'),
+            modalReference: document.getElementById('modal-reference'),
+            btnScratchpad: document.getElementById('btn-scratchpad'),
+            modalScratchpad: document.getElementById('modal-scratchpad')
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initEvents();
+            updateDashboardScores();
+            generateProblem();
+        });
+
+        function initEvents() {
+            // Topic Switchers
+            dom.tabTopic1.addEventListener('click', () => setTopic(1));
+            dom.tabTopic2.addEventListener('click', () => setTopic(2));
+
+            // Filter Change
+            dom.filterIsotopes.addEventListener('change', (e) => {
+                currentState.filterIso = e.target.value;
+                generateProblem();
+            });
+
+            // Action Buttons
+            dom.btnSubmit.addEventListener('click', checkAnswer);
+            dom.btnSubmitDual.addEventListener('click', checkAnswer);
+            dom.btnNext.addEventListener('click', () => generateProblem());
+            dom.btnHint.addEventListener('click', toggleHint);
+
+            // Enter key on inputs
+            dom.userAnswer.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkAnswer();
+            });
+            dom.userAnswerAbund.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') dom.userAnswerMass.focus();
+            });
+            dom.userAnswerMass.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkAnswer();
+            });
+
+            // Modal Toggles
+            dom.btnReference.addEventListener('click', () => dom.modalReference.classList.remove('hidden'));
+            document.querySelectorAll('.modal-close').forEach(btn => {
+                btn.addEventListener('click', () => dom.modalReference.classList.add('hidden'));
+            });
+
+            dom.btnScratchpad.addEventListener('click', () => dom.modalScratchpad.classList.remove('hidden'));
+            document.querySelectorAll('.scratchpad-close').forEach(btn => {
+                btn.addEventListener('click', () => dom.modalScratchpad.classList.add('hidden'));
+            });
+        }
+
+        /**
+         * MODE SWITCHING & QUIZ LOGIC
+         */
+        function switchMode(mode) {
+            currentState.gameMode = mode;
+
+            // Highlight active mode button
+            ['endless', 'q5', 'q10', 'q20'].forEach(m => {
+                const btn = document.getElementById(`mode-${m}`);
+                if (m === mode) {
+                    btn.className = "py-2 rounded-lg text-center transition bg-slate-800 text-cyan-400 shadow font-bold";
+                } else {
+                    btn.className = "py-2 rounded-lg text-center transition text-slate-400 hover:text-white font-semibold";
+                }
+            });
+
+            if (mode === 'endless') {
+                dom.quizProgressContainer.classList.add('hidden');
+                clearInterval(currentState.quizTimerInterval);
+            } else {
+                const count = parseInt(mode.replace('q', ''));
+                startQuizMode(count);
+            }
+
+            updateDashboardScores();
+            generateProblem();
+        }
+
+        function startQuizMode(totalQuestions) {
+            currentState.quizTotalQuestions = totalQuestions;
+            currentState.quizCurrentIndex = 0;
+            currentState.quizScore = 0;
+            currentState.quizStartTime = Date.now();
+
+            dom.quizProgressContainer.classList.remove('hidden');
+            updateQuizHeaderUI();
+
+            clearInterval(currentState.quizTimerInterval);
+            currentState.quizTimerInterval = setInterval(updateQuizTimer, 1000);
+        }
+
+        function updateQuizTimer() {
+            if (!currentState.quizStartTime) return;
+            const elapsedSeconds = Math.floor((Date.now() - currentState.quizStartTime) / 1000);
+            const mins = Math.floor(elapsedSeconds / 60).toString().padStart(2, '0');
+            const secs = (elapsedSeconds % 60).toString().padStart(2, '0');
+            dom.quizTimer.innerHTML = `<i class="fa-regular fa-clock mr-1 text-slate-400"></i>${mins}:${secs}`;
+        }
+
+        function updateQuizHeaderUI() {
+            const current = currentState.quizCurrentIndex + 1;
+            const total = currentState.quizTotalQuestions;
+            dom.quizQuestionCounter.textContent = `Question ${current} of ${total}`;
+            const pct = (current / total) * 100;
+            dom.quizProgressBar.style.width = `${pct}%`;
+        }
+
+        function setTopic(topicNum) {
+            currentState.topic = topicNum;
+            if (topicNum === 1) {
+                dom.tabTopic1.className = "py-2 px-2.5 rounded-lg transition-all shadow-sm bg-slate-800 text-cyan-400 font-bold text-center";
+                dom.tabTopic2.className = "py-2 px-2.5 rounded-lg transition-all text-slate-400 hover:text-slate-200 text-center";
+            } else {
+                dom.tabTopic2.className = "py-2 px-2.5 rounded-lg transition-all shadow-sm bg-slate-800 text-cyan-400 font-bold text-center";
+                dom.tabTopic1.className = "py-2 px-2.5 rounded-lg transition-all text-slate-400 hover:text-slate-200 text-center";
+            }
+            generateProblem();
+        }
+
+        function generateProblem() {
+            // Reset input and UI state
+            currentState.userSubmitted = false;
+            dom.userAnswer.value = '';
+            dom.userAnswerAbund.value = '';
+            dom.userAnswerMass.value = '';
+            dom.feedbackPanel.classList.add('hidden');
+            dom.hintBox.classList.add('hidden');
+            dom.btnQuizAdvance.classList.add('hidden');
+
+            if (currentState.gameMode !== 'endless') {
+                dom.btnNext.classList.add('hidden');
+            } else {
+                dom.btnNext.classList.remove('hidden');
+            }
+
+            // Filter Elements
+            let filteredList = ELEMENT_DATASET;
+            if (currentState.filterIso === '3') {
+                filteredList = ELEMENT_DATASET.filter(e => e.isotopes.length === 3);
+            } else if (currentState.filterIso === '4') {
+                filteredList = ELEMENT_DATASET.filter(e => e.isotopes.length === 4);
+            } else if (currentState.filterIso === '5+') {
+                filteredList = ELEMENT_DATASET.filter(e => e.isotopes.length >= 5);
+            }
+
+            if (filteredList.length === 0) filteredList = ELEMENT_DATASET;
+
+            // Pick Random Element
+            const element = filteredList[Math.floor(Math.random() * filteredList.length)];
+            currentState.currentElement = element;
+
+            // Update UI Header
+            dom.elementSymbol.textContent = element.symbol;
+            dom.elementNumber.textContent = `Z=${element.number}`;
+            dom.elementName.textContent = element.name;
+
+            // Render Topic Specific Problem
+            if (currentState.topic === 1) {
+                dom.singleInputContainer.classList.remove('hidden');
+                dom.dualInputContainer.classList.add('hidden');
+                renderTopic1(element);
+            } else {
+                dom.singleInputContainer.classList.add('hidden');
+                dom.dualInputContainer.classList.remove('hidden');
+                renderTopic2(element);
+            }
+
+            // MathJax trigger
+            if (window.MathJax && MathJax.typeset) {
+                MathJax.typeset();
+            }
+        }
+
+        function renderTopic1(element) {
+            dom.problemPrompt.textContent = `Calculate the average atomic mass of ${element.name} from the isotopic abundances below.`;
+            dom.inputLabel.textContent = `Calculated Average Atomic Mass (amu):`;
+            dom.inputUnit.textContent = `amu`;
+
+            let totalMass = 0;
+            element.isotopes.forEach(iso => {
+                totalMass += iso.mass * (iso.abundance / 100);
+            });
+            currentState.targetAnswer = totalMass;
+
+            let html = `<div class="grid grid-cols-1 sm:grid-cols-3 gap-2">`;
+            element.isotopes.forEach((iso, idx) => {
+                const massName = `${element.symbol}-${Math.round(iso.mass)}`;
+                html += `
+                    <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-700/80 flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="font-bold text-xs text-cyan-400">${massName}</span>
+                            <span class="text-[10px] text-slate-500">Iso #${idx + 1}</span>
+                        </div>
+                        <div class="text-xs font-mono">Mass: <span class="font-semibold text-slate-200">${iso.mass.toFixed(5)}</span></div>
+                        <div class="text-xs font-mono">Abund: <span class="font-semibold text-slate-200">${iso.abundance.toFixed(4)}%</span></div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            dom.isotopeContainer.innerHTML = html;
+
+            dom.hintBox.innerHTML = `
+                <i class="fa-solid fa-lightbulb mr-1 text-amber-400"></i>
+                <strong>Hint:</strong> Multiply each isotope mass by its decimal abundance (${element.isotopes[0].abundance.toFixed(2)}% &rarr; ${(element.isotopes[0].abundance/100).toFixed(4)}). Sum all values together.
+            `;
+        }
+
+        /**
+         * TOPIC 2: MASS SPEC SAMPLE / ATOM COUNTS
+         * User must determine:
+         * 1. Missing % Abundance of target isotope from sample counts.
+         * 2. Average Atomic Mass of the element calculated from the resulting abundances.
+         */
+        function renderTopic2(element) {
+            const missingIdx = Math.floor(Math.random() * element.isotopes.length);
+            currentState.missingIndex = missingIdx;
+            
+            const missingIso = element.isotopes[missingIdx];
+            const targetIsoName = `${element.symbol}-${Math.round(missingIso.mass)}`;
+
+            // Generate realistic mass spectrometer sample atom counts based on natural abundances
+            // Scale multiplier to give total sample counts around 1,000 - 10,000 atoms
+            const scaleFactor = Math.floor(Math.random() * 50) + 50; 
+            const atomCounts = element.isotopes.map(iso => Math.round(iso.abundance * scaleFactor));
+            const totalSampleAtoms = atomCounts.reduce((a, b) => a + b, 0);
+            currentState.topic2AtomCounts = atomCounts;
+
+            // Recalculate precise sample abundances and sample average atomic mass from these exact atom counts
+            const exactAbundances = atomCounts.map(count => (count / totalSampleAtoms) * 100);
+            let determinedAvgMass = 0;
+            element.isotopes.forEach((iso, idx) => {
+                determinedAvgMass += iso.mass * (exactAbundances[idx] / 100);
+            });
+
+            currentState.topic2TargetAbund = exactAbundances[missingIdx];
+            currentState.topic2TargetMass = determinedAvgMass;
+
+            dom.problemPrompt.textContent = `A Mass Spec sample of ${element.name} contains a total of ${totalSampleAtoms.toLocaleString()} atoms. Calculate the % Abundance of ${targetIsoName} AND determine the Average Atomic Mass (amu).`;
+            dom.inputLabelT2Abund.textContent = `1. % Abundance of ${targetIsoName}:`;
+
+            let html = `<div class="mb-3 p-2.5 bg-amber-950/40 border border-amber-800/80 rounded-xl text-xs font-mono text-amber-200 flex justify-between items-center">
+                <span>Total Sample Count: <strong>${totalSampleAtoms.toLocaleString()} atoms</strong></span>
+                <span class="text-[10px] bg-amber-800 px-2 py-0.5 rounded text-amber-100 font-bold">Mass Spec Data</span>
+            </div>`;
+
+            html += `<div class="grid grid-cols-1 sm:grid-cols-3 gap-2">`;
+            element.isotopes.forEach((iso, idx) => {
+                const name = `${element.symbol}-${Math.round(iso.mass)}`;
+                const isTarget = (idx === missingIdx);
+
+                html += `
+                    <div class="p-3 ${isTarget ? 'bg-amber-950/40 border-amber-700 ring-2 ring-amber-400/30' : 'bg-slate-900/60 border-slate-700/80'} rounded-xl border flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="font-bold text-xs ${isTarget ? 'text-amber-400' : 'text-slate-400'}">${name}</span>
+                            ${isTarget ? '<span class="text-[10px] font-bold bg-amber-800 text-amber-200 px-1.5 py-0.5 rounded">Target Iso</span>' : ''}
+                        </div>
+                        <div class="text-xs font-mono">Mass: <span class="font-semibold text-slate-200">${iso.mass.toFixed(5)}</span></div>
+                        <div class="text-xs font-mono">Sample Count: <span class="font-bold text-cyan-300">${atomCounts[idx].toLocaleString()} atoms</span></div>
+                        <div class="text-xs font-mono mt-0.5">% Abund: ${isTarget ? '<span class="font-bold text-amber-400">? %</span>' : `<span class="font-semibold text-slate-300">${exactAbundances[idx].toFixed(4)}%</span>`}</div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            dom.isotopeContainer.innerHTML = html;
+
+            dom.hintBox.innerHTML = `
+                <i class="fa-solid fa-lightbulb mr-1 text-amber-400"></i>
+                <strong>Hint:</strong> <br>
+                1. Calculate % Abundance = (${atomCounts[missingIdx]} ÷ ${totalSampleAtoms}) × 100%.<br>
+                2. Determine Average Atomic Mass = Sum of (Isotope Mass × Decimal Abundance) for all isotopes.
+            `;
+        }
+
+        function checkAnswer() {
+            if (currentState.userSubmitted) return;
+
+            let isCorrect = false;
+            const tolerance = 0.02; // ±0.02 tolerance
+
+            if (currentState.topic === 1) {
+                const userVal = parseFloat(dom.userAnswer.value);
+                if (isNaN(userVal)) {
+                    showToast("Please enter a valid numerical answer.");
+                    return;
+                }
+
+                currentState.userSubmitted = true;
+                currentState.sessionTotal++;
+
+                const target = currentState.targetAnswer;
+                isCorrect = Math.abs(userVal - target) <= tolerance;
+
+                dom.correctAnswerDisplay.textContent = `Exact: ${target.toFixed(5)} amu`;
+            } else {
+                const userAbund = parseFloat(dom.userAnswerAbund.value);
+                const userMass = parseFloat(dom.userAnswerMass.value);
+
+                if (isNaN(userAbund) || isNaN(userMass)) {
+                    showToast("Please enter valid numerical answers for both fields.");
+                    return;
+                }
+
+                currentState.userSubmitted = true;
+                currentState.sessionTotal++;
+
+                const targetAbund = currentState.topic2TargetAbund;
+                const targetMass = currentState.topic2TargetMass;
+
+                const abundCorrect = Math.abs(userAbund - targetAbund) <= tolerance;
+                const massCorrect = Math.abs(userMass - targetMass) <= tolerance;
+
+                isCorrect = abundCorrect && massCorrect;
+
+                dom.correctAnswerDisplay.textContent = `Exact: ${targetAbund.toFixed(4)}% & ${targetMass.toFixed(5)} amu`;
+            }
+
+            if (isCorrect) {
+                currentState.sessionCorrect++;
+                currentState.currentStreak++;
+                if (currentState.currentStreak > currentState.bestStreak) {
+                    currentState.bestStreak = currentState.currentStreak;
+                    localStorage.setItem('chem_best_streak', currentState.bestStreak.toString());
+                }
+
+                if (currentState.gameMode !== 'endless') {
+                    currentState.quizScore++;
+                }
+
+                triggerConfetti(30);
+                
+                dom.statusBanner.className = "p-3 rounded-xl text-sm font-medium flex items-center justify-between mb-3 bg-emerald-950/80 text-emerald-300 border border-emerald-800";
+                dom.statusIcon.className = "fa-solid fa-circle-check text-emerald-400";
+                dom.statusMessage.textContent = "Correct! Great calculation work.";
+            } else {
+                currentState.currentStreak = 0;
+                
+                dom.statusBanner.className = "p-3 rounded-xl text-sm font-medium flex items-center justify-between mb-3 bg-rose-950/80 text-rose-300 border border-rose-800";
+                dom.statusIcon.className = "fa-solid fa-circle-xmark text-rose-400";
+                dom.statusMessage.textContent = "Not quite. Review the step-by-step solution.";
+            }
+
+            renderSolutionSteps();
+            updateSessionStatsUI();
+            updateDashboardScores();
+
+            dom.feedbackPanel.classList.remove('hidden');
+
+            if (currentState.gameMode !== 'endless') {
+                dom.btnQuizAdvance.classList.remove('hidden');
+            }
+        }
+
+        function advanceQuizQuestion() {
+            currentState.quizCurrentIndex++;
+            if (currentState.quizCurrentIndex >= currentState.quizTotalQuestions) {
+                finishQuiz();
+            } else {
+                updateQuizHeaderUI();
+                generateProblem();
+            }
+        }
+
+        function finishQuiz() {
+            clearInterval(currentState.quizTimerInterval);
+            const total = currentState.quizTotalQuestions;
+            const score = currentState.quizScore;
+            const pct = Math.round((score / total) * 100);
+            const elapsed = Math.floor((Date.now() - currentState.quizStartTime) / 1000);
+
+            const modeKey = currentState.gameMode; // 'q5', 'q10', 'q20'
+
+            // Record last score for this mode
+            currentState.lastScores[modeKey] = `${score}/${total} (${pct}%)`;
+            localStorage.setItem('chem_last_scores', JSON.stringify(currentState.lastScores));
+
+            // Check high score
+            let isNewHigh = false;
+            const prevHigh = currentState.highScores[modeKey] || 0;
+            if (score > prevHigh) {
+                currentState.highScores[modeKey] = score;
+                localStorage.setItem('chem_high_scores', JSON.stringify(currentState.highScores));
+                isNewHigh = true;
+            }
+
+            updateDashboardScores();
+
+            // Populate Modal
+            document.getElementById('quiz-summary-subtitle').textContent = `${total} Questions Mode`;
+            document.getElementById('summary-score').textContent = `${score} / ${total}`;
+            document.getElementById('summary-accuracy').textContent = `${pct}%`;
+            document.getElementById('summary-time').textContent = `${elapsed}s`;
+
+            const badge = document.getElementById('badge-new-highscore');
+            if (isNewHigh) {
+                badge.classList.remove('hidden');
+                triggerConfetti(100);
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            dom.modalQuizSummary.classList.remove('hidden');
+        }
+
+        function restartQuiz() {
+            dom.modalQuizSummary.classList.add('hidden');
+            startQuizMode(currentState.quizTotalQuestions);
+            generateProblem();
+        }
+
+        function closeQuizSummary() {
+            dom.modalQuizSummary.classList.add('hidden');
+            switchMode('endless');
+        }
+
+        function updateDashboardScores() {
+            const mode = currentState.gameMode;
+
+            // Mode Score Display
+            if (mode === 'endless') {
+                dom.dashCurrentScore.textContent = `${currentState.sessionCorrect}/${currentState.sessionTotal}`;
+            } else {
+                dom.dashCurrentScore.textContent = `${currentState.quizScore}/${currentState.quizTotalQuestions}`;
+            }
+
+            // Last Score for current mode
+            if (mode !== 'endless' && currentState.lastScores[mode]) {
+                dom.dashLastScore.textContent = currentState.lastScores[mode];
+            } else {
+                dom.dashLastScore.textContent = '--';
+            }
+
+            // High Score for current mode
+            if (mode !== 'endless' && currentState.highScores[mode] !== undefined) {
+                const max = currentState.quizTotalQuestions;
+                dom.dashHighScore.textContent = `${currentState.highScores[mode]}/${max}`;
+            } else {
+                dom.dashHighScore.textContent = '--';
+            }
+
+            // Best Streak
+            dom.dashBestStreak.textContent = currentState.bestStreak;
+        }
+
+        function renderSolutionSteps() {
+            const el = currentState.currentElement;
+            let stepsHtml = '';
+
+            if (currentState.topic === 1) {
+                stepsHtml += `<div class="p-2 bg-slate-900 rounded border border-slate-800">
+                    <strong>1. Formula:</strong><br>
+                    \\(\\text{Avg Mass} = \\sum (m_i \\times x_i)\\)
+                </div>`;
+
+                let subParts = [];
+                el.isotopes.forEach(iso => {
+                    const decAbund = iso.abundance / 100;
+                    subParts.push(`(${iso.mass.toFixed(5)} \\times ${decAbund.toFixed(6)})`);
+                });
+
+                stepsHtml += `<div class="p-2 bg-slate-900 rounded border border-slate-800">
+                    <strong>2. Substitute Values:</strong><br>
+                    \\(\\text{Avg Mass} = ${subParts.join(' + ')}\\)
+                </div>`;
+
+                stepsHtml += `<div class="p-2 bg-cyan-950/60 rounded border border-cyan-800 text-cyan-200 font-bold">
+                    <strong>3. Calculate & Sum:</strong><br>
+                    \\(= ${currentState.targetAnswer.toFixed(5)} \\text{ amu}\\)
+                </div>`;
+            } else {
+                const missingIso = el.isotopes[currentState.missingIndex];
+                const counts = currentState.topic2AtomCounts;
+                const totalCount = counts.reduce((a, b) => a + b, 0);
+                const targetCount = counts[currentState.missingIndex];
+
+                stepsHtml += `<div class="p-2 bg-slate-900 rounded border border-slate-800">
+                    <strong>1. Missing Isotope Abundance from Atom Counts:</strong><br>
+                    \\(\\% \\text{ Abundance} = \\left(\\frac{${targetCount.toLocaleString()}}{${totalCount.toLocaleString()}}\\right) \\times 100\\% = ${currentState.topic2TargetAbund.toFixed(4)}\\%\\)
+                </div>`;
+
+                let massProductParts = [];
+                el.isotopes.forEach((iso, idx) => {
+                    const isoAbund = (counts[idx] / totalCount);
+                    massProductParts.push(`(${iso.mass.toFixed(5)} \\times ${isoAbund.toFixed(6)})`);
+                });
+
+                stepsHtml += `<div class="p-2 bg-slate-900 rounded border border-slate-800">
+                    <strong>2. Determine Average Atomic Mass from Sample:</strong><br>
+                    \\(\\text{Avg Mass} = ${massProductParts.join(' + ')}\\)
+                </div>`;
+
+                stepsHtml += `<div class="p-2 bg-cyan-950/60 rounded border border-cyan-800 text-cyan-200 font-bold">
+                    <strong>3. Final Answers:</strong><br>
+                    \\(\\% \\text{ Abundance} = ${currentState.topic2TargetAbund.toFixed(4)}\\%\\)<br>
+                    \\(\\text{Avg Mass} = ${currentState.topic2TargetMass.toFixed(5)} \\text{ amu}\\)
+                </div>`;
+            }
+
+            dom.solutionSteps.innerHTML = stepsHtml;
+
+            if (window.MathJax && MathJax.typeset) {
+                MathJax.typeset();
+            }
+        }
+
+        function toggleHint() {
+            dom.hintBox.classList.toggle('hidden');
+        }
+
+        function updateSessionStatsUI() {
+            dom.streakCount.textContent = currentState.currentStreak;
+            dom.statTotal.textContent = currentState.sessionTotal;
+            dom.statCorrect.textContent = currentState.sessionCorrect;
+            
+            const acc = currentState.sessionTotal > 0 
+                ? Math.round((currentState.sessionCorrect / currentState.sessionTotal) * 100) 
+                : 0;
+            dom.statAccuracy.textContent = `${acc}%`;
+        }
+
+        function triggerConfetti(count = 50) {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: count,
+                    spread: 60,
+                    origin: { y: 0.8 }
+                });
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-4 py-2 rounded-xl shadow-lg z-50 border border-slate-700 transition-opacity duration-300';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        // CALCULATOR LOGIC
+        let calcExpr = '';
+
+        function calcInput(char) {
+            calcExpr += char;
+            document.getElementById('calc-expression').textContent = calcExpr;
+        }
+
+        function calcClear() {
+            calcExpr = '';
+            document.getElementById('calc-expression').textContent = '';
+            document.getElementById('calc-display').textContent = '0';
+        }
+
+        function calcEquals() {
+            try {
+                const sanitized = calcExpr.replace(/[^0-9+\-*/().]/g, '');
+                const res = new Function(`return ${sanitized}`)();
+                document.getElementById('calc-display').textContent = Number.isFinite(res) ? parseFloat(res.toFixed(6)) : 'Error';
+            } catch (e) {
+                document.getElementById('calc-display').textContent = 'Error';
+            }
+        }
+    </script>
+</body>
+</html>
