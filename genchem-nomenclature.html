@@ -212,6 +212,7 @@
   .formula {
     font-family: "Times New Roman", Georgia, serif;
     font-size: 1.08em;
+    margin-left: 0.3em;
   }
 
   .answer-row {
@@ -910,6 +911,7 @@ let gameStreak = 0;
 let gameLog = []; // entries: { mode, question, correctAnswer, userAnswers, usedHelp, maxPoints, remainingPoints, gotCorrect }
 
 let usedQuestionKeys = new Set(); // prevents repeat questions within one game
+let recentQuestionKeys = []; // rolling history of the last 10 question keys (any mode), most recent last
 let challengeQueue = null;        // array of mode numbers ('1'-'10') for challenge mode
 
 const categoryLabels = {
@@ -1224,6 +1226,18 @@ function chargeValue(formulaWithCharge) {
   return m[2] === '+' ? mag : -mag;
 }
 
+// Peroxide (O2^2-) only forms stable compounds in this course's scope with the
+// alkali metals sodium, potassium, rubidium, and cesium.
+const PEROXIDE_COMPATIBLE_CATIONS = ['Na+', 'K+', 'Rb+', 'Cs+'];
+
+function pickCationForAnion(anion) {
+  if (anion.formula === 'O2^2-') {
+    const allowed = ions.cations.filter(c => PEROXIDE_COMPATIBLE_CATIONS.includes(c.formula));
+    return randomItem(allowed);
+  }
+  return randomItem(ions.cations);
+}
+
 function makeIonicCompound(cation, anion) {
   const cCharge = Math.abs(chargeValue(cation.formula));
   const aCharge = Math.abs(chargeValue(anion.formula));
@@ -1289,8 +1303,10 @@ function makeRandomMolecular() {
   let first = binaryNonMetals.find(e => e.symbol === symFirst);
   let second = binaryNonMetals.find(e => e.symbol === symSecond);
 
-  const n1 = Math.floor(Math.random() * 3) + 1;
-  const n2 = Math.floor(Math.random() * 3) + 1;
+  // n1 (first element) stays modest, as in real formulas (e.g. N2O5, P4O10).
+  // n2 (second element) ranges across the full prefix set so tetra-deca show up too.
+  const n1 = Math.floor(Math.random() * 4) + 1;
+  const n2 = Math.floor(Math.random() * 10) + 1;
 
   const formula =
     first.symbol + (n1 === 1 ? '' : n1) +
@@ -1327,6 +1343,11 @@ function showRules(ruleKey) {
   modal.style.display = 'block';
 }
 
+function hydrateFormula(h) {
+  // Monohydrate convention: no numeral before H2O (e.g. MnSO4·H2O, not MnSO4·1H2O).
+  return h.anhydrous + '\u00b7' + (h.water === 1 ? '' : h.water) + 'H2O';
+}
+
 // ====== QUESTION GENERATION ======
 function generateQuestionForMode(mode) {
   switch (mode) {
@@ -1358,8 +1379,8 @@ function generateQuestionForMode(mode) {
     }
 
     case '3': {
-      const c = randomItem(ions.cations);
       const a = randomItem(ions.anions);
+      const c = pickCationForAnion(a);
       const compound = makeIonicCompound(c, a);
       return {
         type: 'nameIonicCompound',
@@ -1370,8 +1391,8 @@ function generateQuestionForMode(mode) {
     }
 
     case '4': {
-      const c = randomItem(ions.cations);
       const a = randomItem(ions.anions);
+      const c = pickCationForAnion(a);
       const compound = makeIonicCompound(c, a);
       return {
         type: 'ionicFormula',
@@ -1420,7 +1441,7 @@ function generateQuestionForMode(mode) {
 
     case '9': {
       const h = randomItem(hydrates);
-      const formula = h.anhydrous + '·' + h.water + 'H2O';
+      const formula = hydrateFormula(h);
       return {
         type: 'nameHydrate',
         answer: h.name,
@@ -1431,7 +1452,7 @@ function generateQuestionForMode(mode) {
 
     case '10': {
       const h = randomItem(hydrates);
-      const formula = h.anhydrous + '·' + h.water + 'H2O';
+      const formula = hydrateFormula(h);
       return {
         type: 'hydrateFormula',
         answer: formula,
@@ -1477,8 +1498,9 @@ function newQuestion() {
   attemptCount = 0;
   showAnsBtn.style.display = gameMode ? 'none' : 'none';
 
-  // In game mode, keep re-rolling until we land on a question that hasn't
-  // been asked yet this game (bounded so a small, exhausted pool can't hang).
+  // Keep re-rolling until we land on a question that hasn't been asked
+  // yet this game (game mode) and isn't one of the last 10 questions asked
+  // (any mode), bounded so a small, exhausted pool can't hang.
   let candidate;
   let key;
   let attempts = 0;
@@ -1486,10 +1508,18 @@ function newQuestion() {
     candidate = generateQuestionForMode(mode);
     key = candidate.type + '::' + candidate.answer;
     attempts += 1;
-  } while (gameMode && usedQuestionKeys.has(key) && attempts < MAX_UNIQUE_ATTEMPTS);
+  } while (
+    ((gameMode && usedQuestionKeys.has(key)) || recentQuestionKeys.includes(key)) &&
+    attempts < MAX_UNIQUE_ATTEMPTS
+  );
 
   if (gameMode) {
     usedQuestionKeys.add(key);
+  }
+
+  recentQuestionKeys.push(key);
+  if (recentQuestionKeys.length > 10) {
+    recentQuestionKeys.shift();
   }
 
   currentQuestion = candidate;
