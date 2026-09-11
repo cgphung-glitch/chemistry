@@ -6,17 +6,18 @@
   <title>Chemical Equation Practice</title>
   <style>
     :root {
-      --bg: #f7f6f2;
-      --surface: #ffffff;
-      --surface-2: #f1efe8;
-      --text: #25231d;
-      --muted: #6f6b62;
+      --bg: #10181a;
+      --surface: #1a2427;
+      --surface-2: #212c2f;
+      --text: #e8ece9;
+      --muted: #a3aeab;
       --primary: #01696f;
       --primary-2: #0c4e54;
-      --success: #2f6b18;
-      --error: #9a2f44;
-      --border: #d8d2c8;
-      --shadow: 0 8px 24px rgba(0,0,0,.08);
+      --success: #6fcf7c;
+      --error: #ef6461;
+      --border: #33403f;
+      --shadow: 0 8px 24px rgba(0,0,0,.35);
+      --secondary-hover: #2a3639;
       --r: 14px;
       --space-1: 4px;
       --space-2: 8px;
@@ -28,6 +29,19 @@
       --space-10: 40px;
     }
 
+    [data-theme="light"] {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --surface-2: #f1efe8;
+      --text: #25231d;
+      --muted: #6f6b62;
+      --success: #2f6b18;
+      --error: #9a2f44;
+      --border: #d8d2c8;
+      --shadow: 0 8px 24px rgba(0,0,0,.08);
+      --secondary-hover: #e9e4d8;
+    }
+
     * { box-sizing: border-box; }
     body {
       margin: 0;
@@ -35,6 +49,7 @@
       background: var(--bg);
       color: var(--text);
       line-height: 1.45;
+      transition: background-color 0.2s, color 0.2s;
     }
     .app {
       max-width: 1000px;
@@ -70,7 +85,8 @@
       border-radius: 10px;
       border: 1px solid var(--border);
       padding: 10px 14px;
-      background: white;
+      background: var(--surface);
+      color: var(--text);
     }
     button {
       cursor: pointer;
@@ -84,7 +100,7 @@
       border-color: var(--border);
     }
     button:hover { background: var(--primary-2); }
-    button.secondary:hover { background: #e9e4d8; }
+    button.secondary:hover { background: var(--secondary-hover); }
     .equation-wrap {
       margin: var(--space-5) 0 var(--space-6);
       padding: var(--space-5);
@@ -111,7 +127,8 @@
       text-align: center;
       border: 1px solid var(--border);
       border-radius: 10px;
-      background: #fff;
+      background: var(--surface);
+      color: var(--text);
       font-size: 1rem;
     }
     .chem {
@@ -134,7 +151,7 @@
       padding: var(--space-4);
       border: 1px solid var(--border);
       border-radius: 12px;
-      background: #fff;
+      background: var(--surface);
     }
     .stat .label {
       color: var(--muted);
@@ -150,7 +167,7 @@
       padding: var(--space-4);
       border-radius: 12px;
       border: 1px solid var(--border);
-      background: white;
+      background: var(--surface);
     }
     .ok { color: var(--success); }
     .bad { color: var(--error); }
@@ -162,7 +179,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
+      background: var(--surface);
       border-radius: 12px;
       overflow: hidden;
       border: 1px solid var(--border);
@@ -239,6 +256,7 @@
         <button id="newBtn" type="button">New problem</button>
         <button id="progressBtn" class="secondary" type="button">Show progress</button>
         <button id="checkBtn" type="button">Check balance</button>
+        <button id="themeToggleBtn" class="secondary" type="button">Light mode</button>
       </div>
 
       <div class="tiny" id="problemMeta"></div>
@@ -272,6 +290,32 @@
   </main>
 
   <script>
+    // ---- Dark / light theme ----
+    const THEME_KEY = 'balanceEqTheme';
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+    function applyTheme(theme) {
+      if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        themeToggleBtn.textContent = 'Dark mode';
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        themeToggleBtn.textContent = 'Light mode';
+      }
+      try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* ignore */ }
+    }
+
+    (function initTheme() {
+      let stored = null;
+      try { stored = localStorage.getItem(THEME_KEY); } catch (e) { /* ignore */ }
+      applyTheme(stored === 'light' ? 'light' : 'dark'); // default: dark mode
+    })();
+
+    themeToggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
     const PROBLEMS = [
       { level: 'easy', type: 'synthesis', eq: 'H2 + Cl2 = HCl' },
       { level: 'easy', type: 'combustion', eq: 'CH4 + O2 = CO2 + H2O' },
