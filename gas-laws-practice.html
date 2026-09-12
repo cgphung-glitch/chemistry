@@ -5,12 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gas Laws Master Practice App</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body, .max-w-xl { transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
+
+        /* ---------- Dark mode overrides ----------
+           Tailwind utility classes are used directly throughout this app
+           (including inside dynamically-generated solution HTML), so dark
+           mode is implemented as attribute-scoped overrides of those same
+           classes rather than a parallel set of custom classes. These win
+           over Tailwind's own rules on specificity ([data-theme="dark"] .x
+           beats .x) regardless of stylesheet order. */
+        [data-theme="dark"] body.bg-gray-50 { background-color: #0f172a; }
+        [data-theme="dark"] #solutionContainer.bg-gray-50 { background-color: #0f172a; }
+        [data-theme="dark"] .bg-white { background-color: #1e293b; }
+        [data-theme="dark"] .bg-gray-100 { background-color: #334155; }
+        [data-theme="dark"] .bg-gray-200 { background-color: #334155; }
+        [data-theme="dark"] .hover\:bg-gray-300:hover { background-color: #475569; }
+        [data-theme="dark"] .bg-blue-50 { background-color: #17304f; }
+        [data-theme="dark"] .hover\:bg-blue-700:hover { background-color: #1d4ed8; }
+
+        [data-theme="dark"] .border { border-color: #334155; }
+        [data-theme="dark"] .border-gray-100 { border-color: #334155; }
+        [data-theme="dark"] .border-gray-200 { border-color: #334155; }
+        [data-theme="dark"] .border-gray-300 { border-color: #475569; }
+        [data-theme="dark"] .border-blue-500 { border-color: #3b82f6; }
+
+        [data-theme="dark"] .text-gray-500 { color: #94a3b8; }
+        [data-theme="dark"] .text-gray-600 { color: #94a3b8; }
+        [data-theme="dark"] .text-gray-700 { color: #cbd5e1; }
+        [data-theme="dark"] .text-gray-800 { color: #f1f5f9; }
+        [data-theme="dark"] .text-blue-600 { color: #60a5fa; }
+        [data-theme="dark"] .hover\:text-blue-800:hover { color: #93c5fd; }
+        [data-theme="dark"] .text-blue-700 { color: #60a5fa; }
+        [data-theme="dark"] .text-blue-800 { color: #93c5fd; }
+        [data-theme="dark"] .text-green-600 { color: #4ade80; }
+        [data-theme="dark"] .text-red-600 { color: #f87171; }
+
+        [data-theme="dark"] select, [data-theme="dark"] input { color: #f1f5f9; }
+        [data-theme="dark"] input::placeholder { color: #64748b; }
+
+        #themeToggleBtn {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #374151;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        [data-theme="dark"] #themeToggleBtn { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+
+        .stat-chip b { display: block; font-size: 1.15rem; }
+    </style>
 </head>
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col items-center justify-center p-6">
 
     <div class="max-w-xl w-full bg-white rounded-xl shadow-md p-8 border border-gray-100">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2 text-center">Gas Laws Master Practice</h1>
-        <p class="text-gray-500 text-center mb-6 text-sm">Select a concept, solve the problem, and check your answer.</p>
+        <div class="flex items-center justify-between gap-3 mb-2">
+            <h1 class="text-3xl font-bold text-gray-800 text-center">Gas Laws Master Practice</h1>
+            <button id="themeToggleBtn" type="button">Light mode</button>
+        </div>
+        <p class="text-gray-500 text-center mb-4 text-sm">Select a concept, solve the problem, and check your answer.</p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6 text-center">
+            <div class="bg-white border border-gray-200 rounded-lg p-2 stat-chip">
+                <span class="text-gray-500 text-xs">Score</span>
+                <b class="text-gray-800" id="scoreVal">0</b>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-2 stat-chip">
+                <span class="text-gray-500 text-xs">Streak</span>
+                <b class="text-blue-700" id="streakVal">0</b>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-2 stat-chip">
+                <span class="text-gray-500 text-xs">Best Streak</span>
+                <b class="text-gray-800" id="bestStreakVal">0</b>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-2 stat-chip">
+                <span class="text-gray-500 text-xs">High / Last</span>
+                <b class="text-gray-800" id="highLastVal">0 / 0</b>
+            </div>
+        </div>
 
         <div class="mb-6">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Choose Problem Type:</label>
@@ -25,11 +103,15 @@
                 <option value="density">Gas Density (d = PM/RT)</option>
                 <option value="rmsspeed">RMS Speed / KMT (v_rms = √3RT/M)</option>
                 <option value="grahams">Graham's Law (Effusion Rate)</option>
+                <option value="mix">Mix Problems (random type each question)</option>
             </select>
         </div>
 
         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-6">
-            <span class="font-bold text-blue-700 text-xs uppercase tracking-wider">Question:</span>
+            <div class="flex items-center justify-between gap-2">
+                <span class="font-bold text-blue-700 text-xs uppercase tracking-wider">Question:</span>
+                <span id="mixTypeLabel" class="text-blue-700 text-xs font-semibold hidden"></span>
+            </div>
             <p id="questionText" class="text-gray-700 mt-1 font-medium text-lg">Loading question...</p>
         </div>
 
@@ -60,11 +142,79 @@
     </div>
 
     <script>
+        // ---- Dark / light theme ----
+        const THEME_KEY = 'gasLawsTheme';
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                themeToggleBtn.textContent = 'Dark mode';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggleBtn.textContent = 'Light mode';
+            }
+            try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* ignore */ }
+        }
+
+        (function initTheme() {
+            let stored = null;
+            try { stored = localStorage.getItem(THEME_KEY); } catch (e) { /* ignore */ }
+            applyTheme(stored === 'light' ? 'light' : 'dark'); // default: dark mode
+        })();
+
+        themeToggleBtn.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        });
+
+        // ---- Persistent stats: high score, last score, best streak ----
+        const STATS_KEY = 'gasLawsStats';
+        function loadStats() {
+            try {
+                const raw = localStorage.getItem(STATS_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch (e) { /* ignore */ }
+            return { lastScore: 0, highScore: 0, bestStreak: 0 };
+        }
+        function saveStats() {
+            try { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); } catch (e) { /* ignore */ }
+        }
+        const stats = loadStats();
+        let sessionScore = 0;   // correct answers so far this visit (not persisted directly)
+        let sessionStreak = 0;  // current consecutive-correct streak this visit
+
+        function renderStats() {
+            document.getElementById('scoreVal').textContent = sessionScore;
+            document.getElementById('streakVal').textContent = sessionStreak;
+            document.getElementById('bestStreakVal').textContent = stats.bestStreak;
+            document.getElementById('highLastVal').textContent = `${stats.highScore} / ${stats.lastScore}`;
+        }
+        renderStats();
+
+        // Bank the current session's score as "last score" whenever the page is
+        // hidden or closed, so it's there to compare against next time.
+        function bankSessionScore() {
+            stats.lastScore = sessionScore;
+            saveStats();
+        }
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') bankSessionScore();
+        });
+        window.addEventListener('pagehide', bankSessionScore);
+
         // App State
         let currentAnswer = 0;
         let currentSteps = "";
+        let currentLawUsed = "";
         const R = 0.0821; 
         const R_SI = 8.314; // Gas constant for energy & velocity calculations
+        const REAL_LAW_TYPES = ['boyle', 'charles', 'gaylussac', 'avogadro', 'combined', 'ideal', 'dalton', 'density', 'rmsspeed', 'grahams'];
+        const LAW_LABELS = {
+            boyle: "Boyle's Law", charles: "Charles' Law", gaylussac: "Gay-Lussac's Law",
+            avogadro: "Avogadro's Law", combined: "Combined Gas Law", ideal: "Ideal Gas Law",
+            dalton: "Dalton's Law", density: "Gas Density", rmsspeed: "RMS Speed / KMT", grahams: "Graham's Law"
+        };
 
         // DOM Elements
         const lawSelect = document.getElementById('lawSelect');
@@ -77,6 +227,7 @@
         const toggleSolutionBtn = document.getElementById('toggleSolutionBtn');
         const solutionContainer = document.getElementById('solutionContainer');
         const arrowIcon = document.getElementById('arrowIcon');
+        const mixTypeLabel = document.getElementById('mixTypeLabel');
 
         // Helpers
         const rand = (min, max) => parseFloat((Math.random() * (max - min) + min).toFixed(2));
@@ -84,7 +235,15 @@
 
         // Question Generator Engine
         function generateQuestion() {
-            const law = lawSelect.value;
+            const law = lawSelect.value === 'mix' ? pickRandom(REAL_LAW_TYPES) : lawSelect.value;
+            currentLawUsed = law;
+
+            if (lawSelect.value === 'mix') {
+                mixTypeLabel.textContent = LAW_LABELS[law] || law;
+                mixTypeLabel.classList.remove('hidden');
+            } else {
+                mixTypeLabel.classList.add('hidden');
+            }
             
             // Reset UI States
             feedback.classList.add('hidden');
@@ -672,10 +831,17 @@
             if (Math.abs(userNum - currentAnswer) <= 0.05) {
                 feedback.innerText = `🎉 Correct! The answer is ${currentAnswer} ${unitDisplay.innerText}.`;
                 feedback.classList.add('text-green-600');
+                sessionScore++;
+                sessionStreak++;
+                if (sessionStreak > stats.bestStreak) stats.bestStreak = sessionStreak;
+                if (sessionScore > stats.highScore) stats.highScore = sessionScore;
+                saveStats();
             } else {
                 feedback.innerText = `❌ Incorrect. Try again or check the step-by-step solution!`;
                 feedback.classList.add('text-red-600');
+                sessionStreak = 0;
             }
+            renderStats();
         }
 
         // Event Listeners
