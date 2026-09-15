@@ -65,6 +65,7 @@
             background: radial-gradient(circle at top right, #1e1b4b, #0f172a, #020617);
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            transition: background 0.2s ease;
         }
         .timer-progress {
             transition: width 0.05s linear, background-color 0.3s ease;
@@ -78,6 +79,56 @@
         .touch-active:active {
             transform: scale(0.97);
         }
+
+        #theme-toggle {
+            transition: color 0.15s ease;
+        }
+
+        /* ---------- Light theme ----------
+           This app is built with Tailwind utility classes throughout,
+           including inside dynamically-generated question/feedback/results
+           HTML, so light mode is implemented as attribute-scoped overrides
+           of those same classes rather than a parallel custom theme. These
+           win over Tailwind's own rules on specificity regardless of
+           stylesheet order. Vivid low-opacity color chips/borders/shadows
+           (e.g. bg-cyan-500/10, border-emerald-500/40) are left as-is since
+           they read fine as accents on either background; only the neutral
+           slate scale and the saturated *text* colors (which need real
+           contrast against whatever card sits behind them) are overridden. */
+        [data-theme="light"] body {
+            background: radial-gradient(circle at top right, #e0e7ff, #f1f5f9, #f8fafc);
+        }
+        [data-theme="light"] .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+        }
+
+        [data-theme="light"] .bg-slate-800 { background-color: #e2e8f0; }
+        [data-theme="light"] .bg-slate-800\/80 { background-color: rgba(226,232,240,0.85); }
+        [data-theme="light"] .bg-slate-800\/90 { background-color: rgba(226,232,240,0.92); }
+        [data-theme="light"] .bg-slate-950\/80 { background-color: rgba(15,23,42,0.45); }
+
+        [data-theme="light"] .border-slate-700 { border-color: #cbd5e1; }
+        [data-theme="light"] .border-slate-700\/50 { border-color: rgba(148,163,184,0.5); }
+        [data-theme="light"] .border-slate-700\/60 { border-color: rgba(148,163,184,0.6); }
+        [data-theme="light"] .border-slate-700\/80 { border-color: rgba(148,163,184,0.8); }
+
+        [data-theme="light"] .text-white { color: #0f172a; }
+        [data-theme="light"] .hover\:text-white:hover { color: #0f172a; }
+        [data-theme="light"] .text-slate-100 { color: #1e293b; }
+        [data-theme="light"] .text-slate-200 { color: #1e293b; }
+        [data-theme="light"] .text-slate-300 { color: #334155; }
+        [data-theme="light"] .text-slate-400 { color: #64748b; }
+        [data-theme="light"] .text-slate-500 { color: #94a3b8; }
+        [data-theme="light"] .text-slate-600 { color: #cbd5e1; }
+
+        [data-theme="light"] .text-cyan-400 { color: #0e7490; }
+        [data-theme="light"] .text-emerald-400 { color: #047857; }
+        [data-theme="light"] .text-emerald-300 { color: #059669; }
+        [data-theme="light"] .text-rose-400 { color: #be123c; }
+        [data-theme="light"] .text-rose-300 { color: #e11d48; }
+        [data-theme="light"] .text-amber-400 { color: #b45309; }
+        [data-theme="light"] .text-violet-400 { color: #6d28d9; }
     </style>
 </head>
 <body class="h-full text-slate-100 font-sans flex flex-col justify-between overflow-x-hidden antialiased selection:bg-cyan-500 selection:text-white">
@@ -92,9 +143,14 @@
                 <p class="text-xs text-slate-400 -mt-1 font-semibold">Rapid Fire Chemistry</p>
             </div>
         </div>
-        <button id="audio-toggle" onclick="toggleAudio()" class="w-10 h-10 rounded-xl glass-panel flex items-center justify-center text-slate-300 hover:text-white transition">
-            <i class="fa-solid fa-volume-high text-base" id="audio-icon"></i>
-        </button>
+        <div class="flex items-center gap-2">
+            <button id="theme-toggle" onclick="toggleTheme()" class="w-10 h-10 rounded-xl glass-panel flex items-center justify-center text-slate-300 hover:text-white transition">
+                <i class="fa-solid fa-sun text-base" id="theme-icon"></i>
+            </button>
+            <button id="audio-toggle" onclick="toggleAudio()" class="w-10 h-10 rounded-xl glass-panel flex items-center justify-center text-slate-300 hover:text-white transition">
+                <i class="fa-solid fa-volume-high text-base" id="audio-icon"></i>
+            </button>
+        </div>
     </header>
 
     <!-- MAIN CONTAINER -->
@@ -330,6 +386,32 @@
     </footer>
 
     <script>
+        /* ==================== THEME (dark / light) ==================== */
+        const THEME_KEY = 'chemrush_theme';
+        const themeIcon = document.getElementById('theme-icon');
+
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                themeIcon.className = 'fa-solid fa-moon text-base';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                themeIcon.className = 'fa-solid fa-sun text-base';
+            }
+            try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* ignore */ }
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        (function initTheme() {
+            let stored = null;
+            try { stored = localStorage.getItem(THEME_KEY); } catch (e) { /* ignore */ }
+            applyTheme(stored === 'light' ? 'light' : 'dark'); // default: dark mode
+        })();
+
         /* ==================== QUESTION DATABASE ==================== */
         const QUESTION_BANK = {
             matter: [
