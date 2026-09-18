@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemPractice - Stoichiometry Coach</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' };</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; } 
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors">
+
+    <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-800/90 backdrop-blur border-b border-slate-200 dark:border-slate-700">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-sky-600 to-indigo-600 text-white p-2 rounded-xl shadow">
+                    <i class="fa-solid fa-flask-vial text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold bg-gradient-to-r from-sky-600 to-indigo-600 dark:from-sky-400 dark:to-indigo-400 bg-clip-text text-transparent">ChemPractice</h1>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Stoichiometry & Solutions</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button id="calcBtn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-calculator text-sky-500"></i><span class="hidden sm:inline">Calc</span>
+                </button>
+                <button id="refBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 hover:bg-sky-200 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-book-bookmark text-sky-600"></i><span>PT & Formulas</span>
+                </button>
+                <button id="soundToggle" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition"><i id="soundIcon" class="fa-solid fa-volume-high text-slate-600 dark:text-slate-300"></i></button>
+                <button id="themeToggle" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition"><i id="themeIcon" class="fa-solid fa-moon text-slate-600 dark:text-slate-300"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-5 flex-grow w-full space-y-4">
+        <div class="grid grid-cols-4 gap-2 sm:gap-4">
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-center shadow-sm">
+                <div class="text-[10px] uppercase text-slate-400 font-bold">Score</div>
+                <div id="scoreDisplay" class="text-base sm:text-xl font-black text-sky-600 dark:text-sky-400">0</div>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-center shadow-sm">
+                <div class="text-[10px] uppercase text-slate-400 font-bold">Streak</div>
+                <div id="streakDisplay" class="text-base sm:text-xl font-black text-amber-500 flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-fire text-xs"></i><span id="streakVal">0</span>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-center shadow-sm">
+                <div class="text-[10px] uppercase text-slate-400 font-bold">Accuracy</div>
+                <div id="accuracyDisplay" class="text-base sm:text-xl font-black text-slate-700 dark:text-slate-200">100%</div>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-center shadow-sm">
+                <div class="text-[10px] uppercase text-slate-400 font-bold">Best Score</div>
+                <div id="highScoreDisplay" class="text-base sm:text-xl font-black text-emerald-600 dark:text-emerald-400">0</div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                    <label for="topicSelect" class="block text-xs font-bold text-slate-400 uppercase mb-1">Topic Selection</label>
+                    <select id="topicSelect" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-xs font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                        <option value="1">1. Molar Mass Calculation</option>
+                        <option value="2">2. Atom Count from Mass (g)</option>
+                        <option value="3">3. Mass Percent Composition</option>
+                        <option value="4">4. Molecular Formula</option>
+                        <option value="5">5. Molarity of Solution (M)</option>
+                        <option value="6">6. Dilution Calculations</option>
+                        <option value="7">7. Mass/Mass Percent (% m/m)</option>
+                        <option value="8">8. Concentration in PPM</option>
+                        <option value="9">9. Empirical Formula from % Composition</option>
+                        <option value="10" selected>10. Mixed Practice (All Topics)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Session Mode</label>
+                    <div id="modeGroup" class="grid grid-cols-4 gap-1.5">
+                        <button class="mode-btn py-2 rounded-lg text-xs font-bold border border-sky-500 bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300" data-mode="endless">Endless</button>
+                        <button class="mode-btn py-2 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400" data-mode="5">5 Qs</button>
+                        <button class="mode-btn py-2 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400" data-mode="10">10 Qs</button>
+                        <button class="mode-btn py-2 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400" data-mode="15">15 Qs</button>
+                    </div>
+                </div>
+            </div>
+            <div id="progressContainer" class="hidden pt-2 border-t border-slate-100 dark:border-slate-700">
+                <div class="flex justify-between text-xs text-slate-400 font-medium mb-1">
+                    <span>Progress</span><span id="progressText">Question 1 of 5</span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                    <div id="progressBar" class="bg-sky-500 h-2 rounded-full transition-all duration-300" style="width: 20%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="questionCard" class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 relative">
+            <div class="flex items-center justify-between mb-3">
+                <span id="questionCategory" class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">Category</span>
+                <span class="text-[11px] text-slate-400 font-medium"><i class="fa-solid fa-circle-info text-sky-400 mr-1"></i>2% tolerance</span>
+            </div>
+
+            <div id="questionText" class="text-sm sm:text-base font-medium leading-relaxed mb-5">Loading question...</div>
+
+            <form id="answerForm" class="mb-5" onsubmit="event.preventDefault(); checkAnswer();">
+                <div id="interactionArea"></div>
+            </form>
+
+            <div class="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+                <button id="showSolBtn" type="button" disabled class="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-1.5 transition opacity-50 cursor-not-allowed">
+                    <i id="solBtnIcon" class="fa-regular fa-eye"></i><span id="solBtnText">Show Solution</span>
+                </button>
+                <div class="flex gap-2">
+                    <button id="submitBtn" type="button" onclick="checkAnswer()" class="px-4 py-2 rounded-lg text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shadow flex items-center gap-1.5 transition">
+                        <span>Submit</span><i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <button id="nextBtn" type="button" onclick="loadNextQuestion()" class="hidden px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow flex items-center gap-1.5 transition">
+                        <span>Next Question</span><i class="fa-solid fa-forward"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="feedbackBanner" class="hidden mt-4 p-3 rounded-lg text-xs font-medium flex items-center gap-2">
+                <i id="feedbackIcon" class="text-base"></i><div id="feedbackText"></div>
+            </div>
+
+            <div id="solutionBox" class="hidden mt-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
+                <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                    <i class="fa-solid fa-graduation-cap text-sky-500"></i> Solution Step-by-Step
+                </h4>
+                <div id="solutionContent" class="text-xs space-y-2 text-slate-700 dark:text-slate-300 leading-relaxed"></div>
+            </div>
+        </div>
+
+        <div id="quizSummaryCard" class="hidden bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 text-center space-y-4">
+            <div class="inline-flex p-3 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-300 mb-1">
+                <i class="fa-solid fa-trophy text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold">Session Completed!</h3>
+            <div class="grid grid-cols-3 gap-3 max-w-sm mx-auto my-3">
+                <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border"><div class="text-[10px] text-slate-400 font-bold uppercase">Score</div><div id="summaryScore" class="text-lg font-black text-sky-600">0</div></div>
+                <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border"><div class="text-[10px] text-slate-400 font-bold uppercase">Correct</div><div id="summaryCorrect" class="text-lg font-black text-emerald-600">0/0</div></div>
+                <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border"><div class="text-[10px] text-slate-400 font-bold uppercase">Accuracy</div><div id="summaryAccuracy" class="text-lg font-black text-indigo-600">0%</div></div>
+            </div>
+            <button type="button" onclick="resetQuiz()" class="px-5 py-2.5 rounded-lg text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shadow inline-flex items-center gap-2 transition">
+                <i class="fa-solid fa-rotate-right"></i><span>Start New Session</span>
+            </button>
+        </div>
+    </main>
+
+    <div id="calcWidget" class="hidden fixed top-16 right-4 z-40 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700 mb-2">
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1"><i class="fa-solid fa-calculator text-sky-500"></i> Calculator</span>
+            <button id="closeCalcBtn" class="text-slate-400 hover:text-slate-600 text-xs"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <input id="calcDisplay" type="text" readonly value="0" class="w-full bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-right px-2 py-1 rounded-lg text-base font-mono font-bold mb-2 border border-slate-200 dark:border-slate-700">
+        <div id="calcGrid" class="grid grid-cols-4 gap-1 text-xs"></div>
+    </div>
+
+    <div id="refModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
+                <div class="flex space-x-2">
+                    <button id="tabFormulas" class="px-3 py-1 rounded-lg text-xs font-bold bg-sky-600 text-white">Formulas Sheet</button>
+                    <button id="tabPeriodic" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">Periodic Table</button>
+                </div>
+                <button id="closeRefBtn" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-4 overflow-y-auto space-y-3 text-xs flex-grow">
+                <div id="formulasContent" class="space-y-2">
+                    <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border"><div class="font-bold text-sky-600">Avogadro's Constant</div><div>N<sub>A</sub> = 6.022 × 10<sup>23</sup> particles/mol</div></div>
+                    <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border"><div class="font-bold text-sky-600">Molarity (M)</div><div>M = moles solute / Liters solution</div></div>
+                    <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border"><div class="font-bold text-sky-600">Dilution</div><div>C<sub>1</sub>V<sub>1</sub> = C<sub>2</sub>V<sub>2</sub> | Water Added = V<sub>2</sub> - V<sub>1</sub></div></div>
+                    <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border"><div class="font-bold text-sky-600">PPM Concentration</div><div>PPM = (mg solute) / (kg solution)</div></div>
+                </div>
+                <div id="periodicContent" class="hidden space-y-2">
+                    <input id="ptSearch" type="text" placeholder="Search element..." class="w-full px-3 py-1.5 text-xs rounded-lg border bg-slate-50 dark:bg-slate-900">
+                    <div id="ptGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[50vh] overflow-y-auto p-1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function safeGetStorage(k, fallback) { try { const v = localStorage.getItem(k); return v !== null ? v : fallback; } catch(e) { return fallback; } }
+        function safeSetStorage(k, v) { try { localStorage.setItem(k, v); } catch(e){} }
+
+        const audioCtx = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext || window.webkitAudioContext)() : null;
+        function playTone(freq, type, duration) {
+            if (!state.soundEnabled || !audioCtx) return;
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e){}
+        }
+
+        const ATOMIC_WEIGHTS = { H:1.008, Li:6.94, C:12.011, N:14.007, O:15.999, Na:22.990, Mg:24.305, Al:26.982, P:30.974, S:32.06, Cl:35.453, K:39.098, Ca:40.078, Mn:54.938, Fe:55.845, Cu:63.546, Zn:65.38 };
+        const ELEMENTS_LIST = [
+            [1,"H","Hydrogen",1.008], [3,"Li","Lithium",6.94], [6,"C","Carbon",12.011], [7,"N","Nitrogen",14.007],
+            [8,"O","Oxygen",15.999], [11,"Na","Sodium",22.990], [12,"Mg","Magnesium",24.305], [13,"Al","Aluminum",26.982],
+            [15,"P","Phosphorus",30.974], [16,"S","Sulfur",32.06], [17,"Cl","Chlorine",35.453], [19,"K","Potassium",39.098],
+            [20,"Ca","Calcium",40.078], [26,"Fe","Iron",55.845], [29,"Cu","Copper",63.546], [30,"Zn","Zinc",65.38]
+        ];
+
+        const COMPOUNDS_DB = [
+            { formula: "NaHCO3", name: "Sodium Bicarbonate", elements: { Na:1, H:1, C:1, O:3 } },
+            { formula: "CaCO3", name: "Calcium Carbonate", elements: { Ca:1, C:1, O:3 } },
+            { formula: "H2SO4", name: "Sulfuric Acid", elements: { H:2, S:1, O:4 } },
+            { formula: "HNO3", name: "Nitric Acid", elements: { H:1, N:1, O:3 } },
+            { formula: "C6H12O6", name: "Glucose", elements: { C:6, H:12, O:6 } },
+            { formula: "CuSO4", name: "Copper(II) Sulfate", elements: { Cu:1, S:1, O:4 } }
+        ];
+
+        const EMPIRICAL_DB = [
+            { formula: "C6H12O6", name: "Glucose", elements: { C:6, H:12, O:6 } },
+            { formula: "C6H6", name: "Benzene", elements: { C:6, H:6 } },
+            { formula: "H2O2", name: "Hydrogen Peroxide", elements: { H:2, O:2 } },
+            { formula: "N2O4", name: "Dinitrogen Tetroxide", elements: { N:2, O:4 } },
+            { formula: "N2H4", name: "Hydrazine", elements: { N:2, H:4 } },
+            { formula: "C2H4", name: "Ethylene", elements: { C:2, H:4 } },
+            { formula: "P4O10", name: "Tetraphosphorus Decoxide", elements: { P:4, O:10 } },
+            { formula: "KMnO4", name: "Potassium Permanganate", elements: { K:1, Mn:1, O:4 } },
+            { formula: "Al2O3", name: "Aluminum Oxide", elements: { Al:2, O:3 } }
+        ];
+
+        let state = {
+            theme: safeGetStorage('chem_theme', 'dark'),
+            soundEnabled: safeGetStorage('chem_sound', 'true') === 'true',
+            score: 0, streak: 0, totalAnswered: 0, totalCorrect: 0,
+            highScore: parseInt(safeGetStorage('chem_highScore', '0')),
+            mode: 'endless', quizTotal: 0, quizCurrent: 0, selectedTopic: 10,
+            currentQuestion: null, userAnswer: null, answered: false, calcInput: '0'
+        };
+
+        function getMolarMass(c) {
+            let t = 0; for (let el in c.elements) t += ATOMIC_WEIGHTS[el] * c.elements[el];
+            return parseFloat(t.toFixed(3));
+        }
+        function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function randFloat(min, max, d = 2) { return parseFloat((Math.random() * (max - min) + min).toFixed(d)); }
+
+        function formatScientific(val) {
+            if (val === 0) return "0";
+            const exp = Math.floor(Math.log10(Math.abs(val)));
+            return (val / Math.pow(10, exp)).toFixed(3) + " × 10<sup>" + exp + "</sup>";
+        }
+
+        function formatChemText(text) {
+            if (!text) return "";
+            return text.replace(/([A-Z][a-z]?)(\d+)/g, '$1<sub>$2</sub>');
+        }
+
+        function gcdOfArray(arr) {
+            const gcd2 = (a, b) => b === 0 ? a : gcd2(b, a % b);
+            return arr.reduce((a, b) => gcd2(a, b));
+        }
+
+        function reduceRatio(elementsObj) {
+            const g = gcdOfArray(Object.values(elementsObj));
+            const reduced = {};
+            for (const el in elementsObj) reduced[el] = elementsObj[el] / g;
+            return reduced;
+        }
+
+        function buildFormulaStr(elementsObj) {
+            let s = '';
+            for (const el in elementsObj) { const n = elementsObj[el]; s += el + (n === 1 ? '' : n); }
+            return s;
+        }
+
+        function generateFormulaDistractors(empiricalObj, molecularObj) {
+            const empiricalStr = buildFormulaStr(empiricalObj), molecularStr = buildFormulaStr(molecularObj);
+            const candidates = [];
+            if (molecularStr !== empiricalStr) candidates.push(molecularStr);
+            const keys = Object.keys(empiricalObj);
+            [1, -1, 2, -2].forEach(d => {
+                keys.forEach(el => {
+                    const val = empiricalObj[el] + d;
+                    if (val >= 1 && val !== empiricalObj[el]) {
+                        const s = buildFormulaStr({ ...empiricalObj, [el]: val });
+                        if (s !== empiricalStr && !candidates.includes(s)) candidates.push(s);
+                    }
+                });
+            });
+            return candidates.sort(() => Math.random() - 0.5).slice(0, 3);
+        }
+
+        const generators = {
+            1: function() {
+                const comp = COMPOUNDS_DB[randInt(0, COMPOUNDS_DB.length - 1)], molarMass = getMolarMass(comp);
+                return {
+                    title: "Molar Mass Calculation", text: "Calculate molar mass of <b>" + comp.formula + "</b> (" + comp.name + ").",
+                    correctAnswer: molarMass, inputType: 'number', unit: 'g/mol',
+                    solutionSteps: ["Sum atomic masses: " + molarMass + " g/mol"]
+                };
+            },
+            2: function() {
+                const comp = COMPOUNDS_DB[randInt(0, COMPOUNDS_DB.length - 1)], molarMass = getMolarMass(comp);
+                const elemList = Object.keys(comp.elements), targetElem = elemList[randInt(0, elemList.length - 1)];
+                const sampleMass = randFloat(10, 150, 1), atoms = (sampleMass / molarMass) * comp.elements[targetElem] * 6.022e23;
+                const correctStr = formatScientific(atoms);
+                const options = [correctStr, formatScientific(atoms * 0.5), formatScientific(atoms * 2.0), formatScientific(atoms * 1.5)].sort(() => Math.random() - 0.5);
+                return {
+                    title: "Atom Count from Mass", text: "How many <b>" + targetElem + "</b> atoms are in <b>" + sampleMass + " g</b> of " + comp.formula + "?",
+                    correctAnswer: correctStr, options: options, inputType: 'mcq',
+                    solutionSteps: ["Atoms = (Mass / MolarMass) × Count × 6.022 × 10²³ = " + correctStr]
+                };
+            },
+            3: function() {
+                const comp = COMPOUNDS_DB[randInt(0, COMPOUNDS_DB.length - 1)], molarMass = getMolarMass(comp);
+                const elemList = Object.keys(comp.elements), targetElem = elemList[randInt(0, elemList.length - 1)];
+                const elemMass = comp.elements[targetElem] * ATOMIC_WEIGHTS[targetElem];
+                const pct = parseFloat(((elemMass / molarMass) * 100).toFixed(2));
+                return {
+                    title: "Mass Percent Composition", text: "Calculate mass percent of <b>" + targetElem + "</b> in " + comp.formula + ".",
+                    correctAnswer: pct, inputType: 'number', unit: '%',
+                    solutionSteps: ["Mass % = (" + elemMass.toFixed(2) + " / " + molarMass + ") × 100% = " + pct + "%"]
+                };
+            },
+            4: function() {
+                const item = { formula: "C6H12O6", molarMass: 180.16, distractors: ["C3H6O3", "CH2O", "C4H8O4"] };
+                const options = [item.formula, ...item.distractors].sort(() => Math.random() - 0.5);
+                return {
+                    title: "Molecular Formula", text: "Compound molar mass = <b>" + item.molarMass + " g/mol</b>. What is the molecular formula?",
+                    correctAnswer: item.formula, options: options, inputType: 'mcq',
+                    solutionSteps: ["Empirical formula ratio yields " + item.formula + "."]
+                };
+            },
+            5: function() {
+                const comp = COMPOUNDS_DB[randInt(0, COMPOUNDS_DB.length - 1)];
+                const molarMass = getMolarMass(comp), mass = randFloat(5, 50, 1), volMl = randInt(100, 1000);
+                const molarity = parseFloat(((mass / molarMass) / (volMl / 1000)).toFixed(3));
+                return {
+                    title: "Molarity of Solution", text: "Find molarity (M) of <b>" + mass + " g</b> " + comp.formula + " in <b>" + volMl + " mL</b> solution.",
+                    correctAnswer: molarity, inputType: 'number', unit: 'M',
+                    solutionSteps: ["M = (Mass / MolarMass) / Volume(L) = " + molarity + " M"]
+                };
+            },
+            6: function() {
+                const c1 = randFloat(1.5, 6.0, 2), v1 = randInt(25, 200), c2 = randFloat(0.1, c1 - 0.5, 2);
+                const v2 = (c1 * v1) / c2, water = parseFloat((v2 - v1).toFixed(1));
+                return {
+                    title: "Dilution Calculations", text: "How much <b>water (mL)</b> must be added to <b>" + v1 + " mL</b> of <b>" + c1 + " M</b> stock solution to dilute to <b>" + c2 + " M</b>?",
+                    correctAnswer: water, inputType: 'number', unit: 'mL',
+                    solutionSteps: ["V2 = (C1 × V1) / C2 = " + v2.toFixed(1) + " mL. Water added = " + water + " mL"]
+                };
+            },
+            7: function() {
+                const pct = randFloat(2.0, 15.0, 1), totalSol = randInt(150, 800);
+                const solute = parseFloat(((pct / 100) * totalSol).toFixed(2));
+                return {
+                    title: "Mass/Mass Percent", text: "How many grams of solute are required for <b>" + totalSol + " g</b> of a <b>" + pct + "% (m/m)</b> solution?",
+                    correctAnswer: solute, inputType: 'number', unit: 'g',
+                    solutionSteps: ["Solute = (" + pct + " / 100) × " + totalSol + " = " + solute + " g"]
+                };
+            },
+            8: function() {
+                const soluteMg = randFloat(1.5, 45.0, 1), solutionKg = randFloat(0.5, 5.0, 2);
+                const ppm = parseFloat((soluteMg / solutionKg).toFixed(2));
+                return {
+                    title: "Concentration in PPM", text: "A sample contains <b>" + soluteMg + " mg</b> solute in <b>" + solutionKg + " kg</b> solution. Calculate PPM.",
+                    correctAnswer: ppm, inputType: 'number', unit: 'ppm',
+                    solutionSteps: ["PPM = mg / kg = " + soluteMg + " / " + solutionKg + " = " + ppm + " ppm"]
+                };
+            },
+            9: function() {
+                const comp = EMPIRICAL_DB[randInt(0, EMPIRICAL_DB.length - 1)];
+                const molarMass = getMolarMass(comp), elList = Object.keys(comp.elements);
+                const percents = {}, moles = {};
+                elList.forEach(el => {
+                    percents[el] = parseFloat(((comp.elements[el] * ATOMIC_WEIGHTS[el] / molarMass) * 100).toFixed(2));
+                    moles[el] = percents[el] / ATOMIC_WEIGHTS[el];
+                });
+                const minMoles = Math.min(...elList.map(el => moles[el]));
+                const empirical = reduceRatio(comp.elements), empiricalStr = buildFormulaStr(empirical);
+                const distractors = generateFormulaDistractors(empirical, comp.elements);
+                const options = [empiricalStr, ...distractors].sort(() => Math.random() - 0.5);
+                const percentText = elList.map(el => el + ": " + percents[el] + "%").join(", ");
+                const moleSteps = elList.map(el => el + ": " + percents[el] + " g ÷ " + ATOMIC_WEIGHTS[el] + " g/mol = " + moles[el].toFixed(3) + " mol");
+                const ratioSteps = elList.map(el => el + ": " + moles[el].toFixed(3) + " / " + minMoles.toFixed(3) + " = " + (moles[el] / minMoles).toFixed(2));
+                return {
+                    title: "Empirical Formula from % Composition",
+                    text: "A compound (" + comp.name + ") has the mass percent composition " + percentText + ". Determine its empirical formula (assume a 100 g sample).",
+                    correctAnswer: empiricalStr, options: options, inputType: 'mcq',
+                    solutionSteps: [
+                        "Assume a 100 g sample, so each mass percent becomes grams.",
+                        "Convert grams to moles: " + moleSteps.join("; "),
+                        "Divide each mole value by the smallest: " + ratioSteps.join("; "),
+                        "Round to whole numbers → empirical formula: " + empiricalStr
+                    ]
+                };
+            }
+        };
+
+        function loadNextQuestion() {
+            if (state.mode !== 'endless' && state.quizCurrent >= state.quizTotal) { showQuizSummary(); return; }
+            state.answered = false; state.userAnswer = null; state.quizCurrent++;
+
+            if (state.mode !== 'endless') {
+                document.getElementById('progressContainer').classList.remove('hidden');
+                document.getElementById('progressText').innerText = "Question " + state.quizCurrent + " of " + state.quizTotal;
+                document.getElementById('progressBar').style.width = ((state.quizCurrent / state.quizTotal) * 100) + "%";
+            } else { document.getElementById('progressContainer').classList.add('hidden'); }
+
+            document.getElementById('questionCard').classList.remove('hidden');
+            document.getElementById('quizSummaryCard').classList.add('hidden');
+            document.getElementById('solutionBox').classList.add('hidden');
+            document.getElementById('feedbackBanner').classList.add('hidden');
+            document.getElementById('submitBtn').classList.remove('hidden');
+            document.getElementById('nextBtn').classList.add('hidden');
+            document.getElementById('solBtnText').innerText = 'Show Solution';
+            const solBtn = document.getElementById('showSolBtn');
+            solBtn.disabled = true; solBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            let topicId = parseInt(state.selectedTopic);
+            if (topicId === 10) topicId = randInt(1, 9);
+            const q = generators[topicId](); state.currentQuestion = q;
+
+            document.getElementById('questionCategory').innerText = q.title;
+            document.getElementById('questionText').innerHTML = formatChemText(q.text);
+
+            const area = document.getElementById('interactionArea'); area.innerHTML = '';
+
+            if (q.inputType === 'number') {
+                area.innerHTML = '<div class="flex items-center gap-2 max-w-xs"><input type="number" step="any" id="numInput" placeholder="Enter answer..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 font-bold focus:ring-2 focus:ring-sky-500 outline-none"><span class="font-bold text-xs text-slate-400">' + (q.unit || '') + '</span></div>';
+                setTimeout(() => { const inp = document.getElementById('numInput'); if(inp) inp.focus(); }, 50);
+            } else if (q.inputType === 'mcq') {
+                const grid = document.createElement('div'); grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-2';
+                const baseClasses = ['border', 'border-slate-200', 'dark:border-slate-700', 'bg-slate-50', 'dark:bg-slate-900', 'text-slate-700', 'dark:text-slate-300'];
+                const selectedClasses = ['border-2', 'border-sky-500', 'bg-sky-100', 'dark:bg-sky-900/60', 'text-sky-700', 'dark:text-sky-200', 'ring-2', 'ring-sky-400/40'];
+                q.options.forEach((opt) => {
+                    const btn = document.createElement('button'); btn.type = 'button';
+                    btn.className = 'mcq-opt p-3 rounded-lg text-left text-xs font-medium hover:border-sky-500 transition ' + baseClasses.join(' ');
+                    btn.innerHTML = formatChemText(opt);
+                    btn.onclick = () => {
+                        if (state.answered) return; playTone(800, 'sine', 0.03);
+                        document.querySelectorAll('.mcq-opt').forEach(b => { b.classList.remove(...selectedClasses); b.classList.add(...baseClasses); });
+                        btn.classList.remove(...baseClasses); btn.classList.add(...selectedClasses);
+                        state.userAnswer = opt;
+                    };
+                    grid.appendChild(btn);
+                });
+                area.appendChild(grid);
+            }
+
+            document.getElementById('solutionContent').innerHTML = q.solutionSteps.map(s => '<div>' + formatChemText(s) + '</div>').join('');
+        }
+
+        function checkAnswer() {
+            if (state.answered) return;
+            const q = state.currentQuestion; let isCorrect = false;
+
+            if (q.inputType === 'number') {
+                const val = parseFloat(document.getElementById('numInput')?.value);
+                if (isNaN(val)) return;
+                const tol = Math.abs(q.correctAnswer * 0.02);
+                if (Math.abs(val - q.correctAnswer) <= Math.max(tol, 0.02)) isCorrect = true;
+            } else if (q.inputType === 'mcq') {
+                if (!state.userAnswer) return;
+                if (state.userAnswer === q.correctAnswer) isCorrect = true;
+            }
+
+            state.answered = true; state.totalAnswered++;
+            if (isCorrect) {
+                state.totalCorrect++; playTone(523, 'sine', 0.15);
+                state.score += 10; state.streak++;
+                if (state.score > state.highScore) { state.highScore = state.score; safeSetStorage('chem_highScore', state.highScore.toString()); }
+                showBanner(true, "Correct! Great job.");
+            } else {
+                playTone(220, 'triangle', 0.2); state.streak = 0;
+                showBanner(false, "Incorrect. Correct answer: " + q.correctAnswer);
+            }
+
+            updateDashboard();
+            const solBtn = document.getElementById('showSolBtn');
+            solBtn.disabled = false; solBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            document.getElementById('submitBtn').classList.add('hidden');
+            document.getElementById('nextBtn').classList.remove('hidden');
+        }
+
+        function showBanner(isSuccess, msg) {
+            const banner = document.getElementById('feedbackBanner');
+            banner.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800', 'dark:bg-emerald-950', 'dark:text-emerald-200', 'dark:bg-rose-950', 'dark:text-rose-200');
+            if (isSuccess) {
+                banner.classList.add('bg-emerald-100', 'text-emerald-800', 'dark:bg-emerald-950', 'dark:text-emerald-200');
+                document.getElementById('feedbackIcon').className = 'fa-solid fa-circle-check text-emerald-600';
+            } else {
+                banner.classList.add('bg-rose-100', 'text-rose-800', 'dark:bg-rose-950', 'dark:text-rose-200');
+                document.getElementById('feedbackIcon').className = 'fa-solid fa-circle-xmark text-rose-600';
+            }
+            document.getElementById('feedbackText').innerHTML = formatChemText(msg);
+        }
+
+        function updateDashboard() {
+            document.getElementById('scoreDisplay').innerText = state.score;
+            document.getElementById('streakVal').innerText = state.streak;
+            const acc = state.totalAnswered > 0 ? Math.round((state.totalCorrect / state.totalAnswered) * 100) : 100;
+            document.getElementById('accuracyDisplay').innerText = acc + "%";
+            document.getElementById('highScoreDisplay').innerText = state.highScore;
+        }
+
+        function showQuizSummary() {
+            document.getElementById('questionCard').classList.add('hidden');
+            document.getElementById('quizSummaryCard').classList.remove('hidden');
+            document.getElementById('summaryScore').innerText = state.score;
+            document.getElementById('summaryCorrect').innerText = state.totalCorrect + "/" + state.quizTotal;
+            const acc = state.quizTotal > 0 ? Math.round((state.totalCorrect / state.quizTotal) * 100) : 100;
+            document.getElementById('summaryAccuracy').innerText = acc + "%";
+        }
+
+        function resetQuiz() {
+            state.quizCurrent = 0; state.totalCorrect = 0; state.totalAnswered = 0;
+            loadNextQuestion();
+        }
+
+        function safeEval(expr) {
+            try {
+                if (!expr || typeof expr !== 'string') return '0';
+                let clean = expr.replace(/×/g, '*').replace(/÷/g, '/');
+                if (/[^0-9eE\+\-\*\/\(\)\.\s]/.test(clean)) return 'Error';
+                clean = clean.replace(/(\d*\.?\d+)[eE]([+-]?\d+)/g, '($1*Math.pow(10,$2))');
+                let openCount = (clean.match(/\(/g) || []).length, closeCount = (clean.match(/\)/g) || []).length;
+                while (openCount > closeCount) { clean += ')'; closeCount++; }
+                clean = clean.replace(/[\+\-\*\/]+$/, '');
+                if (!clean.trim()) return '0';
+                const res = new Function('"use strict"; return (' + clean + ')')();
+                return (res === undefined || isNaN(res) || !isFinite(res)) ? 'Error' : Number(res.toFixed(8)).toString();
+            } catch(e) { return 'Error'; }
+        }
+
+        function initCalculator() {
+            const grid = document.getElementById('calcGrid'), display = document.getElementById('calcDisplay');
+            const keys = ['C','(',')','/','7','8','9','*','4','5','6','-','1','2','3','+','0','.','e','='];
+            let justEvaluated = false;
+            grid.innerHTML = '';
+            keys.forEach(k => {
+                const btn = document.createElement('button');
+                let cls = 'p-2 rounded font-bold transition ';
+                if (k === 'C') cls += 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100';
+                else if (k === '=') cls += 'bg-emerald-600 text-white';
+                else if (['/','*','-','+'].includes(k)) cls += 'bg-sky-500 text-white';
+                else cls += 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-600';
+                btn.className = cls; btn.innerText = k === '/' ? '÷' : k === '*' ? '×' : k;
+                btn.onclick = () => {
+                    if (k === 'C') { state.calcInput = '0'; justEvaluated = false; }
+                    else if (k === '=') { state.calcInput = safeEval(state.calcInput); justEvaluated = true; }
+                    else {
+                        const isOperator = ['+','-','*','/'].includes(k);
+                        if (justEvaluated) {
+                            state.calcInput = isOperator ? state.calcInput + k : k;
+                            justEvaluated = false;
+                        } else if (state.calcInput === '0' || state.calcInput === 'Error') {
+                            state.calcInput = k;
+                        } else {
+                            state.calcInput += k;
+                        }
+                    }
+                    display.value = state.calcInput;
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        function initPeriodicTable() {
+            const grid = document.getElementById('ptGrid');
+            function renderPT(filter = '') {
+                grid.innerHTML = '';
+                ELEMENTS_LIST.filter(e => e[2].toLowerCase().includes(filter) || e[1].toLowerCase().includes(filter)).forEach(e => {
+                    const card = document.createElement('div');
+                    card.className = 'p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border text-center';
+                    card.innerHTML = '<div class="text-[10px] text-slate-400 font-bold">' + e[0] + '</div><div class="text-base font-black text-sky-600 dark:text-sky-400">' + e[1] + '</div><div class="text-[11px] font-bold truncate">' + e[2] + '</div><div class="text-[10px] text-slate-400">' + e[3] + '</div>';
+                    grid.appendChild(card);
+                });
+            }
+            renderPT();
+            document.getElementById('ptSearch').oninput = (ev) => renderPT(ev.target.value.toLowerCase().trim());
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (state.theme === 'dark') document.documentElement.classList.add('dark');
+            
+            document.getElementById('themeToggle').onclick = () => {
+                document.documentElement.classList.toggle('dark');
+                state.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                safeSetStorage('chem_theme', state.theme);
+            };
+
+            document.getElementById('soundToggle').onclick = () => {
+                state.soundEnabled = !state.soundEnabled;
+                safeSetStorage('chem_sound', state.soundEnabled.toString());
+                document.getElementById('soundIcon').className = state.soundEnabled ? 'fa-solid fa-volume-high text-slate-600 dark:text-slate-300' : 'fa-solid fa-volume-xmark text-slate-400';
+            };
+
+            document.getElementById('topicSelect').onchange = (e) => { state.selectedTopic = e.target.value; resetQuiz(); };
+
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.onclick = () => {
+                    document.querySelectorAll('.mode-btn').forEach(b => {
+                        b.classList.remove('border-sky-500', 'bg-sky-50', 'dark:bg-sky-950/60', 'text-sky-600', 'dark:text-sky-300');
+                        b.classList.add('border-slate-200', 'dark:border-slate-700', 'text-slate-600', 'dark:text-slate-400');
+                    });
+                    btn.classList.add('border-sky-500', 'bg-sky-50', 'dark:bg-sky-950/60', 'text-sky-600', 'dark:text-sky-300');
+                    btn.classList.remove('border-slate-200', 'dark:border-slate-700', 'text-slate-600', 'dark:text-slate-400');
+                    state.mode = btn.getAttribute('data-mode');
+                    state.quizTotal = state.mode === 'endless' ? 0 : parseInt(state.mode);
+                    resetQuiz();
+                };
+            });
+
+            document.getElementById('showSolBtn').onclick = () => {
+                if (!state.answered) return;
+                const box = document.getElementById('solutionBox');
+                box.classList.toggle('hidden');
+                document.getElementById('solBtnText').innerText = box.classList.contains('hidden') ? 'Show Solution' : 'Hide Solution';
+            };
+
+            document.getElementById('calcBtn').onclick = () => document.getElementById('calcWidget').classList.toggle('hidden');
+            document.getElementById('closeCalcBtn').onclick = () => document.getElementById('calcWidget').classList.add('hidden');
+            document.getElementById('refBtn').onclick = () => document.getElementById('refModal').classList.remove('hidden');
+            document.getElementById('closeRefBtn').onclick = () => document.getElementById('refModal').classList.add('hidden');
+
+            document.getElementById('tabFormulas').onclick = () => {
+                document.getElementById('formulasContent').classList.remove('hidden');
+                document.getElementById('periodicContent').classList.add('hidden');
+                document.getElementById('tabFormulas').className = 'px-3 py-1 rounded-lg text-xs font-bold bg-sky-600 text-white';
+                document.getElementById('tabPeriodic').className = 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+            };
+
+            document.getElementById('tabPeriodic').onclick = () => {
+                document.getElementById('formulasContent').classList.add('hidden');
+                document.getElementById('periodicContent').classList.remove('hidden');
+                document.getElementById('tabPeriodic').className = 'px-3 py-1 rounded-lg text-xs font-bold bg-sky-600 text-white';
+                document.getElementById('tabFormulas').className = 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+            };
+
+            initCalculator();
+            initPeriodicTable();
+            updateDashboard();
+            loadNextQuestion();
+        });
+    </script>
+</body>
+</html>
