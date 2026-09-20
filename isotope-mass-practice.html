@@ -78,7 +78,7 @@
                 </button>
 
                 <!-- Scratchpad Calc Trigger -->
-                <button id="btn-scratchpad" title="Quick Calculator" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+                <button id="btn-scratchpad" title="Calculator (floating &ndash; drag it anywhere)" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
                     <i class="fa-solid fa-calculator text-sm"></i>
                 </button>
             </div>
@@ -386,18 +386,27 @@
             </div>
         </div>
 
-        <!-- SCRATCHPAD CALCULATOR MODAL -->
-        <div id="modal-scratchpad" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-            <div class="bg-slate-900 rounded-2xl max-w-xs w-full p-4 shadow-2xl border border-slate-800">
-                <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
-                    <h3 class="font-bold text-sm text-white flex items-center">
-                        <i class="fa-solid fa-calculator text-cyan-400 mr-2"></i> Scratchpad Calculator
-                    </h3>
-                    <button class="scratchpad-close p-1 text-slate-400 hover:text-white">
-                        <i class="fa-solid fa-xmark text-base"></i>
+        <!-- FLOATING CALCULATOR: non-modal (no backdrop), so the question stays visible and the page stays usable.
+             Drag it by the title bar; minimize it to just the title bar. -->
+        <div id="floating-calc" role="dialog" aria-modal="false" aria-label="Calculator"
+             class="fixed z-40 w-60 bg-slate-900 rounded-2xl shadow-2xl shadow-black/60 border border-slate-700 select-none hidden"
+             style="left:0px; top:0px;">
+            <div id="calc-drag-handle" class="flex items-center justify-between px-3 py-2 cursor-move rounded-t-2xl" style="touch-action:none;" title="Drag to move">
+                <h3 class="font-bold text-xs text-white flex items-center">
+                    <i class="fa-solid fa-grip-vertical text-slate-600 mr-2"></i>
+                    <i class="fa-solid fa-calculator text-cyan-400 mr-2"></i> Calculator
+                </h3>
+                <div class="flex items-center space-x-1">
+                    <button id="calc-minimize" type="button" title="Minimize" class="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-white">
+                        <i id="calc-minimize-icon" class="fa-solid fa-chevron-up text-xs"></i>
+                    </button>
+                    <button type="button" title="Close" class="scratchpad-close w-6 h-6 flex items-center justify-center text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark text-sm"></i>
                     </button>
                 </div>
+            </div>
 
+            <div id="calc-body" class="px-3 pb-3 border-t border-slate-800 pt-3">
                 <div class="bg-slate-950 p-3 rounded-xl mb-3 text-right border border-slate-800">
                     <div id="calc-expression" class="text-xs font-mono text-slate-500 min-h-[16px]"></div>
                     <div id="calc-display" class="text-xl font-mono font-bold text-white truncate">0</div>
@@ -643,7 +652,7 @@
             btnReference: document.getElementById('btn-reference'),
             modalReference: document.getElementById('modal-reference'),
             btnScratchpad: document.getElementById('btn-scratchpad'),
-            modalScratchpad: document.getElementById('modal-scratchpad')
+            floatingCalc: document.getElementById('floating-calc')
         };
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -686,10 +695,8 @@
                 btn.addEventListener('click', () => dom.modalReference.classList.add('hidden'));
             });
 
-            dom.btnScratchpad.addEventListener('click', () => dom.modalScratchpad.classList.remove('hidden'));
-            document.querySelectorAll('.scratchpad-close').forEach(btn => {
-                btn.addEventListener('click', () => dom.modalScratchpad.classList.add('hidden'));
-            });
+            // Floating calculator (non-modal, draggable)
+            initFloatingCalc();
         }
 
         /**
@@ -1204,6 +1211,97 @@
             } catch (e) {
                 document.getElementById('calc-display').textContent = 'Error';
             }
+        }
+
+        // FLOATING CALCULATOR WINDOW
+        // The calculator is a position:fixed panel with no backdrop, so the question, isotope table and
+        // answer boxes stay visible and usable while the student calculates. Drag it by its title bar
+        // (mouse or touch); the chevron collapses it to just the title bar; the trigger button toggles it.
+        const calcWin = { placed: false, dragging: false, offX: 0, offY: 0 };
+        const CALC_MARGIN = 8;
+
+        // Move the panel to (x, y), keeping it fully inside the viewport.
+        function calcPlace(x, y) {
+            const el = dom.floatingCalc;
+            const maxX = Math.max(CALC_MARGIN, window.innerWidth - el.offsetWidth - CALC_MARGIN);
+            const maxY = Math.max(CALC_MARGIN, window.innerHeight - el.offsetHeight - CALC_MARGIN);
+            el.style.left = Math.min(Math.max(CALC_MARGIN, x), maxX) + 'px';
+            el.style.top = Math.min(Math.max(CALC_MARGIN, y), maxY) + 'px';
+        }
+
+        function calcPlaceDefault() {
+            const el = dom.floatingCalc;
+            const appRect = document.getElementById('app').getBoundingClientRect();
+            if (window.innerWidth - appRect.right >= el.offsetWidth + 2 * CALC_MARGIN + 8) {
+                // Wide screen: park it in the free space beside the app so it covers nothing.
+                calcPlace(appRect.right + 16, 96);
+            } else {
+                // Narrow screen: start in the bottom-right corner; the student can drag it anywhere.
+                calcPlace(window.innerWidth, window.innerHeight);
+            }
+        }
+
+        function calcOpen() {
+            dom.floatingCalc.classList.remove('hidden');
+            if (!calcWin.placed) {
+                calcPlaceDefault();
+                calcWin.placed = true;
+            } else {
+                calcPlace(parseFloat(dom.floatingCalc.style.left) || 0, parseFloat(dom.floatingCalc.style.top) || 0);
+            }
+            dom.btnScratchpad.classList.add('ring-1', 'ring-cyan-500/70');
+        }
+
+        function calcClose() {
+            dom.floatingCalc.classList.add('hidden');
+            dom.btnScratchpad.classList.remove('ring-1', 'ring-cyan-500/70');
+        }
+
+        function calcToggleMinimize() {
+            const body = document.getElementById('calc-body');
+            const icon = document.getElementById('calc-minimize-icon');
+            const minimized = body.classList.toggle('hidden');
+            icon.classList.toggle('fa-chevron-up', !minimized);
+            icon.classList.toggle('fa-chevron-down', minimized);
+            document.getElementById('calc-minimize').title = minimized ? 'Expand' : 'Minimize';
+            // Height changed: keep the panel inside the viewport (matters when it sits near the bottom edge).
+            calcPlace(parseFloat(dom.floatingCalc.style.left) || 0, parseFloat(dom.floatingCalc.style.top) || 0);
+        }
+
+        function initFloatingCalc() {
+            const el = dom.floatingCalc;
+            const handle = document.getElementById('calc-drag-handle');
+
+            dom.btnScratchpad.addEventListener('click', () => {
+                if (el.classList.contains('hidden')) calcOpen(); else calcClose();
+            });
+            el.querySelectorAll('.scratchpad-close').forEach(btn => btn.addEventListener('click', calcClose));
+            document.getElementById('calc-minimize').addEventListener('click', calcToggleMinimize);
+
+            // Drag by the title bar. Pointer events cover mouse, touch and pen; pointer capture keeps the
+            // drag going even if the pointer leaves the title bar.
+            handle.addEventListener('pointerdown', (e) => {
+                if (e.target.closest('button')) return;
+                const r = el.getBoundingClientRect();
+                calcWin.dragging = true;
+                calcWin.offX = e.clientX - r.left;
+                calcWin.offY = e.clientY - r.top;
+                try { handle.setPointerCapture(e.pointerId); } catch (_) { /* not supported: fall back to plain events */ }
+                e.preventDefault();
+            });
+            handle.addEventListener('pointermove', (e) => {
+                if (!calcWin.dragging) return;
+                calcPlace(e.clientX - calcWin.offX, e.clientY - calcWin.offY);
+            });
+            const endDrag = () => { calcWin.dragging = false; };
+            handle.addEventListener('pointerup', endDrag);
+            handle.addEventListener('pointercancel', endDrag);
+
+            // Keep it on-screen when the window is resized or the phone is rotated.
+            window.addEventListener('resize', () => {
+                if (el.classList.contains('hidden')) return;
+                calcPlace(parseFloat(el.style.left) || 0, parseFloat(el.style.top) || 0);
+            });
         }
     </script>
 </body>
