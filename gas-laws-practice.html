@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gas Laws Master Practice App</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     <style>
         body, .max-w-xl { transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
 
@@ -59,6 +62,53 @@
         }
         [data-theme="dark"] #themeToggleBtn { background: #1e293b; border-color: #334155; color: #cbd5e1; }
 
+        #refBtn {
+            font-size: 1.1rem;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #374151;
+            cursor: pointer;
+            line-height: 1;
+        }
+        [data-theme="dark"] #refBtn { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+
+        .ref-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 16px;
+        }
+        .ref-box {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 480px;
+            width: 100%;
+            max-height: 82vh;
+            overflow-y: auto;
+        }
+        [data-theme="dark"] .ref-box { background: #1e293b; border-color: #334155; }
+        .ref-section { margin-bottom: 14px; }
+        .ref-section h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #6b7280; margin-bottom: 6px; }
+        [data-theme="dark"] .ref-section h3 { color: #94a3b8; }
+        .ref-eq {
+            font-family: monospace;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            color: #1f2937;
+        }
+        [data-theme="dark"] .ref-eq { background: #0f172a; border-color: #334155; color: #f1f5f9; }
+
         .stat-chip b { display: block; font-size: 1.15rem; }
 
         /* ---------- Floating calculator ---------- */
@@ -95,6 +145,7 @@
 
     <div class="max-w-xl w-full bg-white rounded-xl shadow-md p-8 border border-gray-100">
         <div class="flex items-center justify-between gap-3 mb-2">
+            <button id="refBtn" type="button" title="Formula reference">📖</button>
             <h1 class="text-3xl font-bold text-gray-800 text-center">Gas Laws Master Practice</h1>
             <button id="themeToggleBtn" type="button">Light mode</button>
         </div>
@@ -167,6 +218,75 @@
             
             <div id="solutionContainer" class="hidden mt-4 bg-gray-50 border border-gray-200 rounded-lg p-5 text-sm text-gray-700 leading-relaxed">
                 </div>
+        </div>
+    </div>
+
+    <!-- Formula Reference Popup -->
+    <div id="refOverlay" class="ref-overlay" style="display:none;">
+        <div class="ref-box">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg font-bold text-blue-700">📖 Gas Law Formulas</h2>
+                <button id="refCloseBtn" type="button" class="text-2xl leading-none text-gray-500">&times;</button>
+            </div>
+
+            <div class="ref-section">
+                <h3>Boyle's Law (constant T, n)</h3>
+                <div class="ref-eq">$P_1 V_1 = P_2 V_2$</div>
+            </div>
+
+            <div class="ref-section">
+                <h3>Charles' Law (constant P, n)</h3>
+                <div class="ref-eq">$\dfrac{V_1}{T_1} = \dfrac{V_2}{T_2}$</div>
+            </div>
+
+            <div class="ref-section">
+                <h3>Gay-Lussac's Law (constant V, n)</h3>
+                <div class="ref-eq">$\dfrac{P_1}{T_1} = \dfrac{P_2}{T_2}$</div>
+            </div>
+
+            <div class="ref-section">
+                <h3>Avogadro's Law (constant P, T)</h3>
+                <div class="ref-eq">$\dfrac{V_1}{n_1} = \dfrac{V_2}{n_2}$</div>
+            </div>
+
+            <div class="ref-section">
+                <h3>Combined Gas Law (constant n)</h3>
+                <div class="ref-eq">$\dfrac{P_1 V_1}{T_1} = \dfrac{P_2 V_2}{T_2}$</div>
+            </div>
+
+            <div class="ref-section">
+                <h3>Ideal Gas Law</h3>
+                <div class="ref-eq">$PV = nRT$</div>
+                <div class="ref-eq">$R = 0.0821\ \dfrac{\text{L}\cdot\text{atm}}{\text{mol}\cdot\text{K}}$</div>
+            </div>
+
+            <div class="ref-section">
+                <h3>Dalton's Law of Partial Pressures</h3>
+                <div class="ref-eq">$P_{\text{total}} = P_1 + P_2 + P_3 + \cdots$</div>
+            </div>
+
+            <div class="ref-section">
+                <h3>Gas Density</h3>
+                <div class="ref-eq">$d = \dfrac{PM}{RT}$</div>
+                <p class="text-xs text-gray-500 mt-1">M = molar mass (g/mol); d in g/L</p>
+            </div>
+
+            <div class="ref-section">
+                <h3>RMS Speed (Kinetic Molecular Theory)</h3>
+                <div class="ref-eq">$v_{\text{rms}} = \sqrt{\dfrac{3RT}{M}}$</div>
+                <p class="text-xs text-gray-500 mt-1">Use R = 8.314 J/(mol&middot;K) and M in kg/mol for v_rms in m/s</p>
+            </div>
+
+            <div class="ref-section">
+                <h3>Graham's Law of Effusion</h3>
+                <div class="ref-eq">$\dfrac{\text{rate}_1}{\text{rate}_2} = \sqrt{\dfrac{M_2}{M_1}}$</div>
+                <p class="text-xs text-gray-500 mt-1">Lighter gases (smaller M) effuse faster</p>
+            </div>
+
+            <div class="ref-section">
+                <h3>Temperature Conversion</h3>
+                <div class="ref-eq">$T(\text{K}) = T(^\circ\text{C}) + 273.15$</div>
+            </div>
         </div>
     </div>
 
@@ -1058,6 +1178,22 @@
         checkBtn.addEventListener('click', checkAnswer);
         toggleSolutionBtn.addEventListener('click', toggleSolution);
         document.getElementById('calcToggleBtn').addEventListener('click', toggleCalculator);
+
+        const refBtn = document.getElementById('refBtn');
+        const refOverlay = document.getElementById('refOverlay');
+        const refCloseBtn = document.getElementById('refCloseBtn');
+        refBtn.addEventListener('click', () => { refOverlay.style.display = 'flex'; });
+        refCloseBtn.addEventListener('click', () => { refOverlay.style.display = 'none'; });
+        refOverlay.addEventListener('click', (e) => { if (e.target === refOverlay) refOverlay.style.display = 'none'; });
+
+        if (window.renderMathInElement) {
+            renderMathInElement(refOverlay, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false }
+                ]
+            });
+        }
 
         // Initialize App
         generateQuestion();
