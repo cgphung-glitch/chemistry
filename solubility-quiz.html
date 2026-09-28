@@ -20,8 +20,23 @@
     --mono: 'JetBrains Mono', 'Courier New', monospace;
     --serif: 'Fraunces', Georgia, serif;
   }
+
+  [data-theme="light"] {
+    --bg: #f4f1eb;
+    --panel: #ffffff;
+    --panel-2: #eae7e1;
+    --ink: #1c1d1f;
+    --ink-dim: #6c6962;
+    --amber: #c47610;
+    --amber-dim: #d98e2b;
+    --teal: #237a70;
+    --red: #c0392b;
+    --green: #278036;
+    --border: #d3cecb;
+  }
+
   *{ box-sizing:border-box; }
-  html,body{ margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:var(--mono); -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:var(--mono); -webkit-tap-highlight-color:transparent; transition: background-color 0.2s ease, color 0.2s ease; }
   body{
     background-image:
       linear-gradient(var(--border) 1px, transparent 1px),
@@ -33,9 +48,18 @@
   }
   .wrap{ max-width: 640px; margin:0 auto; padding: 20px 16px 50px; }
 
-  header.app-header{ margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:12px; }
+  header.app-header{ 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-end; 
+    margin-bottom:16px; 
+    border-bottom:1px solid var(--border); 
+    padding-bottom:12px; 
+  }
   header.app-header h1{ font-family:var(--serif); font-weight:600; font-size:1.5rem; margin:0; color:var(--amber); letter-spacing:0.3px; }
   header.app-header .subtitle{ color:var(--ink-dim); font-size:0.78rem; margin-top:2px; }
+  
+  .header-actions{ display: flex; gap: 8px; }
 
   .card{ background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:18px 18px; margin-bottom:16px; }
 
@@ -68,7 +92,7 @@
   .btn.primary{ background:var(--amber-dim); border-color:var(--amber-dim); color:#1b1d1f; font-weight:600; }
   .btn.primary:hover{ background:var(--amber); border-color:var(--amber); color:#1b1d1f; }
   .btn.danger{ border-color:var(--red); color:var(--red); }
-  .btn.danger:hover{ background:var(--red); color:#1b1d1f; }
+  .btn.danger:hover{ background:var(--red); color:#ffffff; }
   .btn.small{ padding:7px 11px; font-size:0.7rem; }
   .btn:disabled{ opacity:0.4; cursor:default; }
 
@@ -152,6 +176,18 @@
   .modal p{ color:var(--ink-dim); font-size:0.85rem; line-height:1.6; margin:0 0 18px 0; }
   .modal-actions{ display:flex; gap:10px; justify-content:flex-end; }
 
+  /* ref sheet modal */
+  .ref-modal{ max-width:620px; max-height:85vh; display:flex; flex-direction:column; padding:0; overflow:hidden; }
+  .ref-header{ padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .ref-header h3{ margin:0; }
+  .ref-body{ padding:20px; overflow-y:auto; font-size:0.78rem; }
+  .ref-table-title{ font-family:var(--serif); color:var(--amber); font-size:0.9rem; margin:14px 0 8px 0; }
+  .ref-table-title:first-child{ margin-top:0; }
+  .ref-table{ width:100%; border-collapse:collapse; margin-bottom:12px; }
+  .ref-table th, .ref-table td{ text-align:left; padding:8px 10px; border:1px solid var(--border); }
+  .ref-table th{ background:var(--panel-2); color:var(--teal); font-weight:600; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; }
+  .ref-table td{ background:rgba(255,255,255,0.02); }
+
   footer.app-footer{ text-align:center; color:var(--ink-dim); font-size:0.66rem; margin-top:20px; opacity:0.7; }
 
   .hidden{ display:none !important; }
@@ -167,8 +203,14 @@
 <div class="wrap">
 
   <header class="app-header">
-    <h1>Solubility Rules Practice</h1>
-    <div class="subtitle">General Chemistry &middot; soluble vs. insoluble</div>
+    <div>
+      <h1>Solubility Rules Practice</h1>
+      <div class="subtitle">General Chemistry &middot; soluble vs. insoluble</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn small" id="btn-theme-toggle" aria-label="Toggle theme">&#9790;</button>
+      <button class="btn small" id="btn-ref-sheet">&#128216; Rules Sheet</button>
+    </div>
   </header>
 
   <!-- ============ MENU SCREEN ============ -->
@@ -275,9 +317,117 @@
   </div>
 </div>
 
+<!-- Reference Sheet modal -->
+<div class="modal-backdrop" id="ref-backdrop">
+  <div class="modal ref-modal">
+    <div class="ref-header">
+      <h3>Solubility Rules Reference</h3>
+      <button class="btn small" id="ref-close">&times; Close</button>
+    </div>
+    <div class="ref-body">
+      <div class="ref-table-title">Generally Soluble Compounds</div>
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Ion / Compound Type</th>
+            <th>Solubility</th>
+            <th>Exceptions (Insoluble)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Group 1 Cations (Li<sup>+</sup>, Na<sup>+</sup>, K<sup>+</sup>, etc.)</td>
+            <td>Soluble</td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Ammonium (NH<sub>4</sub><sup>+</sup>)</td>
+            <td>Soluble</td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Nitrates (NO<sub>3</sub><sup>-</sup>), Acetates (C<sub>2</sub>H<sub>3</sub>O<sub>2</sub><sup>-</sup>), Perchlorates (ClO<sub>4</sub><sup>-</sup>)</td>
+            <td>Soluble</td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Halides (Cl<sup>-</sup>, Br<sup>-</sup>, I<sup>-</sup>)</td>
+            <td>Soluble</td>
+            <td>Ag<sup>+</sup>, Pb<sup>2+</sup>, Hg<sub>2</sub><sup>2+</sup></td>
+          </tr>
+          <tr>
+            <td>Sulfates (SO<sub>4</sub><sup>2-</sup>)</td>
+            <td>Soluble</td>
+            <td>Ba<sup>2+</sup>, Sr<sup>2+</sup>, Pb<sup>2+</sup> (Ca<sup>2+</sup> and Ag<sup>+</sup> are slightly soluble)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="ref-table-title">Generally Insoluble Compounds</div>
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Ion / Compound Type</th>
+            <th>Solubility</th>
+            <th>Exceptions (Soluble)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Hydroxides (OH<sup>-</sup>)</td>
+            <td>Insoluble</td>
+            <td>Group 1 cations, Ba<sup>2+</sup>, Sr<sup>2+</sup> (Ca<sup>2+</sup> is slightly soluble)</td>
+          </tr>
+          <tr>
+            <td>Sulfides (S<sup>2-</sup>)</td>
+            <td>Insoluble</td>
+            <td>Group 1 and Group 2 cations, NH<sub>4</sub><sup>+</sup></td>
+          </tr>
+          <tr>
+            <td>Carbonates (CO<sub>3</sub><sup>2-</sup>), Phosphates (PO<sub>4</sub><sup>3-</sup>), Chromates (CrO<sub>4</sub><sup>2-</sup>)</td>
+            <td>Insoluble</td>
+            <td>Group 1 cations, NH<sub>4</sub><sup>+</sup></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
+
+  /* ---------------------------------------------------------------
+   * Theme toggling
+   * ------------------------------------------------------------- */
+  var THEME_KEY = "solubilityQuizTheme_v1";
+  var themeToggleBtn = document.getElementById('btn-theme-toggle');
+
+  function getPreferredTheme(){
+    var saved = localStorage.getItem(THEME_KEY);
+    if (saved) return saved;
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+
+  function applyTheme(theme){
+    if (theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      themeToggleBtn.innerHTML = '&#9728;'; // Sun icon
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      themeToggleBtn.innerHTML = '&#9790;'; // Moon icon
+    }
+  }
+
+  var currentTheme = getPreferredTheme();
+  applyTheme(currentTheme);
+
+  themeToggleBtn.addEventListener('click', function(){
+    currentTheme = (currentTheme === 'light') ? 'dark' : 'light';
+    localStorage.setItem(THEME_KEY, currentTheme);
+    applyTheme(currentTheme);
+  });
 
   /* ---------------------------------------------------------------
    * Compound bank
@@ -627,6 +777,18 @@
   });
   restartBackdrop.addEventListener('click', function(e){
     if (e.target === restartBackdrop) restartBackdrop.classList.remove('show');
+  });
+
+  // Reference sheet modal handlers
+  var refBackdrop = document.getElementById('ref-backdrop');
+  document.getElementById('btn-ref-sheet').addEventListener('click', function(){
+    refBackdrop.classList.add('show');
+  });
+  document.getElementById('ref-close').addEventListener('click', function(){
+    refBackdrop.classList.remove('show');
+  });
+  refBackdrop.addEventListener('click', function(e){
+    if (e.target === refBackdrop) refBackdrop.classList.remove('show');
   });
 
   // keyboard support: S / I keys to answer, Enter to advance
