@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precipitation Reaction Practice</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .katex-display { margin: 0.25em 0; overflow-x: auto; overflow-y: hidden; }
+        .katex { font-size: 1.15em; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200 font-sans flex flex-col">
+
+    <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-800/90 backdrop-blur border-b border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid font-bold text-xl fa-flask"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight text-slate-900 dark:text-white">Precip Chem Lab</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Precipitation Reactions Practice</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button id="instructionsBtn" class="p-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Instructions">
+                    <i class="fa-solid fa-circle-question text-lg"></i>
+                </button>
+                <button id="themeToggleBtn" class="p-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Toggle Dark Mode">
+                    <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col justify-between">
+        
+        <!-- Scoreboard Bar -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div class="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center">
+                <span class="text-xs uppercase font-bold tracking-wider text-slate-400">Streak</span>
+                <span id="streakVal" class="text-xl font-extrabold text-amber-500 flex items-center gap-1">0 <i class="fa-solid fa-fire text-sm"></i></span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center">
+                <span class="text-xs uppercase font-bold tracking-wider text-slate-400">Current Score</span>
+                <span id="currentScoreVal" class="text-xl font-extrabold text-sky-500">0 / 0</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center">
+                <span class="text-xs uppercase font-bold tracking-wider text-slate-400">Last Score</span>
+                <span id="lastScoreVal" class="text-xl font-extrabold text-indigo-500">--</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center">
+                <span class="text-xs uppercase font-bold tracking-wider text-slate-400">High Score</span>
+                <span id="highScoreVal" class="text-xl font-extrabold text-emerald-500">0%</span>
+            </div>
+        </div>
+
+        <!-- Start/Setup Screen -->
+        <div id="setupScreen" class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-md my-auto">
+            <div class="text-center max-w-lg mx-auto">
+                <div class="inline-flex p-4 rounded-full bg-sky-50 dark:bg-sky-950/50 text-sky-500 mb-4">
+                    <i class="fa-solid fa-vial-circle-check text-4xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Master Ionic &amp; Net Ionic Equations</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm mb-6">
+                    Practice all 5 steps for precipitation reactions. Choose session length to begin:
+                </p>
+
+                <div class="flex flex-col sm:flex-row justify-center gap-3 mb-6">
+                    <button onclick="startSession(10)" class="flex-1 py-3 px-4 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-xl shadow-md transition hover:-translate-y-0.5">
+                        10 Questions
+                    </button>
+                    <button onclick="startSession(15)" class="flex-1 py-3 px-4 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl shadow-md transition hover:-translate-y-0.5">
+                        15 Questions
+                    </button>
+                    <button onclick="startSession(20)" class="flex-1 py-3 px-4 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-xl shadow-md transition hover:-translate-y-0.5">
+                        20 Questions
+                    </button>
+                </div>
+
+                <div class="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 text-left border border-slate-200 dark:border-slate-600 text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
+                    <p class="font-bold text-slate-800 dark:text-slate-200"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> Key Formatting Rules:</p>
+                    <p>• <strong>Charges MUST use <code class="bg-slate-200 dark:bg-slate-800 px-1 rounded font-bold text-sky-500">^</code></strong> (e.g., <code class="bg-slate-200 dark:bg-slate-800 px-1 rounded">Ba^2+(aq)</code> or <code class="bg-slate-200 dark:bg-slate-800 px-1 rounded">NO3^-(aq)</code>).</p>
+                    <p>• Use <code class="bg-slate-200 dark:bg-slate-800 px-1 rounded font-bold">=</code>, <code class="bg-slate-200 dark:bg-slate-800 px-1">-&gt;</code>, or <code class="bg-slate-200 dark:bg-slate-800 px-1">--&gt;</code> for yield arrows.</p>
+                    <p>• <strong>Species Order DOES NOT Matter!</strong> As long as reactants and products are on their respective sides with correct coefficients, charges, and states.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quizScreen" class="hidden flex-col space-y-4">
+            
+            <div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div class="flex justify-between items-center mb-2">
+                    <span id="questionCounter" class="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">Question 1 of 10</span>
+                    <button onclick="confirmStopPractice()" class="text-xs font-semibold text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-left"></i> End Practice
+                    </button>
+                </div>
+                <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                    <div id="progressBar" class="bg-sky-500 h-full transition-all duration-300" style="width: 10%;"></div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <p class="text-xs font-bold uppercase text-slate-400 mb-1">Reactants Prompt (Unbalanced):</p>
+                    <div id="reactantsRender" class="text-xl sm:text-2xl font-semibold text-slate-800 dark:text-slate-100 py-1 min-h-[36px]"></div>
+                </div>
+            </div>
+
+            <!-- Form Container -->
+            <div id="quizFormContainer" class="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-5">
+                
+                <!-- Helper Toolbar -->
+                <div class="bg-slate-100 dark:bg-slate-900 p-2 rounded-xl flex items-center gap-1.5 overflow-x-auto text-xs sm:text-sm font-semibold">
+                    <span class="text-slate-400 px-2 text-xs flex items-center gap-1 shrink-0"><i class="fa-solid fa-keyboard"></i> Quick Insert:</span>
+                    <button type="button" onclick="insertSymbol('^')" class="bg-white dark:bg-slate-800 px-2.5 py-1.5 rounded border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 transition shrink-0 font-extrabold text-sky-500">^</button>
+                    <button type="button" onclick="insertSymbol('(aq)')" class="bg-white dark:bg-slate-800 px-2.5 py-1.5 rounded border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 transition shrink-0">(aq)</button>
+                    <button type="button" onclick="insertSymbol('(s)')" class="bg-white dark:bg-slate-800 px-2.5 py-1.5 rounded border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 transition shrink-0">(s)</button>
+                    <button type="button" onclick="insertSymbol('+')" class="bg-white dark:bg-slate-800 px-2.5 py-1.5 rounded border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 transition shrink-0 font-bold">+</button>
+                    <button type="button" onclick="insertSymbol('=')" class="bg-white dark:bg-slate-800 px-2.5 py-1.5 rounded border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 transition shrink-0 font-bold">=</button>
+                    <button type="button" onclick="insertSymbol('^+')" class="bg-white dark:bg-slate-800 px-2.5 py-1.5 rounded border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 transition shrink-0"><sup>+</sup></button>
+                    <button type="button" onclick="insertSymbol('^-')" class="bg-white dark:bg-slate-800 px-2.5 py-1.5 rounded border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 transition shrink-0"><sup>-</sup></button>
+                    <button type="button" onclick="insertSymbol('^2+')" class="bg-white dark:bg-slate-800 px-2.5 py-1.5 rounded border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 transition shrink-0"><sup>2+</sup></button>
+                    <button type="button" onclick="insertSymbol('^3+')" class="bg-white dark:bg-slate-800 px-2.5 py-1.5 rounded border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 transition shrink-0"><sup>3+</sup></button>
+                    <button type="button" onclick="insertSymbol('^2-')" class="bg-white dark:bg-slate-800 px-2.5 py-1.5 rounded border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 transition shrink-0"><sup>2-</sup></button>
+                </div>
+
+                <!-- Step 1 -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                        1) Identify Products <span class="normal-case text-slate-400 font-normal">(No coefficients needed, any order)</span>
+                    </label>
+                    <input type="text" id="step1Input" class="step-input w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-sky-500 outline-none font-mono text-sm" placeholder="e.g. AgCl(s) + NaNO3(aq)">
+                    <div id="step1Preview" class="min-h-[28px] mt-1 text-slate-700 dark:text-slate-300 text-sm"></div>
+                </div>
+
+                <!-- Step 2 -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                        2) Balanced Chemical Equation <span class="normal-case text-slate-400 font-normal">(Coefficients required, species in any order)</span>
+                    </label>
+                    <input type="text" id="step2Input" class="step-input w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-sky-500 outline-none font-mono text-sm" placeholder="e.g. AgNO3(aq) + NaCl(aq) = AgCl(s) + NaNO3(aq)">
+                    <div id="step2Preview" class="min-h-[28px] mt-1 text-slate-700 dark:text-slate-300 text-sm"></div>
+                </div>
+
+                <!-- Step 3 -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                        3) Complete Ionic Equation <span class="normal-case text-slate-400 font-normal">(Use '^' for charges, e.g. Ag^+(aq))</span>
+                    </label>
+                    <input type="text" id="step3Input" class="step-input w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-sky-500 outline-none font-mono text-sm" placeholder="e.g. Ag^+(aq) + NO3^-(aq) + Na^+(aq) + Cl^-(aq) = AgCl(s) + Na^+(aq) + NO3^-(aq)">
+                    <div id="step3Preview" class="min-h-[28px] mt-1 text-slate-700 dark:text-slate-300 text-sm"></div>
+                </div>
+
+                <!-- Step 4 -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                        4) Spectator Ions <span class="normal-case text-slate-400 font-normal">(No coefficients needed, any order)</span>
+                    </label>
+                    <input type="text" id="step4Input" class="step-input w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-sky-500 outline-none font-mono text-sm" placeholder="e.g. Na^+(aq), NO3^-(aq)">
+                    <div id="step4Preview" class="min-h-[28px] mt-1 text-slate-700 dark:text-slate-300 text-sm"></div>
+                </div>
+
+                <!-- Step 5 -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                        5) Net Ionic Equation <span class="normal-case text-slate-400 font-normal">(Coefficients &amp; charges required, any order)</span>
+                    </label>
+                    <input type="text" id="step5Input" class="step-input w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-sky-500 outline-none font-mono text-sm" placeholder="e.g. Ag^+(aq) + Cl^-(aq) = AgCl(s)">
+                    <div id="step5Preview" class="min-h-[28px] mt-1 text-slate-700 dark:text-slate-300 text-sm"></div>
+                </div>
+
+                <div class="pt-2">
+                    <button id="submitAnswerBtn" onclick="submitAnswer()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i> Submit Answers
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feedback Display -->
+            <div id="feedbackContainer" class="hidden bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                <div id="feedbackHeader" class="p-3 rounded-xl font-bold text-center flex items-center justify-center gap-2"></div>
+
+                <div id="feedbackSteps" class="space-y-4 text-sm"></div>
+
+                <button id="nextQuestionBtn" onclick="nextQuestion()" class="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-md transition hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                    Next Question <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Instructions -->
+    <div id="instructionsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 max-w-lg w-full rounded-2xl p-6 shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-3">
+                <h3 class="text-lg font-bold flex items-center gap-2 text-sky-600 dark:text-sky-400">
+                    <i class="fa-solid fa-book-open"></i> How to Enter Chemical Formulas &amp; Equations
+                </h3>
+                <button onclick="closeInstructions()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                <div>
+                    <h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">1. Charge Syntax (<code class="text-sky-500 font-extrabold">^</code> Required)</h4>
+                    <p>All charges MUST immediately follow a caret <code class="bg-slate-100 dark:bg-slate-700 px-1 font-bold text-sky-500">^</code>.</p>
+                    <ul class="list-disc list-inside mt-1 space-y-0.5 text-slate-500 dark:text-slate-400">
+                        <li><code class="bg-slate-100 dark:bg-slate-700 px-1">Ba^2+(aq)</code> or <code class="bg-slate-100 dark:bg-slate-700 px-1">Ba^+2(aq)</code> → Ba<sup>2+</sup>(aq)</li>
+                        <li><code class="bg-slate-100 dark:bg-slate-700 px-1">NO3^-(aq)</code> → NO<sub>3</sub><sup>-</sup>(aq)</li>
+                        <li><code class="bg-slate-100 dark:bg-slate-700 px-1">SO4^2-(aq)</code> → SO<sub>4</sub><sup>2-</sup>(aq)</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">2. Coefficients and Order</h4>
+                    <p>• <strong>Steps 1 &amp; 4:</strong> No coefficients are needed. Just list species separated by <code class="bg-slate-100 dark:bg-slate-700 px-1 font-bold">+</code> or <code class="bg-slate-100 dark:bg-slate-700 px-1 font-bold">,</code>.</p>
+                    <p>• <strong>Steps 2, 3, &amp; 5:</strong> Include stoichiometric coefficients (omit if 1). Write reactants on the left side and products on the right side using <code class="bg-slate-100 dark:bg-slate-700 px-1 font-bold text-sky-500">=</code>, <code class="bg-slate-100 dark:bg-slate-700 px-1">-&gt;</code>, or <code class="bg-slate-100 dark:bg-slate-700 px-1">--&gt;</code>.</p>
+                    <p>• <strong>Order does NOT matter!</strong> You can list species on either side of the equation in any order.</p>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">3. States of Matter</h4>
+                    <p>Include physical states in parentheses: <code class="bg-slate-100 dark:bg-slate-700 px-1">(aq)</code> for aqueous and <code class="bg-slate-100 dark:bg-slate-700 px-1">(s)</code> for solid precipitate.</p>
+                </div>
+            </div>
+
+            <button onclick="closeInstructions()" class="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-xl transition">
+                Got it, Let's Practice!
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const REACTIONS_DATABASE = [
+            {
+                unbalancedReactants: "AgNO3(aq) + NaCl(aq) -> ...",
+                step1: ["AgCl(s)", "NaNO3(aq)"],
+                step1Raw: "AgCl(s) + NaNO3(aq)",
+                step2Raw: "AgNO3(aq) + NaCl(aq) = AgCl(s) + NaNO3(aq)",
+                step3Raw: "Ag^+(aq) + NO3^-(aq) + Na^+(aq) + Cl^-(aq) = AgCl(s) + Na^+(aq) + NO3^-(aq)",
+                step4: ["Na^+(aq)", "NO3^-(aq)"],
+                step4Raw: "Na^+(aq), NO3^-(aq)",
+                step5Raw: "Ag^+(aq) + Cl^-(aq) = AgCl(s)"
+            },
+            {
+                unbalancedReactants: "Pb(NO3)2(aq) + KI(aq) -> ...",
+                step1: ["PbI2(s)", "KNO3(aq)"],
+                step1Raw: "PbI2(s) + KNO3(aq)",
+                step2Raw: "Pb(NO3)2(aq) + 2 KI(aq) = PbI2(s) + 2 KNO3(aq)",
+                step3Raw: "Pb^2+(aq) + 2 NO3^-(aq) + 2 K^+(aq) + 2 I^-(aq) = PbI2(s) + 2 K^+(aq) + 2 NO3^-(aq)",
+                step4: ["K^+(aq)", "NO3^-(aq)"],
+                step4Raw: "K^+(aq), NO3^-(aq)",
+                step5Raw: "Pb^2+(aq) + 2 I^-(aq) = PbI2(s)"
+            },
+            {
+                unbalancedReactants: "BaCl2(aq) + Na2SO4(aq) -> ...",
+                step1: ["BaSO4(s)", "NaCl(aq)"],
+                step1Raw: "BaSO4(s) + NaCl(aq)",
+                step2Raw: "BaCl2(aq) + Na2SO4(aq) = BaSO4(s) + 2 NaCl(aq)",
+                step3Raw: "Ba^2+(aq) + 2 Cl^-(aq) + 2 Na^+(aq) + SO4^2-(aq) = BaSO4(s) + 2 Na^+(aq) + 2 Cl^-(aq)",
+                step4: ["Na^+(aq)", "Cl^-(aq)"],
+                step4Raw: "Na^+(aq), Cl^-(aq)",
+                step5Raw: "Ba^2+(aq) + SO4^2-(aq) = BaSO4(s)"
+            },
+            {
+                unbalancedReactants: "CuSO4(aq) + NaOH(aq) -> ...",
+                step1: ["Cu(OH)2(s)", "Na2SO4(aq)"],
+                step1Raw: "Cu(OH)2(s) + Na2SO4(aq)",
+                step2Raw: "CuSO4(aq) + 2 NaOH(aq) = Cu(OH)2(s) + Na2SO4(aq)",
+                step3Raw: "Cu^2+(aq) + SO4^2-(aq) + 2 Na^+(aq) + 2 OH^-(aq) = Cu(OH)2(s) + 2 Na^+(aq) + SO4^2-(aq)",
+                step4: ["Na^+(aq)", "SO4^2-(aq)"],
+                step4Raw: "Na^+(aq), SO4^2-(aq)",
+                step5Raw: "Cu^2+(aq) + 2 OH^-(aq) = Cu(OH)2(s)"
+            },
+            {
+                unbalancedReactants: "CaCl2(aq) + Na2CO3(aq) -> ...",
+                step1: ["CaCO3(s)", "NaCl(aq)"],
+                step1Raw: "CaCO3(s) + NaCl(aq)",
+                step2Raw: "CaCl2(aq) + Na2CO3(aq) = CaCO3(s) + 2 NaCl(aq)",
+                step3Raw: "Ca^2+(aq) + 2 Cl^-(aq) + 2 Na^+(aq) + CO3^2-(aq) = CaCO3(s) + 2 Na^+(aq) + 2 Cl^-(aq)",
+                step4: ["Na^+(aq)", "Cl^-(aq)"],
+                step4Raw: "Na^+(aq), Cl^-(aq)",
+                step5Raw: "Ca^2+(aq) + CO3^2-(aq) = CaCO3(s)"
+            },
+            {
+                unbalancedReactants: "FeCl3(aq) + NaOH(aq) -> ...",
+                step1: ["Fe(OH)3(s)", "NaCl(aq)"],
+                step1Raw: "Fe(OH)3(s) + NaCl(aq)",
+                step2Raw: "FeCl3(aq) + 3 NaOH(aq) = Fe(OH)3(s) + 3 NaCl(aq)",
+                step3Raw: "Fe^3+(aq) + 3 Cl^-(aq) + 3 Na^+(aq) + 3 OH^-(aq) = Fe(OH)3(s) + 3 Na^+(aq) + 3 Cl^-(aq)",
+                step4: ["Na^+(aq)", "Cl^-(aq)"],
+                step4Raw: "Na^+(aq), Cl^-(aq)",
+                step5Raw: "Fe^3+(aq) + 3 OH^-(aq) = Fe(OH)3(s)"
+            },
+            {
+                unbalancedReactants: "Pb(NO3)2(aq) + Na2SO4(aq) -> ...",
+                step1: ["PbSO4(s)", "NaNO3(aq)"],
+                step1Raw: "PbSO4(s) + NaNO3(aq)",
+                step2Raw: "Pb(NO3)2(aq) + Na2SO4(aq) = PbSO4(s) + 2 NaNO3(aq)",
+                step3Raw: "Pb^2+(aq) + 2 NO3^-(aq) + 2 Na^+(aq) + SO4^2-(aq) = PbSO4(s) + 2 Na^+(aq) + 2 NO3^-(aq)",
+                step4: ["Na^+(aq)", "NO3^-(aq)"],
+                step4Raw: "Na^+(aq), NO3^-(aq)",
+                step5Raw: "Pb^2+(aq) + SO4^2-(aq) = PbSO4(s)"
+            },
+            {
+                unbalancedReactants: "AgNO3(aq) + K2CrO4(aq) -> ...",
+                step1: ["Ag2CrO4(s)", "KNO3(aq)"],
+                step1Raw: "Ag2CrO4(s) + KNO3(aq)",
+                step2Raw: "2 AgNO3(aq) + K2CrO4(aq) = Ag2CrO4(s) + 2 KNO3(aq)",
+                step3Raw: "2 Ag^+(aq) + 2 NO3^-(aq) + 2 K^+(aq) + CrO4^2-(aq) = Ag2CrO4(s) + 2 K^+(aq) + 2 NO3^-(aq)",
+                step4: ["K^+(aq)", "NO3^-(aq)"],
+                step4Raw: "K^+(aq), NO3^-(aq)",
+                step5Raw: "2 Ag^+(aq) + CrO4^2-(aq) = Ag2CrO4(s)"
+            },
+            {
+                unbalancedReactants: "Ba(NO3)2(aq) + K2SO4(aq) -> ...",
+                step1: ["BaSO4(s)", "KNO3(aq)"],
+                step1Raw: "BaSO4(s) + KNO3(aq)",
+                step2Raw: "Ba(NO3)2(aq) + K2SO4(aq) = BaSO4(s) + 2 KNO3(aq)",
+                step3Raw: "Ba^2+(aq) + 2 NO3^-(aq) + 2 K^+(aq) + SO4^2-(aq) = BaSO4(s) + 2 K^+(aq) + 2 NO3^-(aq)",
+                step4: ["K^+(aq)", "NO3^-(aq)"],
+                step4Raw: "K^+(aq), NO3^-(aq)",
+                step5Raw: "Ba^2+(aq) + SO4^2-(aq) = BaSO4(s)"
+            },
+            {
+                unbalancedReactants: "NiCl2(aq) + KOH(aq) -> ...",
+                step1: ["Ni(OH)2(s)", "KCl(aq)"],
+                step1Raw: "Ni(OH)2(s) + KCl(aq)",
+                step2Raw: "NiCl2(aq) + 2 KOH(aq) = Ni(OH)2(s) + 2 KCl(aq)",
+                step3Raw: "Ni^2+(aq) + 2 Cl^-(aq) + 2 K^+(aq) + 2 OH^-(aq) = Ni(OH)2(s) + 2 K^+(aq) + 2 Cl^-(aq)",
+                step4: ["K^+(aq)", "Cl^-(aq)"],
+                step4Raw: "K^+(aq), Cl^-(aq)",
+                step5Raw: "Ni^2+(aq) + 2 OH^-(aq) = Ni(OH)2(s)"
+            },
+            {
+                unbalancedReactants: "ZnSO4(aq) + Na2S(aq) -> ...",
+                step1: ["ZnS(s)", "Na2SO4(aq)"],
+                step1Raw: "ZnS(s) + Na2SO4(aq)",
+                step2Raw: "ZnSO4(aq) + Na2S(aq) = ZnS(s) + Na2SO4(aq)",
+                step3Raw: "Zn^2+(aq) + SO4^2-(aq) + 2 Na^+(aq) + S^2-(aq) = ZnS(s) + 2 Na^+(aq) + SO4^2-(aq)",
+                step4: ["Na^+(aq)", "SO4^2-(aq)"],
+                step4Raw: "Na^+(aq), SO4^2-(aq)",
+                step5Raw: "Zn^2+(aq) + S^2-(aq) = ZnS(s)"
+            },
+            {
+                unbalancedReactants: "Cd(NO3)2(aq) + Na2S(aq) -> ...",
+                step1: ["CdS(s)", "NaNO3(aq)"],
+                step1Raw: "CdS(s) + NaNO3(aq)",
+                step2Raw: "Cd(NO3)2(aq) + Na2S(aq) = CdS(s) + 2 NaNO3(aq)",
+                step3Raw: "Cd^2+(aq) + 2 NO3^-(aq) + 2 Na^+(aq) + S^2-(aq) = CdS(s) + 2 Na^+(aq) + 2 NO3^-(aq)",
+                step4: ["Na^+(aq)", "NO3^-(aq)"],
+                step4Raw: "Na^+(aq), NO3^-(aq)",
+                step5Raw: "Cd^2+(aq) + S^2-(aq) = CdS(s)"
+            },
+            {
+                unbalancedReactants: "MgCl2(aq) + NaOH(aq) -> ...",
+                step1: ["Mg(OH)2(s)", "NaCl(aq)"],
+                step1Raw: "Mg(OH)2(s) + NaCl(aq)",
+                step2Raw: "MgCl2(aq) + 2 NaOH(aq) = Mg(OH)2(s) + 2 NaCl(aq)",
+                step3Raw: "Mg^2+(aq) + 2 Cl^-(aq) + 2 Na^+(aq) + 2 OH^-(aq) = Mg(OH)2(s) + 2 Na^+(aq) + 2 Cl^-(aq)",
+                step4: ["Na^+(aq)", "Cl^-(aq)"],
+                step4Raw: "Na^+(aq), Cl^-(aq)",
+                step5Raw: "Mg^2+(aq) + 2 OH^-(aq) = Mg(OH)2(s)"
+            },
+            {
+                unbalancedReactants: "Al(NO3)3(aq) + NaOH(aq) -> ...",
+                step1: ["Al(OH)3(s)", "NaNO3(aq)"],
+                step1Raw: "Al(OH)3(s) + NaNO3(aq)",
+                step2Raw: "Al(NO3)3(aq) + 3 NaOH(aq) = Al(OH)3(s) + 3 NaNO3(aq)",
+                step3Raw: "Al^3+(aq) + 3 NO3^-(aq) + 3 Na^+(aq) + 3 OH^-(aq) = Al(OH)3(s) + 3 Na^+(aq) + 3 NO3^-(aq)",
+                step4: ["Na^+(aq)", "NO3^-(aq)"],
+                step4Raw: "Na^+(aq), NO3^-(aq)",
+                step5Raw: "Al^3+(aq) + 3 OH^-(aq) = Al(OH)3(s)"
+            },
+            {
+                unbalancedReactants: "CoCl2(aq) + NaOH(aq) -> ...",
+                step1: ["Co(OH)2(s)", "NaCl(aq)"],
+                step1Raw: "Co(OH)2(s) + NaCl(aq)",
+                step2Raw: "CoCl2(aq) + 2 NaOH(aq) = Co(OH)2(s) + 2 NaCl(aq)",
+                step3Raw: "Co^2+(aq) + 2 Cl^-(aq) + 2 Na^+(aq) + 2 OH^-(aq) = Co(OH)2(s) + 2 Na^+(aq) + 2 Cl^-(aq)",
+                step4: ["Na^+(aq)", "Cl^-(aq)"],
+                step4Raw: "Na^+(aq), Cl^-(aq)",
+                step5Raw: "Co^2+(aq) + 2 OH^-(aq) = Co(OH)2(s)"
+            },
+            {
+                unbalancedReactants: "AgNO3(aq) + Na2CO3(aq) -> ...",
+                step1: ["Ag2CO3(s)", "NaNO3(aq)"],
+                step1Raw: "Ag2CO3(s) + NaNO3(aq)",
+                step2Raw: "2 AgNO3(aq) + Na2CO3(aq) = Ag2CO3(s) + 2 NaNO3(aq)",
+                step3Raw: "2 Ag^+(aq) + 2 NO3^-(aq) + 2 Na^+(aq) + CO3^2-(aq) = Ag2CO3(s) + 2 Na^+(aq) + 2 NO3^-(aq)",
+                step4: ["Na^+(aq)", "NO3^-(aq)"],
+                step4Raw: "Na^+(aq), NO3^-(aq)",
+                step5Raw: "2 Ag^+(aq) + CO3^2-(aq) = Ag2CO3(s)"
+            },
+            {
+                unbalancedReactants: "Pb(CH3COO)2(aq) + KI(aq) -> ...",
+                step1: ["PbI2(s)", "KCH3COO(aq)"],
+                step1Raw: "PbI2(s) + KCH3COO(aq)",
+                step2Raw: "Pb(CH3COO)2(aq) + 2 KI(aq) = PbI2(s) + 2 KCH3COO(aq)",
+                step3Raw: "Pb^2+(aq) + 2 CH3COO^-(aq) + 2 K^+(aq) + 2 I^-(aq) = PbI2(s) + 2 K^+(aq) + 2 CH3COO^-(aq)",
+                step4: ["K^+(aq)", "CH3COO^-(aq)"],
+                step4Raw: "K^+(aq), CH3COO^-(aq)",
+                step5Raw: "Pb^2+(aq) + 2 I^-(aq) = PbI2(s)"
+            },
+            {
+                unbalancedReactants: "Hg2(NO3)2(aq) + NaCl(aq) -> ...",
+                step1: ["Hg2Cl2(s)", "NaNO3(aq)"],
+                step1Raw: "Hg2Cl2(s) + NaNO3(aq)",
+                step2Raw: "Hg2(NO3)2(aq) + 2 NaCl(aq) = Hg2Cl2(s) + 2 NaNO3(aq)",
+                step3Raw: "Hg2^2+(aq) + 2 NO3^-(aq) + 2 Na^+(aq) + 2 Cl^-(aq) = Hg2Cl2(s) + 2 Na^+(aq) + 2 NO3^-(aq)",
+                step4: ["Na^+(aq)", "NO3^-(aq)"],
+                step4Raw: "Na^+(aq), NO3^-(aq)",
+                step5Raw: "Hg2^2+(aq) + 2 Cl^-(aq) = Hg2Cl2(s)"
+            },
+            {
+                unbalancedReactants: "SrCl2(aq) + K2CrO4(aq) -> ...",
+                step1: ["SrCrO4(s)", "KCl(aq)"],
+                step1Raw: "SrCrO4(s) + KCl(aq)",
+                step2Raw: "SrCl2(aq) + K2CrO4(aq) = SrCrO4(s) + 2 KCl(aq)",
+                step3Raw: "Sr^2+(aq) + 2 Cl^-(aq) + 2 K^+(aq) + CrO4^2-(aq) = SrCrO4(s) + 2 K^+(aq) + 2 Cl^-(aq)",
+                step4: ["K^+(aq)", "Cl^-(aq)"],
+                step4Raw: "K^+(aq), Cl^-(aq)",
+                step5Raw: "Sr^2+(aq) + CrO4^2-(aq) = SrCrO4(s)"
+            },
+            {
+                unbalancedReactants: "CaCl2(aq) + Na3PO4(aq) -> ...",
+                step1: ["Ca3(PO4)2(s)", "NaCl(aq)"],
+                step1Raw: "Ca3(PO4)2(s) + NaCl(aq)",
+                step2Raw: "3 CaCl2(aq) + 2 Na3PO4(aq) = Ca3(PO4)2(s) + 6 NaCl(aq)",
+                step3Raw: "3 Ca^2+(aq) + 6 Cl^-(aq) + 6 Na^+(aq) + 2 PO4^3-(aq) = Ca3(PO4)2(s) + 6 Na^+(aq) + 6 Cl^-(aq)",
+                step4: ["Na^+(aq)", "Cl^-(aq)"],
+                step4Raw: "Na^+(aq), Cl^-(aq)",
+                step5Raw: "3 Ca^2+(aq) + 2 PO4^3-(aq) = Ca3(PO4)2(s)"
+            },
+            {
+                unbalancedReactants: "Cu(NO3)2(aq) + Na2CO3(aq) -> ...",
+                step1: ["CuCO3(s)", "NaNO3(aq)"],
+                step1Raw: "CuCO3(s) + NaNO3(aq)",
+                step2Raw: "Cu(NO3)2(aq) + Na2CO3(aq) = CuCO3(s) + 2 NaNO3(aq)",
+                step3Raw: "Cu^2+(aq) + 2 NO3^-(aq) + 2 Na^+(aq) + CO3^2-(aq) = CuCO3(s) + 2 Na^+(aq) + 2 NO3^-(aq)",
+                step4: ["Na^+(aq)", "NO3^-(aq)"],
+                step4Raw: "Na^+(aq), NO3^-(aq)",
+                step5Raw: "Cu^2+(aq) + CO3^2-(aq) = CuCO3(s)"
+            },
+            {
+                unbalancedReactants: "FeCl2(aq) + NaOH(aq) -> ...",
+                step1: ["Fe(OH)2(s)", "NaCl(aq)"],
+                step1Raw: "Fe(OH)2(s) + NaCl(aq)",
+                step2Raw: "FeCl2(aq) + 2 NaOH(aq) = Fe(OH)2(s) + 2 NaCl(aq)",
+                step3Raw: "Fe^2+(aq) + 2 Cl^-(aq) + 2 Na^+(aq) + 2 OH^-(aq) = Fe(OH)2(s) + 2 Na^+(aq) + 2 Cl^-(aq)",
+                step4: ["Na^+(aq)", "Cl^-(aq)"],
+                step4Raw: "Na^+(aq), Cl^-(aq)",
+                step5Raw: "Fe^2+(aq) + 2 OH^-(aq) = Fe(OH)2(s)"
+            },
+            {
+                unbalancedReactants: "BaCl2(aq) + Na2CO3(aq) -> ...",
+                step1: ["BaCO3(s)", "NaCl(aq)"],
+                step1Raw: "BaCO3(s) + NaCl(aq)",
+                step2Raw: "BaCl2(aq) + Na2CO3(aq) = BaCO3(s) + 2 NaCl(aq)",
+                step3Raw: "Ba^2+(aq) + 2 Cl^-(aq) + 2 Na^+(aq) + CO3^2-(aq) = BaCO3(s) + 2 Na^+(aq) + 2 Cl^-(aq)",
+                step4: ["Na^+(aq)", "Cl^-(aq)"],
+                step4Raw: "Na^+(aq), Cl^-(aq)",
+                step5Raw: "Ba^2+(aq) + CO3^2-(aq) = BaCO3(s)"
+            },
+            {
+                unbalancedReactants: "Zn(NO3)2(aq) + Na2CO3(aq) -> ...",
+                step1: ["ZnCO3(s)", "NaNO3(aq)"],
+                step1Raw: "ZnCO3(s) + NaNO3(aq)",
+                step2Raw: "Zn(NO3)2(aq) + Na2CO3(aq) = ZnCO3(s) + 2 NaNO3(aq)",
+                step3Raw: "Zn^2+(aq) + 2 NO3^-(aq) + 2 Na^+(aq) + CO3^2-(aq) = ZnCO3(s) + 2 Na^+(aq) + 2 NO3^-(aq)",
+                step4: ["Na^+(aq)", "NO3^-(aq)"],
+                step4Raw: "Na^+(aq), NO3^-(aq)",
+                step5Raw: "Zn^2+(aq) + CO3^2-(aq) = ZnCO3(s)"
+            },
+            {
+                unbalancedReactants: "AgNO3(aq) + KI(aq) -> ...",
+                step1: ["AgI(s)", "KNO3(aq)"],
+                step1Raw: "AgI(s) + KNO3(aq)",
+                step2Raw: "AgNO3(aq) + KI(aq) = AgI(s) + KNO3(aq)",
+                step3Raw: "Ag^+(aq) + NO3^-(aq) + K^+(aq) + I^-(aq) = AgI(s) + K^+(aq) + NO3^-(aq)",
+                step4: ["K^+(aq)", "NO3^-(aq)"],
+                step4Raw: "K^+(aq), NO3^-(aq)",
+                step5Raw: "Ag^+(aq) + I^-(aq) = AgI(s)"
+            },
+            {
+                unbalancedReactants: "Pb(NO3)2(aq) + Na2CO3(aq) -> ...",
+                step1: ["PbCO3(s)", "NaNO3(aq)"],
+                step1Raw: "PbCO3(s) + NaNO3(aq)",
+                step2Raw: "Pb(NO3)2(aq) + Na2CO3(aq) = PbCO3(s) + 2 NaNO3(aq)",
+                step3Raw: "Pb^2+(aq) + 2 NO3^-(aq) + 2 Na^+(aq) + CO3^2-(aq) = PbCO3(s) + 2 Na^+(aq) + 2 NO3^-(aq)",
+                step4: ["Na^+(aq)", "NO3^-(aq)"],
+                step4Raw: "Na^+(aq), NO3^-(aq)",
+                step5Raw: "Pb^2+(aq) + CO3^2-(aq) = PbCO3(s)"
+            },
+            {
+                unbalancedReactants: "Bi(NO3)3(aq) + NaOH(aq) -> ...",
+                step1: ["Bi(OH)3(s)", "NaNO3(aq)"],
+                step1Raw: "Bi(OH)3(s) + NaNO3(aq)",
+                step2Raw: "Bi(NO3)3(aq) + 3 NaOH(aq) = Bi(OH)3(s) + 3 NaNO3(aq)",
+                step3Raw: "Bi^3+(aq) + 3 NO3^-(aq) + 3 Na^+(aq) + 3 OH^-(aq) = Bi(OH)3(s) + 3 Na^+(aq) + 3 NO3^-(aq)",
+                step4: ["Na^+(aq)", "NO3^-(aq)"],
+                step4Raw: "Na^+(aq), NO3^-(aq)",
+                step5Raw: "Bi^3+(aq) + 3 OH^-(aq) = Bi(OH)3(s)"
+            },
+            {
+                unbalancedReactants: "CaCl2(aq) + NaF(aq) -> ...",
+                step1: ["CaF2(s)", "NaCl(aq)"],
+                step1Raw: "CaF2(s) + NaCl(aq)",
+                step2Raw: "CaCl2(aq) + 2 NaF(aq) = CaF2(s) + 2 NaCl(aq)",
+                step3Raw: "Ca^2+(aq) + 2 Na^+(aq) + 2 Cl^-(aq) + 2 F^-(aq) = CaF2(s) + 2 Na^+(aq) + 2 Cl^-(aq)",
+                step4: ["Na^+(aq)", "Cl^-(aq)"],
+                step4Raw: "Na^+(aq), Cl^-(aq)",
+                step5Raw: "Ca^2+(aq) + 2 F^-(aq) = CaF2(s)"
+            },
+            {
+                unbalancedReactants: "AgNO3(aq) + NaBr(aq) -> ...",
+                step1: ["AgBr(s)", "NaNO3(aq)"],
+                step1Raw: "AgBr(s) + NaNO3(aq)",
+                step2Raw: "AgNO3(aq) + NaBr(aq) = AgBr(s) + NaNO3(aq)",
+                step3Raw: "Ag^+(aq) + NO3^-(aq) + Na^+(aq) + Br^-(aq) = AgBr(s) + Na^+(aq) + NO3^-(aq)",
+                step4: ["Na^+(aq)", "NO3^-(aq)"],
+                step4Raw: "Na^+(aq), NO3^-(aq)",
+                step5Raw: "Ag^+(aq) + Br^-(aq) = AgBr(s)"
+            },
+            {
+                unbalancedReactants: "Ba(NO3)2(aq) + Na2CO3(aq) -> ...",
+                step1: ["BaCO3(s)", "NaNO3(aq)"],
+                step1Raw: "BaCO3(s) + NaNO3(aq)",
+                step2Raw: "Ba(NO3)2(aq) + Na2CO3(aq) = BaCO3(s) + 2 NaNO3(aq)",
+                step3Raw: "Ba^2+(aq) + 2 NO3^-(aq) + 2 Na^+(aq) + CO3^2-(aq) = BaCO3(s) + 2 Na^+(aq) + 2 NO3^-(aq)",
+                step4: ["Na^+(aq)", "NO3^-(aq)"],
+                step4Raw: "Na^+(aq), NO3^-(aq)",
+                step5Raw: "Ba^2+(aq) + CO3^2-(aq) = BaCO3(s)"
+            }
+        ];
+
+        let sessionQueue = [];
+        let currentIndex = 0;
+        let totalQuestions = 10;
+        let sessionScore = 0;
+        let currentStreak = 0;
+        let activeInputId = "step1Input";
+
+        let highScore = parseInt(localStorage.getItem('precip_highScore') || '0');
+        let lastScore = localStorage.getItem('precip_lastScore') || null;
+
+        /**
+         * STREAMING_CHUNK:Building robust chemical parser and LaTeX generator...
+         */
+        function parseChemToLaTeX(text) {
+            if (!text || !text.trim()) return "";
+
+            let s = text.trim();
+            s = s.replace(/-->|->|→|=/g, " \\rightarrow ");
+
+            // Split into tokens preserving connectors
+            let rawTokens = s.split(/(\s+\+\s+|\s*,\s*|\\rightarrow|\s+)/);
+
+            return rawTokens.map(token => {
+                let t = token.trim();
+                if (!t) return "";
+                if (t === '+') return ' + ';
+                if (t === ',') return ',\\ ';
+                if (t === '\\rightarrow') return ' \\rightarrow ';
+                if (t === '...') return ' \\dots ';
+
+                // Extract state symbol
+                let stateStr = "";
+                let stateMatch = t.match(/\((aq|s|l|g)\)/i);
+                if (stateMatch) {
+                    stateStr = `\\mathrm{(${stateMatch[1].toLowerCase()})}`;
+                    t = t.replace(/\((aq|s|l|g)\)/i, '');
+                }
+
+                // Extract coefficient
+                let coeff = "";
+                let coeffMatch = t.match(/^(\d+)(?=[A-Za-z\(])/);
+                if (coeffMatch) {
+                    coeff = coeffMatch[1];
+                    t = t.substring(coeffMatch[1].length);
+                }
+
+                // Extract charge following ^
+                let chargeStr = "";
+                let caretIdx = t.indexOf('^');
+                if (caretIdx !== -1) {
+                    let rawCharge = t.substring(caretIdx + 1);
+                    t = t.substring(0, caretIdx);
+                    chargeStr = `^{${rawCharge}}`;
+                }
+
+                let formattedFormula = t.replace(/([A-Za-z\)\(]+)(\d+)/g, '$1_{$2}');
+                return `${coeff}\\mathrm{${formattedFormula}}${chargeStr}${stateStr ? '\\,' + stateStr : ''}`;
+            }).filter(Boolean).join('');
+        }
+
+        function renderKaTeX(element, latexString) {
+            if (!element) return;
+            try {
+                katex.render(latexString, element, { throwOnError: false, displayMode: true });
+            } catch (err) {
+                element.textContent = latexString;
+            }
+        }
+
+        function updateLivePreview(stepNum, val) {
+            const previewEl = document.getElementById(`step${stepNum}Preview`);
+            if (!val.trim()) {
+                previewEl.innerHTML = '';
+                return;
+            }
+            const latex = parseChemToLaTeX(val);
+            renderKaTeX(previewEl, latex);
+        }
+
+        /**
+         * STREAMING_CHUNK:Implementing canonical normalization and order-independent matching...
+         */
+
+        // Normalizes a single chemical species into a canonical string for exact chemical comparison
+        function canonicalizeSpecies(rawStr, requireCoefficient = false) {
+            if (!rawStr) return null;
+            let str = rawStr.trim();
+            if (!str) return null;
+
+            // Extract coefficient
+            let coeff = 1;
+            let coeffMatch = str.match(/^(\d+)\s*(.+)/);
+            if (coeffMatch) {
+                coeff = parseInt(coeffMatch[1], 10);
+                str = coeffMatch[2].trim();
+            }
+
+            // Extract physical state (aq, s, l, g)
+            let state = "";
+            let stateMatch = str.match(/\((aq|s|l|g)\)/i);
+            if (stateMatch) {
+                state = stateMatch[1].toLowerCase();
+                str = str.replace(/\((aq|s|l|g)\)/i, '').trim();
+            }
+
+            // Extract charge following caret '^'
+            let charge = "";
+            let caretIdx = str.indexOf('^');
+            if (caretIdx !== -1) {
+                let rawCharge = str.substring(caretIdx + 1).trim();
+                str = str.substring(0, caretIdx).trim();
+
+                // Standardize charge (e.g., 2+ vs +2, - vs 1-)
+                if (rawCharge === '+' || rawCharge === '1+') charge = '1+';
+                else if (rawCharge === '-' || rawCharge === '1-') charge = '1-';
+                else if (rawCharge === '+2') charge = '2+';
+                else if (rawCharge === '-2') charge = '2-';
+                else if (rawCharge === '+3') charge = '3+';
+                else if (rawCharge === '-3') charge = '3-';
+                else charge = rawCharge;
+            }
+
+            // Remove all internal whitespace
+            let formula = str.replace(/\s+/g, '');
+
+            const canonicalKey = `${formula}${charge ? '^' + charge : ''}${state ? '(' + state + ')' : ''}`;
+
+            return {
+                coeff: requireCoefficient ? coeff : 1,
+                key: canonicalKey
+            };
+        }
+
+        // Splits a list of terms separated by '+' or ',' (while respecting '+' in charges or carets)
+        function splitTerms(str) {
+            if (!str) return [];
+            let terms = [];
+            let current = "";
+            let inCaret = false;
+
+            for (let i = 0; i < str.length; i++) {
+                let char = str[i];
+                if (char === '^') {
+                    inCaret = true;
+                    current += char;
+                } else if (char === ' ' || char === '(' || char === ')') {
+                    inCaret = false;
+                    current += char;
+                } else if ((char === '+' || char === ',') && !inCaret) {
+                    if (current.trim()) terms.push(current.trim());
+                    current = "";
+                } else {
+                    current += char;
+                }
+            }
+            if (current.trim()) terms.push(current.trim());
+            return terms;
+        }
+
+        // Checks Step 1 & Step 4 (No coefficients required, order-independent species matching)
+        function checkSpeciesListOrderIndependent(userStr, targetArray) {
+            if (!userStr || !userStr.trim()) return false;
+
+            const userTerms = splitTerms(userStr);
+            const userCanon = userTerms.map(t => canonicalizeSpecies(t, false)).filter(Boolean);
+            const targetCanon = targetArray.map(t => canonicalizeSpecies(t, false)).filter(Boolean);
+
+            if (userCanon.length !== targetCanon.length) return false;
+
+            // Frequency map for target
+            const targetMap = {};
+            targetCanon.forEach(item => {
+                targetMap[item.key] = (targetMap[item.key] || 0) + 1;
+            });
+
+            // Compare against user
+            for (let item of userCanon) {
+                if (!targetMap[item.key] || targetMap[item.key] <= 0) {
+                    return false;
+                }
+                targetMap[item.key]--;
+            }
+
+            return true;
+        }
+
+        // Checks Step 2, Step 3, & Step 5 (Order-independent on left & right sides with exact coefficients)
+        function checkEquationOrderIndependent(userStr, targetRawStr) {
+            if (!userStr || !userStr.trim()) return false;
+
+            // Standardize reaction yield arrows
+            const splitUser = userStr.replace(/-->|->|→/g, '=').split('=');
+            const splitTarget = targetRawStr.replace(/-->|->|→/g, '=').split('=');
+
+            if (splitUser.length !== 2 || splitTarget.length !== 2) return false;
+
+            const parseSide = (sideText) => {
+                const terms = splitTerms(sideText);
+                return terms.map(t => canonicalizeSpecies(t, true)).filter(Boolean);
+            };
+
+            const userLeft = parseSide(splitUser[0]);
+            const userRight = parseSide(splitUser[1]);
+            const targetLeft = parseSide(splitTarget[0]);
+            const targetRight = parseSide(splitTarget[1]);
+
+            const compareSideLists = (uList, tList) => {
+                if (uList.length !== tList.length) return false;
+
+                const tMap = {};
+                tList.forEach(item => {
+                    const fullKey = `${item.coeff}:${item.key}`;
+                    tMap[fullKey] = (tMap[fullKey] || 0) + 1;
+                });
+
+                for (let item of uList) {
+                    const fullKey = `${item.coeff}:${item.key}`;
+                    if (!tMap[fullKey] || tMap[fullKey] <= 0) {
+                        return false;
+                    }
+                    tMap[fullKey]--;
+                }
+                return true;
+            };
+
+            return compareSideLists(userLeft, targetLeft) && compareSideLists(userRight, targetRight);
+        }
+
+        /**
+         * STREAMING_CHUNK:Attaching event listeners and initialization UI handlers...
+         */
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            updateScoreboardUI();
+
+            const inputs = document.querySelectorAll('.step-input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', (e) => {
+                    activeInputId = e.target.id;
+                });
+                input.addEventListener('input', (e) => {
+                    const stepNum = e.target.id.replace('step', '').replace('Input', '');
+                    updateLivePreview(stepNum, e.target.value);
+                });
+            });
+
+            document.getElementById('instructionsModal').addEventListener('click', (e) => {
+                if (e.target.id === 'instructionsModal') closeInstructions();
+            });
+
+            document.getElementById('instructionsBtn').addEventListener('click', openInstructions);
+        });
+
+        function startSession(numQuestions) {
+            totalQuestions = numQuestions;
+            sessionScore = 0;
+            currentIndex = 0;
+
+            const shuffled = [...REACTIONS_DATABASE].sort(() => 0.5 - Math.random());
+            sessionQueue = shuffled.slice(0, numQuestions);
+
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('hidden');
+            document.getElementById('quizScreen').classList.add('flex');
+
+            loadQuestion(currentIndex);
+        }
+
+        function loadQuestion(index) {
+            const q = sessionQueue[index];
+
+            for (let i = 1; i <= 5; i++) {
+                const input = document.getElementById(`step${i}Input`);
+                input.value = '';
+                input.disabled = false;
+                document.getElementById(`step${i}Preview`).innerHTML = '';
+            }
+
+            document.getElementById('questionCounter').textContent = `Question ${index + 1} of ${totalQuestions}`;
+            document.getElementById('progressBar').style.width = `${((index + 1) / totalQuestions) * 100}%`;
+
+            renderKaTeX(document.getElementById('reactantsRender'), parseChemToLaTeX(q.unbalancedReactants));
+
+            document.getElementById('quizFormContainer').classList.remove('hidden');
+            document.getElementById('feedbackContainer').classList.add('hidden');
+
+            document.getElementById('step1Input').focus();
+        }
+
+        function insertSymbol(symbol) {
+            const input = document.getElementById(activeInputId);
+            if (!input) return;
+
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const text = input.value;
+
+            input.value = text.substring(0, start) + symbol + text.substring(end);
+            input.focus();
+            input.selectionStart = input.selectionEnd = start + symbol.length;
+
+            const stepNum = activeInputId.replace('step', '').replace('Input', '');
+            updateLivePreview(stepNum, input.value);
+        }
+
+        function submitAnswer() {
+            const q = sessionQueue[currentIndex];
+
+            const uStep1 = document.getElementById('step1Input').value;
+            const uStep2 = document.getElementById('step2Input').value;
+            const uStep3 = document.getElementById('step3Input').value;
+            const uStep4 = document.getElementById('step4Input').value;
+            const uStep5 = document.getElementById('step5Input').value;
+
+            const isS1Correct = checkSpeciesListOrderIndependent(uStep1, q.step1);
+            const isS2Correct = checkEquationOrderIndependent(uStep2, q.step2Raw);
+            const isS3Correct = checkEquationOrderIndependent(uStep3, q.step3Raw);
+            const isS4Correct = checkSpeciesListOrderIndependent(uStep4, q.step4);
+            const isS5Correct = checkEquationOrderIndependent(uStep5, q.step5Raw);
+
+            const allCorrect = isS1Correct && isS2Correct && isS3Correct && isS4Correct && isS5Correct;
+
+            if (allCorrect) {
+                sessionScore++;
+                currentStreak++;
+            } else {
+                currentStreak = 0;
+            }
+
+            updateScoreboardUI();
+
+            document.getElementById('quizFormContainer').classList.add('hidden');
+            const fbContainer = document.getElementById('feedbackContainer');
+            fbContainer.classList.remove('hidden');
+
+            const fbHeader = document.getElementById('feedbackHeader');
+            if (allCorrect) {
+                fbHeader.className = "p-3 rounded-xl font-bold text-center flex items-center justify-center gap-2 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800";
+                fbHeader.innerHTML = '<i class="fa-solid fa-circle-check text-xl"></i> Excellent! All 5 steps are 100% correct.';
+            } else {
+                fbHeader.className = "p-3 rounded-xl font-bold text-center flex items-center justify-center gap-2 bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800";
+                fbHeader.innerHTML = '<i class="fa-solid fa-circle-xmark text-xl"></i> Review your answers below:';
+            }
+
+            const stepsData = [
+                { title: "1) Identify Products", user: uStep1, correct: q.step1Raw, isCorrect: isS1Correct },
+                { title: "2) Balanced Chemical Equation", user: uStep2, correct: q.step2Raw, isCorrect: isS2Correct },
+                { title: "3) Complete Ionic Equation", user: uStep3, correct: q.step3Raw, isCorrect: isS3Correct },
+                { title: "4) Spectator Ions", user: uStep4, correct: q.step4Raw, isCorrect: isS4Correct },
+                { title: "5) Net Ionic Equation", user: uStep5, correct: q.step5Raw, isCorrect: isS5Correct },
+            ];
+
+            const fbStepsEl = document.getElementById('feedbackSteps');
+            fbStepsEl.innerHTML = '';
+
+            stepsData.forEach((step, idx) => {
+                const item = document.createElement('div');
+                item.className = `p-3 rounded-xl border ${step.isCorrect ? 'border-emerald-200 dark:border-emerald-900 bg-emerald-50/50 dark:bg-emerald-950/20' : 'border-rose-200 dark:border-rose-900 bg-rose-50/50 dark:bg-rose-950/20'}`;
+
+                const statusBadge = step.isCorrect
+                    ? '<span class="text-xs font-bold text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-check"></i> Correct</span>'
+                    : '<span class="text-xs font-bold text-rose-600 dark:text-rose-400"><i class="fa-solid fa-xmark"></i> Incorrect</span>';
+
+                const userTex = step.user.trim() ? parseChemToLaTeX(step.user) : "\\text{(No input)}";
+                const correctTex = parseChemToLaTeX(step.correct);
+
+                item.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-slate-700 dark:text-slate-200">${step.title}</span>
+                        ${statusBadge}
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                        <div class="bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 overflow-x-auto">
+                            <span class="text-slate-400 block font-semibold mb-1">Raw User Input:</span>
+                            <div class="font-mono text-slate-600 dark:text-slate-300 mb-1">${escapeHTML(step.user) || '<em>Empty</em>'}</div>
+                            <span class="text-slate-400 block font-semibold mt-2 mb-1">Typeset Output:</span>
+                            <div id="uTex_${idx}" class="py-1"></div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 overflow-x-auto">
+                            <span class="text-emerald-600 dark:text-emerald-400 block font-semibold mb-1">Correct Raw Example:</span>
+                            <div class="font-mono text-slate-600 dark:text-slate-300 mb-1">${escapeHTML(step.correct)}</div>
+                            <span class="text-emerald-600 dark:text-emerald-400 block font-semibold mt-2 mb-1">Correct Typeset:</span>
+                            <div id="cTex_${idx}" class="py-1"></div>
+                        </div>
+                    </div>
+                `;
+
+                fbStepsEl.appendChild(item);
+
+                renderKaTeX(document.getElementById(`uTex_${idx}`), userTex);
+                renderKaTeX(document.getElementById(`cTex_${idx}`), correctTex);
+            });
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex >= totalQuestions) {
+                finishPracticeSession();
+            } else {
+                loadQuestion(currentIndex);
+            }
+        }
+
+        function finishPracticeSession() {
+            const finalPercentage = Math.round((sessionScore / totalQuestions) * 100);
+
+            lastScore = `${sessionScore}/${totalQuestions} (${finalPercentage}%)`;
+            localStorage.setItem('precip_lastScore', lastScore);
+
+            if (finalPercentage > highScore) {
+                highScore = finalPercentage;
+                localStorage.setItem('precip_highScore', highScore.toString());
+            }
+
+            updateScoreboardUI();
+
+            alert(`Practice Session Completed!\n\nScore: ${sessionScore} / ${totalQuestions} (${finalPercentage}%)\nCurrent Streak: ${currentStreak}`);
+
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('flex');
+            document.getElementById('setupScreen').classList.remove('hidden');
+        }
+
+        function confirmStopPractice() {
+            if (confirm("Are you sure you want to end this practice session?")) {
+                document.getElementById('quizScreen').classList.add('hidden');
+                document.getElementById('quizScreen').classList.remove('flex');
+                document.getElementById('setupScreen').classList.remove('hidden');
+            }
+        }
+
+        function updateScoreboardUI() {
+            document.getElementById('streakVal').innerHTML = `${currentStreak} <i class="fa-solid fa-fire text-sm"></i>`;
+            document.getElementById('currentScoreVal').textContent = `${sessionScore} / ${currentIndex + (document.getElementById('quizScreen').classList.contains('hidden') ? 0 : 1)}`;
+            document.getElementById('lastScoreVal').textContent = lastScore || '--';
+            document.getElementById('highScoreVal').textContent = `${highScore}%`;
+        }
+
+        function initTheme() {
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                themeIcon.className = "fa-solid fa-sun text-lg text-amber-400";
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeIcon.className = "fa-solid fa-moon text-lg";
+            }
+
+            themeToggleBtn.addEventListener('click', () => {
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                    themeIcon.className = "fa-solid fa-moon text-lg";
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                    themeIcon.className = "fa-solid fa-sun text-lg text-amber-400";
+                }
+            });
+        }
+
+        function openInstructions() {
+            document.getElementById('instructionsModal').classList.remove('hidden');
+        }
+
+        function closeInstructions() {
+            document.getElementById('instructionsModal').classList.add('hidden');
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+    </script>
+</body>
+</html>

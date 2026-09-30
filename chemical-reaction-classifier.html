@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemIdentify - Chemical Reaction Classifier</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- KaTeX CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .katex-display {
+            margin: 0.5em 0 !important;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 0.25em 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- Navigation / Header Bar -->
+    <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="p-2 bg-sky-500 text-white rounded-xl shadow-md shadow-sky-500/20">
+                    <i class="fa-solid fa-flask text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-tight text-slate-900 dark:text-white">ChemIdentify</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Reaction Practice Lab</p>
+                </div>
+            </div>
+
+            <!-- Header Controls -->
+            <div class="flex items-center gap-2">
+                <button id="themeToggleBtn" aria-label="Toggle Theme" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-all">
+                    <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                </button>
+                <button id="resetPracticeBtn" class="hidden px-3 py-2 text-xs font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-stop text-xs"></i> End Session
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-6 flex flex-col justify-between">
+        
+        <!-- Stats Dashboard Bar -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-6">
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center gap-3">
+                <div class="p-2 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-xl text-lg">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div>
+                    <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">High Score</div>
+                    <div id="statHighScore" class="text-base font-bold text-slate-800 dark:text-slate-100">0%</div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center gap-3">
+                <div class="p-2 bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-xl text-lg">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Last Score</div>
+                    <div id="statLastScore" class="text-base font-bold text-slate-800 dark:text-slate-100">--</div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center gap-3">
+                <div class="p-2 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-xl text-lg">
+                    <i class="fa-solid fa-fire"></i>
+                </div>
+                <div>
+                    <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Streak</div>
+                    <div id="statStreak" class="text-base font-bold text-slate-800 dark:text-slate-100">0 🔥</div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center gap-3">
+                <div class="p-2 bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 rounded-xl text-lg">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <div>
+                    <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Best Streak</div>
+                    <div id="statBestStreak" class="text-base font-bold text-slate-800 dark:text-slate-100">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 1: Setup View -->
+        <section id="setupScreen" class="bg-white dark:bg-slate-800 rounded-3xl p-6 md:p-8 border border-slate-200/80 dark:border-slate-700/80 shadow-sm transition-all">
+            <div class="text-center max-w-lg mx-auto mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 rounded-2xl mb-4 text-2xl">
+                    <i class="fa-solid fa-vial-circle-check"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Master Reaction Types</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-300">Test your knowledge identifying Precipitation, Acid-Base, and Oxidation-Reduction (Redox) chemical reactions.</p>
+            </div>
+
+            <!-- Topic Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
+                <div class="p-4 rounded-2xl bg-sky-50/50 dark:bg-slate-800/50 border border-sky-200/60 dark:border-sky-900/40">
+                    <div class="flex items-center gap-2 mb-1.5 font-semibold text-sky-800 dark:text-sky-300 text-sm">
+                        <i class="fa-solid fa-glass-water-droplet"></i> Precipitation
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Soluble aqueous reactants combine to yield an insoluble solid product (s) per solubility rules.</p>
+                </div>
+                <div class="p-4 rounded-2xl bg-emerald-50/50 dark:bg-slate-800/50 border border-emerald-200/60 dark:border-emerald-900/40">
+                    <div class="flex items-center gap-2 mb-1.5 font-semibold text-emerald-800 dark:text-emerald-300 text-sm">
+                        <i class="fa-solid fa-atom"></i> Acid / Base
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Proton (H⁺) transfer or neutralization reactions between acids and bases, forming salts and water.</p>
+                </div>
+                <div class="p-4 rounded-2xl bg-purple-50/50 dark:bg-slate-800/50 border border-purple-200/60 dark:border-purple-900/40">
+                    <div class="flex items-center gap-2 mb-1.5 font-semibold text-purple-800 dark:text-purple-300 text-sm">
+                        <i class="fa-solid fa-bolt"></i> Redox (Ox/Red)
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Electron transfer reactions involving changes in oxidation state (single displacement, combustion, synthesis).</p>
+                </div>
+            </div>
+
+            <!-- Quiz Settings Form -->
+            <div class="max-w-md mx-auto space-y-6">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 text-center">Select Session Length</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" data-length="10" class="length-btn active py-3 px-4 rounded-2xl border-2 text-sm font-bold transition-all text-center border-sky-500 bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300">
+                            10 Questions
+                        </button>
+                        <button type="button" data-length="20" class="length-btn py-3 px-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-sm font-bold text-slate-700 dark:text-slate-300 transition-all text-center">
+                            20 Questions
+                        </button>
+                        <button type="button" data-length="30" class="length-btn py-3 px-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-sm font-bold text-slate-700 dark:text-slate-300 transition-all text-center">
+                            30 Questions
+                        </button>
+                    </div>
+                </div>
+
+                <button id="startQuizBtn" class="w-full py-4 px-6 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-bold rounded-2xl shadow-lg shadow-sky-600/25 transition-all text-base flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-play"></i> Start Practice Session
+                </button>
+            </div>
+        </section>
+
+        <!-- SCREEN 2: Practice Quiz View -->
+        <section id="quizScreen" class="hidden flex-col gap-5">
+            <!-- Progress Tracker Bar -->
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm space-y-2">
+                <div class="flex justify-between items-center text-xs font-bold text-slate-500 dark:text-slate-400">
+                    <span id="questionCounter">Question 1 of 10</span>
+                    <span id="currentScoreCounter">Score: 0 / 0</span>
+                </div>
+                <div class="w-full h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-sky-500 rounded-full transition-all duration-300 w-0"></div>
+                </div>
+            </div>
+
+            <!-- Reaction Card Display -->
+            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 md:p-8 border border-slate-200/80 dark:border-slate-700/80 shadow-sm relative overflow-hidden">
+                <div class="text-xs font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400 mb-2">Classify the Chemical Reaction:</div>
+                
+                <!-- Formula Container -->
+                <div class="my-4 py-6 px-4 bg-slate-50 dark:bg-slate-900/80 rounded-2xl border border-slate-200/60 dark:border-slate-800 flex items-center justify-center min-h-[110px]">
+                    <div id="equationRender" class="text-base sm:text-xl md:text-2xl text-slate-900 dark:text-white font-serif text-center">
+                        <!-- KaTeX Formula dynamically injected here -->
+                    </div>
+                </div>
+
+                <!-- Answer Choice Options -->
+                <div id="answerOptions" class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
+                    <button data-type="precipitation" class="choice-btn group text-left p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-sky-500 dark:hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-slate-700/50 transition-all font-medium flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-colors">A</span>
+                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">Precipitation</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </button>
+
+                    <button data-type="acid-base" class="choice-btn group text-left p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-sky-500 dark:hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-slate-700/50 transition-all font-medium flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-colors">B</span>
+                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">Acid / Base</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </button>
+
+                    <button data-type="redox" class="choice-btn group text-left p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-sky-500 dark:hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-slate-700/50 transition-all font-medium flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-colors">C</span>
+                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">Redox</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </button>
+                </div>
+
+                <!-- Explanation / Feedback Panel -->
+                <div id="explanationPanel" class="hidden mt-6 p-5 rounded-2xl border transition-all">
+                    <div class="flex items-center gap-2 font-bold text-base mb-2" id="feedbackHeader">
+                        <!-- Icon & status header -->
+                    </div>
+                    <div id="explanationText" class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
+                        <!-- Detailed chemical note explanation -->
+                    </div>
+                </div>
+
+                <!-- Next Question Action Button -->
+                <div class="mt-6 flex justify-end">
+                    <button id="nextQuestionBtn" class="hidden py-3 px-6 bg-slate-900 hover:bg-slate-800 dark:bg-sky-600 dark:hover:bg-sky-500 text-white text-sm font-bold rounded-2xl transition-all shadow-md items-center gap-2">
+                        Next Question <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 3: Final Results Summary View -->
+        <section id="resultsScreen" class="hidden bg-white dark:bg-slate-800 rounded-3xl p-6 md:p-8 border border-slate-200/80 dark:border-slate-700/80 shadow-sm transition-all space-y-6">
+            <div class="text-center max-w-md mx-auto">
+                <div id="resultsBadge" class="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 text-emerald-600 dark:bg-emerald-950/80 dark:text-emerald-400 rounded-3xl mb-4 text-3xl">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white mb-1">Session Complete!</h2>
+                <p id="resultsSubtitle" class="text-sm text-slate-500 dark:text-slate-400">Great work testing your chemical reaction knowledge.</p>
+                
+                <div class="my-6 p-6 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-around">
+                    <div>
+                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Final Score</div>
+                        <div id="finalScorePct" class="text-3xl font-black text-sky-600 dark:text-sky-400">0%</div>
+                        <div id="finalScoreFraction" class="text-xs font-semibold text-slate-500 mt-1">0 / 0</div>
+                    </div>
+                    <div class="h-10 w-px bg-slate-200 dark:bg-slate-700"></div>
+                    <div>
+                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Streak Kept</div>
+                        <div id="finalStreak" class="text-3xl font-black text-amber-500">0 🔥</div>
+                        <div id="newBestBadge" class="hidden text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase mt-1">New High Score!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Breakdown Accordion / List -->
+            <div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center justify-between">
+                    <span>Review Session Answers</span>
+                    <span id="reviewCount" class="text-xs font-normal"></span>
+                </h3>
+                <div id="reviewList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                    <!-- Dynamic review items generated here -->
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button id="restartBtn" class="flex-1 py-3.5 px-5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-2xl shadow-md transition-all text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> Try Another Practice Set
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-4 text-center text-xs text-slate-400 border-t border-slate-200 dark:border-slate-800">
+        ChemIdentify Practice Lab &bull; Includes 60 Balanced Equations & Solubility Breakdown
+    </footer>
+
+    <script>
+        // 20 Precipitation, 20 Acid/Base, 20 Redox Reactions
+        const REACTION_DATABASE = [
+            // --- PRECIPITATION REACTIONS (20) ---
+            {
+                id: "p1",
+                type: "precipitation",
+                latex: "\\text{AgNO}_3(aq) + \\text{NaCl}(aq) \\rightarrow \\text{AgCl}(s) + \\text{NaNO}_3(aq)",
+                explanation: "Solubility Rules: Silver chloride ($\\text{AgCl}$) is insoluble in water and precipitates out as a white solid ($s$), while $\\text{NaNO}_3$ remains dissolved."
+            },
+            {
+                id: "p2",
+                type: "precipitation",
+                latex: "\\text{BaCl}_2(aq) + \\text{Na}_2\\text{SO}_4(aq) \\rightarrow \\text{BaSO}_4(s) + 2\\text{NaCl}(aq)",
+                explanation: "Solubility Rules: Most sulfates are soluble, but Barium sulfate ($\\text{BaSO}_4$) is a notable insoluble exception, forming a thick white precipitate."
+            },
+            {
+                id: "p3",
+                type: "precipitation",
+                latex: "\\text{Pb(NO}_3)_2(aq) + 2\\text{KI}(aq) \\rightarrow \\text{PbI}_2(s) + 2\\text{KNO}_3(aq)",
+                explanation: "Solubility Rules: Lead(II) iodide ($\\text{PbI}_2$) is an insoluble yellow compound that precipitates immediately when mixed."
+            },
+            {
+                id: "p4",
+                type: "precipitation",
+                latex: "\\text{CaCl}_2(aq) + \\text{Na}_2\\text{CO}_3(aq) \\rightarrow \\text{CaCO}_3(s) + 2\\text{NaCl}(aq)",
+                explanation: "Solubility Rules: Most carbonates are insoluble in water except alkali metals. Calcium carbonate ($\\text{CaCO}_3$) precipitates as a solid."
+            },
+            {
+                id: "p5",
+                type: "precipitation",
+                latex: "\\text{CuSO}_4(aq) + 2\\text{NaOH}(aq) \\rightarrow \\text{Cu(OH)}_2(s) + \\text{Na}_2\\text{SO}_4(aq)",
+                explanation: "Solubility Rules: Transition metal hydroxides like Copper(II) hydroxide ($\\text{Cu(OH)}_2$) are insoluble and form a pale blue solid precipitate."
+            },
+            {
+                id: "p6",
+                type: "precipitation",
+                latex: "3\\text{CaCl}_2(aq) + 2\\text{Na}_3\\text{PO}_4(aq) \\rightarrow \\text{Ca}_3(\\text{PO}_4)_2(s) + 6\\text{NaCl}(aq)",
+                explanation: "Solubility Rules: Phosphates are generally insoluble (except Group 1 cations & $\\text{NH}_4^+$). Calcium phosphate precipitates."
+            },
+            {
+                id: "p7",
+                type: "precipitation",
+                latex: "\\text{FeCl}_3(aq) + 3\\text{KOH}(aq) \\rightarrow \\text{Fe(OH)}_3(s) + 3\\text{KCl}(aq)",
+                explanation: "Solubility Rules: Iron(III) hydroxide ($\\text{Fe(OH)}_3$) forms a gelatinous reddish-brown insoluble precipitate."
+            },
+            {
+                id: "p8",
+                type: "precipitation",
+                latex: "\\text{AgNO}_3(aq) + \\text{KBr}(aq) \\rightarrow \\text{AgBr}(s) + \\text{KNO}_3(aq)",
+                explanation: "Solubility Rules: Halides are soluble except for $\\text{Ag}^+$, $\\text{Pb}^{2+}$, and $\\text{Hg}_2^{2+}$. Silver bromide ($\\text{AgBr}$) forms a cream-colored solid."
+            },
+            {
+                id: "p9",
+                type: "precipitation",
+                latex: "\\text{NiCl}_2(aq) + \\text{Na}_2\\text{S}(aq) \\rightarrow \\text{NiS}(s) + 2\\text{NaCl}(aq)",
+                explanation: "Solubility Rules: Sulfides are insoluble with transition metals. Nickel(II) sulfide ($\\text{NiS}$) forms a black solid precipitate."
+            },
+            {
+                id: "p10",
+                type: "precipitation",
+                latex: "\\text{Sr(NO}_3)_2(aq) + \\text{K}_2\\text{SO}_4(aq) \\rightarrow \\text{SrSO}_4(s) + 2\\text{KNO}_3(aq)",
+                explanation: "Solubility Rules: Strontium sulfate ($\\text{SrSO}_4$) is an insoluble sulfate exception and precipitates out."
+            },
+            {
+                id: "p11",
+                type: "precipitation",
+                latex: "\\text{Hg}_2(\\text{NO}_3)_2(aq) + 2\\text{NaCl}(aq) \\rightarrow \\text{Hg}_2\\text{Cl}_2(s) + 2\\text{NaNO}_3(aq)",
+                explanation: "Solubility Rules: Mercury(I) chloride ($\\text{Hg}_2\\text{Cl}_2$) is insoluble in water and forms a white precipitate."
+            },
+            {
+                id: "p12",
+                type: "precipitation",
+                latex: "\\text{CoCl}_2(aq) + \\text{Na}_2\\text{CO}_3(aq) \\rightarrow \\text{CoCO}_3(s) + 2\\text{NaCl}(aq)",
+                explanation: "Solubility Rules: Carbonates are insoluble with transition metals. Cobalt(II) carbonate forms a pinkish solid precipitate."
+            },
+            {
+                id: "p13",
+                type: "precipitation",
+                latex: "\\text{Al(NO}_3)_3(aq) + 3\\text{NaOH}(aq) \\rightarrow \\text{Al(OH)}_3(s) + 3\\text{NaNO}_3(aq)",
+                explanation: "Solubility Rules: Aluminum hydroxide ($\\text{Al(OH)}_3$) is insoluble and forms a white gelatinous precipitate."
+            },
+            {
+                id: "p14",
+                type: "precipitation",
+                latex: "\\text{ZnSO}_4(aq) + \\text{Na}_2\\text{S}(aq) \\rightarrow \\text{ZnS}(s) + \\text{Na}_2\\text{SO}_4(aq)",
+                explanation: "Solubility Rules: Zinc sulfide ($\\text{ZnS}$) is an insoluble sulfide precipitate."
+            },
+            {
+                id: "p15",
+                type: "precipitation",
+                latex: "\\text{Cd(NO}_3)_2(aq) + \\text{K}_2\\text{S}(aq) \\rightarrow \\text{CdS}(s) + 2\\text{KNO}_3(aq)",
+                explanation: "Solubility Rules: Cadmium sulfide ($\\text{CdS}$) is an insoluble bright yellow precipitate."
+            },
+            {
+                id: "p16",
+                type: "precipitation",
+                latex: "\\text{MgSO}_4(aq) + 2\\text{NaOH}(aq) \\rightarrow \\text{Mg(OH)}_2(s) + \\text{Na}_2\\text{SO}_4(aq)",
+                explanation: "Solubility Rules: Group 2 hydroxides are poorly soluble or insoluble down to Mg. Magnesium hydroxide forms a solid suspension."
+            },
+            {
+                id: "p17",
+                type: "precipitation",
+                latex: "2\\text{AgNO}_3(aq) + \\text{K}_2\\text{CrO}_4(aq) \\rightarrow \\text{Ag}_2\\text{CrO}_4(s) + 2\\text{KNO}_3(aq)",
+                explanation: "Solubility Rules: Chromates are insoluble except with Group 1 ions. Silver chromate forms a brick-red precipitate."
+            },
+            {
+                id: "p18",
+                type: "precipitation",
+                latex: "\\text{Pb(C}_2\\text{H}_3\\text{O}_2)_2(aq) + \\text{Na}_2\\text{SO}_4(aq) \\rightarrow \\text{PbSO}_4(s) + 2\\text{NaC}_2\\text{H}_3\\text{O}_2(aq)",
+                explanation: "Solubility Rules: Lead(II) sulfate ($\\text{PbSO}_4$) is an insoluble sulfate exception."
+            },
+            {
+                id: "p19",
+                type: "precipitation",
+                latex: "3\\text{Ba(NO}_3)_2(aq) + 2\\text{K}_3\\text{PO}_4(aq) \\rightarrow \\text{Ba}_3(\\text{PO}_4)_2(s) + 6\\text{KNO}_3(aq)",
+                explanation: "Solubility Rules: Barium phosphate is an insoluble ionic solid precipitate."
+            },
+            {
+                id: "p20",
+                type: "precipitation",
+                latex: "\\text{Bi(NO}_3)_3(aq) + 3\\text{KI}(aq) \\rightarrow \\text{BiI}_3(s) + 3\\text{KNO}_3(aq)",
+                explanation: "Solubility Rules: Bismuth(III) iodide forms a dark insoluble precipitate."
+            },
+
+            // --- ACID / BASE REACTIONS (20) ---
+            {
+                id: "a1",
+                type: "acid-base",
+                latex: "\\text{HCl}(aq) + \\text{NaOH}(aq) \\rightarrow \\text{NaCl}(aq) + \\text{H}_2\\text{O}(l)",
+                explanation: "Brønsted-Lowry / Arrhenius Neutralization: Hydrochloric acid donors $H^+$ to sodium hydroxide ($OH^-$) to form liquid water and a salt."
+            },
+            {
+                id: "a2",
+                type: "acid-base",
+                latex: "\\text{NH}_3(aq) + \\text{CH}_3\\text{COOH}(aq) \\rightarrow \\text{NH}_4^+(aq) + \\text{CH}_3\\text{COO}^-(aq)",
+                explanation: "Proton Transfer: Acetic acid acts as a Brønsted-Lowry acid transferring $H^+$ to the weak base ammonia ($\\text{NH}_3$)."
+            },
+            {
+                id: "a3",
+                type: "acid-base",
+                latex: "\\text{H}_2\\text{SO}_4(aq) + 2\\text{KOH}(aq) \\rightarrow \\text{K}_2\\text{SO}_4(aq) + 2\\text{H}_2\\text{O}(l)",
+                explanation: "Neutralization: Diprotic sulfuric acid reacts with potassium hydroxide base to produce potassium sulfate salt and water."
+            },
+            {
+                id: "a4",
+                type: "acid-base",
+                latex: "\\text{HNO}_3(aq) + \\text{NaHCO}_3(aq) \\rightarrow \\text{NaNO}_3(aq) + \\text{H}_2\\text{O}(l) + \\text{CO}_2(g)",
+                explanation: "Acid-Base Gas-Evolving: Nitric acid protonates bicarbonate ion to carbonic acid ($\\text{H}_2\\text{CO}_3$), which decomposes into $\\text{H}_2\\text{O}$ and $\\text{CO}_2$."
+            },
+            {
+                id: "a5",
+                type: "acid-base",
+                latex: "\\text{HC}_2\\text{H}_3\\text{O}_2(aq) + \\text{NaOH}(aq) \\rightarrow \\text{NaC}_2\\text{H}_3\\text{O}_2(aq) + \\text{H}_2\\text{O}(l)",
+                explanation: "Acid-Base: Weak acetic acid transfers a proton to hydroxide base forming sodium acetate and water."
+            },
+            {
+                id: "a6",
+                type: "acid-base",
+                latex: "2\\text{HCl}(aq) + \\text{Mg(OH)}_2(s) \\rightarrow \\text{MgCl}_2(aq) + 2\\text{H}_2\\text{O}(l)",
+                explanation: "Neutralization: Hydrochloric acid neutralizes insoluble magnesium hydroxide (antacid) forming soluble salt and water."
+            },
+            {
+                id: "a7",
+                type: "acid-base",
+                latex: "\\text{H}_3\\text{PO}_4(aq) + 3\\text{LiOH}(aq) \\rightarrow \\text{Li}_3\\text{PO}_4(aq) + 3\\text{H}_2\\text{O}(l)",
+                explanation: "Neutralization: Triprotic phosphoric acid reacts with lithium hydroxide base to form lithium phosphate salt and water."
+            },
+            {
+                id: "a8",
+                type: "acid-base",
+                latex: "\\text{HClO}_4(aq) + \\text{NH}_3(aq) \\rightarrow \\text{NH}_4\\text{ClO}_4(aq)",
+                explanation: "Proton Transfer: Perchloric acid transfers a proton directly to ammonia base forming ammonium perchlorate."
+            },
+            {
+                id: "a9",
+                type: "acid-base",
+                latex: "\\text{HF}(aq) + \\text{KOH}(aq) \\rightarrow \\text{KF}(aq) + \\text{H}_2\\text{O}(l)",
+                explanation: "Acid-Base: Hydrofluoric acid transfers $H^+$ to potassium hydroxide to form potassium fluoride salt and water."
+            },
+            {
+                id: "a10",
+                type: "acid-base",
+                latex: "2\\text{HBr}(aq) + \\text{Ba(OH)}_2(aq) \\rightarrow \\text{BaBr}_2(aq) + 2\\text{H}_2\\text{O}(l)",
+                explanation: "Neutralization: Hydrobromic acid (strong acid) reacts with barium hydroxide (strong base)."
+            },
+            {
+                id: "a11",
+                type: "acid-base",
+                latex: "\\text{H}_2\\text{CO}_3(aq) + 2\\text{NaOH}(aq) \\rightarrow \\text{Na}_2\\text{CO}_3(aq) + 2\\text{H}_2\\text{O}(l)",
+                explanation: "Neutralization: Carbonic acid reacts with sodium hydroxide base to produce sodium carbonate and water."
+            },
+            {
+                id: "a12",
+                type: "acid-base",
+                latex: "\\text{CH}_3\\text{NH}_2(aq) + \\text{HCl}(aq) \\rightarrow \\text{CH}_3\\text{NH}_3^+(aq) + \\text{Cl}^-(aq)",
+                explanation: "Brønsted-Lowry Acid-Base: Methylamine base accepts $H^+$ from hydrochloric acid."
+            },
+            {
+                id: "a13",
+                type: "acid-base",
+                latex: "\\text{H}_2\\text{SO}_4(aq) + 2\\text{NH}_3(aq) \\rightarrow (\\text{NH}_4)_2\\text{SO}_4(aq)",
+                explanation: "Proton Transfer: Sulfuric acid donates protons to two ammonia molecules forming ammonium sulfate salt."
+            },
+            {
+                id: "a14",
+                type: "acid-base",
+                latex: "\\text{HI}(aq) + \\text{LiOH}(aq) \\rightarrow \\text{LiI}(aq) + \\text{H}_2\\text{O}(l)",
+                explanation: "Neutralization: Hydroiodic acid donates $H^+$ to lithium hydroxide to yield lithium iodide and water."
+            },
+            {
+                id: "a15",
+                type: "acid-base",
+                latex: "\\text{HCN}(aq) + \\text{NaOH}(aq) \\rightarrow \\text{NaCN}(aq) + \\text{H}_2\\text{O}(l)",
+                explanation: "Acid-Base: Weak hydrocyanic acid transfers proton to hydroxide base."
+            },
+            {
+                id: "a16",
+                type: "acid-base",
+                latex: "2\\text{HNO}_3(aq) + \\text{Ca(OH)}_2(aq) \\rightarrow \\text{Ca(NO}_3)_2(aq) + 2\\text{H}_2\\text{O}(l)",
+                explanation: "Neutralization: Nitric acid neutralizes calcium hydroxide base."
+            },
+            {
+                id: "a17",
+                type: "acid-base",
+                latex: "\\text{HCl}(aq) + \\text{NaHCO}_3(s) \\rightarrow \\text{NaCl}(aq) + \\text{H}_2\\text{O}(l) + \\text{CO}_2(g)",
+                explanation: "Acid-Base Gas Evolution: Acid reacts with solid sodium bicarbonate forming salt, water, and carbon dioxide gas."
+            },
+            {
+                id: "a18",
+                type: "acid-base",
+                latex: "\\text{C}_5\\text{H}_5\\text{N}(aq) + \\text{HNO}_3(aq) \\rightarrow \\text{C}_5\\text{H}_5\\text{NH}^+(aq) + \\text{NO}_3^-(aq)",
+                explanation: "Proton Transfer: Pyridine accepts a proton from nitric acid."
+            },
+            {
+                id: "a19",
+                type: "acid-base",
+                latex: "3\\text{HCl}(aq) + \\text{Al(OH)}_3(s) \\rightarrow \\text{AlCl}_3(aq) + 3\\text{H}_2\\text{O}(l)",
+                explanation: "Neutralization: Hydrochloric acid reacts with aluminum hydroxide base."
+            },
+            {
+                id: "a20",
+                type: "acid-base",
+                latex: "\\text{H}_2\\text{C}_2\\text{O}_4(aq) + 2\\text{KOH}(aq) \\rightarrow \\text{K}_2\\text{C}_2\\text{O}_4(aq) + 2\\text{H}_2\\text{O}(l)",
+                explanation: "Neutralization: Oxalic acid donates protons to potassium hydroxide base."
+            },
+
+            // --- REDOX REACTIONS (20) ---
+            {
+                id: "r1",
+                type: "redox",
+                latex: "\\text{Zn}(s) + \\text{CuSO}_4(aq) \\rightarrow \\text{ZnSO}_4(aq) + \\text{Cu}(s)",
+                explanation: "Redox (Single Displacement): $\\text{Zn}$ is oxidized ($0 \\rightarrow +2$) and $\\text{Cu}^{2+}$ is reduced ($+2 \\rightarrow 0$)."
+            },
+            {
+                id: "r2",
+                type: "redox",
+                latex: "2\\text{Mg}(s) + \\text{O}_2(g) \\rightarrow 2\\text{MgO}(s)",
+                explanation: "Redox (Synthesis/Combustion): Elemental Magnesium is oxidized ($0 \\rightarrow +2$) while Oxygen gas is reduced ($0 \\rightarrow -2$)."
+            },
+            {
+                id: "r3",
+                type: "redox",
+                latex: "\\text{CH}_4(g) + 2\\text{O}_2(g) \\rightarrow \\text{CO}_2(g) + 2\\text{H}_2\\text{O}(g)",
+                explanation: "Redox (Combustion): Carbon in methane is oxidized from $-4$ to $+4$, while oxygen is reduced from $0$ to $-2$."
+            },
+            {
+                id: "r4",
+                type: "redox",
+                latex: "2\\text{Na}(s) + \\text{Cl}_2(g) \\rightarrow 2\\text{NaCl}(s)",
+                explanation: "Redox (Synthesis): Sodium loses electrons (oxidized $0 \\rightarrow +1$) and Chlorine gains electrons (reduced $0 \\rightarrow -1$)."
+            },
+            {
+                id: "r5",
+                type: "redox",
+                latex: "\\text{Fe}_2\\text{O}_3(s) + 3\\text{CO}(g) \\rightarrow 2\\text{Fe}(s) + 3\\text{CO}_2(g)",
+                explanation: "Redox (Blast Furnace Reduction): Iron is reduced from $+3$ to $0$, and Carbon monoxide is oxidized to $\\text{CO}_2$."
+            },
+            {
+                id: "r6",
+                type: "redox",
+                latex: "2\\text{Al}(s) + 3\\text{CuCl}_2(aq) \\rightarrow 2\\text{AlCl}_3(aq) + 3\\text{Cu}(s)",
+                explanation: "Redox (Single Displacement): Aluminum is oxidized ($0 \\rightarrow +3$) and Copper(II) is reduced ($+2 \\rightarrow 0$)."
+            },
+            {
+                id: "r7",
+                type: "redox",
+                latex: "\\text{Cl}_2(g) + 2\\text{KBr}(aq) \\rightarrow 2\\text{KCl}(aq) + \\text{Br}_2(l)",
+                explanation: "Redox (Halogen Displacement): Chlorine is reduced ($0 \\rightarrow -1$) and Bromide is oxidized ($-1 \\rightarrow 0$)."
+            },
+            {
+                id: "r8",
+                type: "redox",
+                latex: "2\\text{H}_2\\text{O}_2(aq) \\rightarrow 2\\text{H}_2\\text{O}(l) + \\text{O}_2(g)",
+                explanation: "Redox (Disproportionation): Oxygen in $\\text{H}_2\\text{O}_2$ ($-1$) is simultaneously reduced to $-2$ in water and oxidized to $0$ in $\\text{O}_2$."
+            },
+            {
+                id: "r9",
+                type: "redox",
+                latex: "\\text{Cu}(s) + 2\\text{AgNO}_3(aq) \\rightarrow \\text{Cu(NO}_3)_2(aq) + 2\\text{Ag}(s)",
+                explanation: "Redox (Single Replacement): Copper is oxidized ($0 \\rightarrow +2$) and Silver ion is reduced ($+1 \\rightarrow 0$)."
+            },
+            {
+                id: "r10",
+                type: "redox",
+                latex: "\\text{Fe}(s) + 2\\text{HCl}(aq) \\rightarrow \\text{FeCl}_2(aq) + \\text{H}_2(g)",
+                explanation: "Redox: Elemental Iron is oxidized to $\\text{Fe}^{2+}$ and $H^+$ ions are reduced to hydrogen gas ($\\text{H}_2$)."
+            },
+            {
+                id: "r11",
+                type: "redox",
+                latex: "\\text{C}_3\\text{H}_8(g) + 5\\text{O}_2(g) \\rightarrow 3\\text{CO}_2(g) + 4\\text{H}_2\\text{O}(g)",
+                explanation: "Redox (Propane Combustion): Hydrocarbon oxidation state of Carbon increases while Oxygen is reduced."
+            },
+            {
+                id: "r12",
+                type: "redox",
+                latex: "2\\text{KClO}_3(s) \\rightarrow 2\\text{KCl}(s) + 3\\text{O}_2(g)",
+                explanation: "Redox Decomposition: Chlorine is reduced from $+5$ to $-1$, and Oxygen is oxidized from $-2$ to $0$."
+            },
+            {
+                id: "r13",
+                type: "redox",
+                latex: "\\text{MnO}_2(s) + 4\\text{HCl}(aq) \\rightarrow \\text{MnCl}_2(aq) + \\text{Cl}_2(g) + 2\\text{H}_2\\text{O}(l)",
+                explanation: "Redox: Manganese is reduced from $+4$ to $+2$, and Chloride is oxidized to chlorine gas ($0$)."
+            },
+            {
+                id: "r14",
+                type: "redox",
+                latex: "2\\text{NaI}(aq) + \\text{Br}_2(l) \\rightarrow 2\\text{NaBr}(aq) + \\text{I}_2(s)",
+                explanation: "Redox: Iodide is oxidized ($-1 \\rightarrow 0$) and bromine is reduced ($0 \\rightarrow -1$)."
+            },
+            {
+                id: "r15",
+                type: "redox",
+                latex: "\\text{Ca}(s) + 2\\text{H}_2\\text{O}(l) \\rightarrow \\text{Ca(OH)}_2(aq) + \\text{H}_2(g)",
+                explanation: "Redox: Calcium is oxidized ($0 \\rightarrow +2$) and hydrogen in water is reduced ($+1 \\rightarrow 0$)."
+            },
+            {
+                id: "r16",
+                type: "redox",
+                latex: "2\\text{NO}(g) + \\text{O}_2(g) \\rightarrow 2\\text{NO}_2(g)",
+                explanation: "Redox: Nitrogen in nitric oxide is oxidized from $+2$ to $+4$, while $\\text{O}_2$ is reduced."
+            },
+            {
+                id: "r17",
+                type: "redox",
+                latex: "\\text{SO}_2(g) + \\text{V}_2\\text{O}_5(s) \\text{ process } \\rightarrow \\text{SO}_3(g)",
+                explanation: "Redox: Sulfur dioxide is oxidized from $+4$ to $+6$ in sulfur trioxide."
+            },
+            {
+                id: "r18",
+                type: "redox",
+                latex: "\\text{PbO}_2(s) + \\text{Pb}(s) + 2\\text{H}_2\\text{SO}_4(aq) \\rightarrow 2\\text{PbSO}_4(s) + 2\\text{H}_2\\text{O}(l)",
+                explanation: "Redox (Lead-Acid Battery Comproportionation): $\\text{Pb}(0)$ and $\\text{Pb}(+4)$ both convert to $\\text{Pb}(+2)$."
+            },
+            {
+                id: "r19",
+                type: "redox",
+                latex: "2\\text{FeCl}_2(aq) + \\text{Cl}_2(g) \\rightarrow 2\\text{FeCl}_3(aq)",
+                explanation: "Redox: Iron(II) is oxidized to Iron(III), and chlorine gas is reduced to chloride."
+            },
+            {
+                id: "r20",
+                type: "redox",
+                latex: "2\\text{Li}(s) + \\text{S}(s) \\rightarrow \\text{Li}_2\\text{S}(s)",
+                explanation: "Redox: Lithium loses electrons ($0 \\rightarrow +1$) and Sulfur gains electrons ($0 \\rightarrow -2$)."
+            }
+        ];
+
+        let appState = {
+            theme: localStorage.getItem('chem_theme') || 'light',
+            selectedLength: 10,
+            currentQuestions: [],
+            currentIndex: 0,
+            score: 0,
+            streak: 0,
+            bestStreak: parseInt(localStorage.getItem('chem_best_streak') || '0', 10),
+            highScorePct: parseInt(localStorage.getItem('chem_high_score') || '0', 10),
+            lastScorePct: localStorage.getItem('chem_last_score') !== null ? parseInt(localStorage.getItem('chem_last_score'), 10) : null,
+            userAnswers: [] // [{ question, userAnswer, isCorrect }]
+        };
+
+        // DOM Elements
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const resetPracticeBtn = document.getElementById('resetPracticeBtn');
+
+        const setupScreen = document.getElementById('setupScreen');
+        const quizScreen = document.getElementById('quizScreen');
+        const resultsScreen = document.getElementById('resultsScreen');
+
+        const statHighScore = document.getElementById('statHighScore');
+        const statLastScore = document.getElementById('statLastScore');
+        const statStreak = document.getElementById('statStreak');
+        const statBestStreak = document.getElementById('statBestStreak');
+
+        const startQuizBtn = document.getElementById('startQuizBtn');
+        const lengthBtns = document.querySelectorAll('.length-btn');
+
+        const questionCounter = document.getElementById('questionCounter');
+        const currentScoreCounter = document.getElementById('currentScoreCounter');
+        const progressBar = document.getElementById('progressBar');
+        const equationRender = document.getElementById('equationRender');
+        const answerOptions = document.getElementById('answerOptions');
+        const choiceBtns = document.querySelectorAll('.choice-btn');
+        const explanationPanel = document.getElementById('explanationPanel');
+        const feedbackHeader = document.getElementById('feedbackHeader');
+        const explanationText = document.getElementById('explanationText');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+
+        const finalScorePct = document.getElementById('finalScorePct');
+        const finalScoreFraction = document.getElementById('finalScoreFraction');
+        const finalStreak = document.getElementById('finalStreak');
+        const newBestBadge = document.getElementById('newBestBadge');
+        const reviewList = document.getElementById('reviewList');
+        const reviewCount = document.getElementById('reviewCount');
+        const restartBtn = document.getElementById('restartBtn');
+
+        function initTheme() {
+            if (appState.theme === 'dark' || (!('chem_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                themeIcon.className = 'fa-solid fa-sun text-lg';
+                appState.theme = 'dark';
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeIcon.className = 'fa-solid fa-moon text-lg';
+                appState.theme = 'light';
+            }
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            appState.theme = appState.theme === 'light' ? 'dark' : 'light';
+            localStorage.setItem('chem_theme', appState.theme);
+            initTheme();
+        });
+
+        function updateDashboardUI() {
+            statHighScore.textContent = `${appState.highScorePct}%`;
+            statLastScore.textContent = appState.lastScorePct !== null ? `${appState.lastScorePct}%` : '--';
+            statStreak.textContent = `${appState.streak} 🔥`;
+            statBestStreak.textContent = `${appState.bestStreak}`;
+        }
+
+        lengthBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                lengthBtns.forEach(b => {
+                    b.classList.remove('active', 'border-sky-500', 'bg-sky-50', 'dark:bg-sky-950/40', 'text-sky-700', 'dark:text-sky-300');
+                    b.classList.add('border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
+                });
+                btn.classList.add('active', 'border-sky-500', 'bg-sky-50', 'dark:bg-sky-950/40', 'text-sky-700', 'dark:text-sky-300');
+                btn.classList.remove('border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
+                appState.selectedLength = parseInt(btn.dataset.length, 10);
+            });
+        });
+
+        // Fisher-Yates shuffle algorithm for non-repeating sampling
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function startQuizSession() {
+            // Sample unique questions without replacement
+            const shuffled = shuffleArray(REACTION_DATABASE);
+            appState.currentQuestions = shuffled.slice(0, appState.selectedLength);
+            appState.currentIndex = 0;
+            appState.score = 0;
+            appState.userAnswers = [];
+
+            setupScreen.classList.add('hidden');
+            resultsScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            quizScreen.classList.add('flex');
+            resetPracticeBtn.classList.remove('hidden');
+
+            renderCurrentQuestion();
+        }
+
+        function renderCurrentQuestion() {
+            const q = appState.currentQuestions[appState.currentIndex];
+            
+            // Reset question UI components
+            explanationPanel.classList.add('hidden');
+            nextQuestionBtn.classList.add('hidden');
+            nextQuestionBtn.classList.remove('inline-flex');
+
+            // Reset answer button states
+            choiceBtns.forEach(btn => {
+                btn.disabled = false;
+                btn.className = "choice-btn group text-left p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-sky-500 dark:hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-slate-700/50 transition-all font-medium flex items-center justify-between";
+            });
+
+            // Update Progress Header
+            questionCounter.textContent = `Question ${appState.currentIndex + 1} of ${appState.selectedLength}`;
+            currentScoreCounter.textContent = `Score: ${appState.score} / ${appState.currentIndex}`;
+            const pct = ((appState.currentIndex) / appState.selectedLength) * 100;
+            progressBar.style.width = `${pct}%`;
+
+            // Render Chemical Equation with KaTeX
+            try {
+                if (window.katex) {
+                    katex.render(q.latex, equationRender, {
+                        throwOnError: false,
+                        displayMode: true
+                    });
+                } else {
+                    equationRender.textContent = q.latex;
+                }
+            } catch (err) {
+                equationRender.textContent = q.latex;
+            }
+        }
+
+        function handleAnswerSelection(selectedType) {
+            const currentQ = appState.currentQuestions[appState.currentIndex];
+            const isCorrect = selectedType === currentQ.type;
+
+            // Disable all choice buttons after click
+            choiceBtns.forEach(btn => {
+                btn.disabled = true;
+                const btnType = btn.dataset.type;
+                if (btnType === currentQ.type) {
+                    btn.classList.remove('border-slate-200', 'dark:border-slate-700');
+                    btn.classList.add('border-emerald-500', 'bg-emerald-50', 'dark:bg-emerald-950/40', 'text-emerald-900', 'dark:text-emerald-200');
+                } else if (btnType === selectedType && !isCorrect) {
+                    btn.classList.remove('border-slate-200', 'dark:border-slate-700');
+                    btn.classList.add('border-rose-500', 'bg-rose-50', 'dark:bg-rose-950/40', 'text-rose-900', 'dark:text-rose-200');
+                }
+            });
+
+            // Update score & streak tracking
+            if (isCorrect) {
+                appState.score++;
+                appState.streak++;
+                if (appState.streak > appState.bestStreak) {
+                    appState.bestStreak = appState.streak;
+                    localStorage.setItem('chem_best_streak', appState.bestStreak);
+                }
+            } else {
+                appState.streak = 0;
+            }
+            updateDashboardUI();
+
+            // Record Answer Details
+            appState.userAnswers.push({
+                question: currentQ,
+                userAnswer: selectedType,
+                isCorrect: isCorrect
+            });
+
+            // Display Feedback Panel
+            explanationPanel.classList.remove('hidden');
+            if (isCorrect) {
+                explanationPanel.className = "mt-6 p-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/80 dark:bg-emerald-950/30";
+                feedbackHeader.className = "flex items-center gap-2 font-bold text-base mb-2 text-emerald-700 dark:text-emerald-400";
+                feedbackHeader.innerHTML = `<i class="fa-solid fa-circle-check text-lg"></i> Correct Answer!`;
+            } else {
+                explanationPanel.className = "mt-6 p-5 rounded-2xl border border-rose-200 dark:border-rose-800/60 bg-rose-50/80 dark:bg-rose-950/30";
+                feedbackHeader.className = "flex items-center gap-2 font-bold text-base mb-2 text-rose-700 dark:text-rose-400";
+                feedbackHeader.innerHTML = `<i class="fa-solid fa-circle-xmark text-lg"></i> Incorrect (Correct: ${formatTypeLabel(currentQ.type)})`;
+            }
+
+            // Render explanation latex
+            explanationText.innerHTML = renderKaTeXInline(currentQ.explanation);
+
+            // Show Next / Finish button
+            nextQuestionBtn.classList.remove('hidden');
+            nextQuestionBtn.classList.add('inline-flex');
+            if (appState.currentIndex === appState.selectedLength - 1) {
+                nextQuestionBtn.innerHTML = `Finish Session <i class="fa-solid fa-flag-checkered text-xs ml-1"></i>`;
+            } else {
+                nextQuestionBtn.innerHTML = `Next Question <i class="fa-solid fa-arrow-right text-xs ml-1"></i>`;
+            }
+        }
+
+        function formatTypeLabel(type) {
+            if (type === 'precipitation') return 'Precipitation';
+            if (type === 'acid-base') return 'Acid / Base';
+            if (type === 'redox') return 'Redox';
+            return type;
+        }
+
+        function renderKaTeXInline(text) {
+            return text.replace(/\$(.*?)\$/g, (match, formula) => {
+                try {
+                    return katex.renderToString(formula, { throwOnError: false, displayMode: false });
+                } catch (e) {
+                    return formula;
+                }
+            });
+        }
+
+        function finishQuizSession() {
+            quizScreen.classList.add('hidden');
+            quizScreen.classList.remove('flex');
+            resetPracticeBtn.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+
+            const scorePct = Math.round((appState.score / appState.selectedLength) * 100);
+            appState.lastScorePct = scorePct;
+            localStorage.setItem('chem_last_score', scorePct);
+
+            let isNewHigh = false;
+            if (scorePct > appState.highScorePct) {
+                appState.highScorePct = scorePct;
+                localStorage.setItem('chem_high_score', scorePct);
+                isNewHigh = true;
+            }
+
+            updateDashboardUI();
+
+            // Populate Results UI
+            finalScorePct.textContent = `${scorePct}%`;
+            finalScoreFraction.textContent = `${appState.score} of ${appState.selectedLength} Correct`;
+            finalStreak.textContent = `${appState.streak} 🔥`;
+
+            if (isNewHigh && scorePct > 0) {
+                newBestBadge.classList.remove('hidden');
+            } else {
+                newBestBadge.classList.add('hidden');
+            }
+
+            // Confetti effect for great score or high score
+            if (scorePct >= 80 && typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            // Populate Review Breakdown
+            reviewList.innerHTML = '';
+            reviewCount.textContent = `${appState.userAnswers.length} Questions`;
+
+            appState.userAnswers.forEach((ans, idx) => {
+                const item = document.createElement('div');
+                item.className = `p-4 rounded-2xl border text-xs sm:text-sm ${
+                    ans.isCorrect 
+                        ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/50' 
+                        : 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800/50'
+                }`;
+
+                const eqSpanId = `review-eq-${idx}`;
+
+                item.innerHTML = `
+                    <div class="flex items-center justify-between font-bold mb-2">
+                        <span class="flex items-center gap-1.5 ${ans.isCorrect ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}">
+                            <i class="fa-solid ${ans.isCorrect ? 'fa-check' : 'fa-xmark'}"></i> Q${idx + 1}: ${ans.isCorrect ? 'Correct' : 'Incorrect'}
+                        </span>
+                        <span class="text-slate-500 font-normal text-xs">Your Answer: <strong class="text-slate-700 dark:text-slate-300">${formatTypeLabel(ans.userAnswer)}</strong></span>
+                    </div>
+                    <div id="${eqSpanId}" class="my-2 py-2 px-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800 overflow-x-auto text-center font-serif"></div>
+                    <p class="text-slate-600 dark:text-slate-400 text-xs mt-1 leading-relaxed">${renderKaTeXInline(ans.question.explanation)}</p>
+                `;
+
+                reviewList.appendChild(item);
+
+                // Render KaTeX for review item formula
+                setTimeout(() => {
+                    const el = document.getElementById(eqSpanId);
+                    if (el) {
+                        try {
+                            katex.render(ans.question.latex, el, { throwOnError: false });
+                        } catch (e) {
+                            el.textContent = ans.question.latex;
+                        }
+                    }
+                }, 10);
+            });
+        }
+
+        choiceBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                handleAnswerSelection(btn.dataset.type);
+            });
+        });
+
+        nextQuestionBtn.addEventListener('click', () => {
+            if (appState.currentIndex < appState.selectedLength - 1) {
+                appState.currentIndex++;
+                renderCurrentQuestion();
+            } else {
+                finishQuizSession();
+            }
+        });
+
+        startQuizBtn.addEventListener('click', startQuizSession);
+        restartBtn.addEventListener('click', () => {
+            resultsScreen.classList.add('hidden');
+            setupScreen.classList.remove('hidden');
+        });
+
+        resetPracticeBtn.addEventListener('click', () => {
+            if (confirm("Are you sure you want to end this practice session?")) {
+                quizScreen.classList.add('hidden');
+                quizScreen.classList.remove('flex');
+                resetPracticeBtn.classList.add('hidden');
+                setupScreen.classList.remove('hidden');
+            }
+        });
+
+        // Initialize Application
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            updateDashboardUI();
+        });
+    </script>
+</body>
+</html>
