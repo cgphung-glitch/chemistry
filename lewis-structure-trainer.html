@@ -1452,6 +1452,23 @@ body .ui-tooltip {
   .valence-result{ font-weight:600; font-size:0.8rem; }
   .valence-result.ok{ color:var(--green); }
   .valence-result.bad{ color:var(--red); }
+  .fc-q{ margin-top:14px; }
+  .fc-q > label{ display:block; font-size:0.8rem; color:var(--ink); }
+  .fc-q .fc-sub{ font-size:0.7rem; color:var(--ink-dim); margin:2px 0 10px; }
+  .fc-grid{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .fc-chip{ display:flex; align-items:center; gap:6px; background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:5px 8px; font-size:0.85rem; }
+  .fc-chip b{ color:var(--amber); min-width:1.4em; }
+  .fc-chip sub{ font-size:0.65em; color:var(--ink-dim); }
+  .fc-chip input{ width:58px; text-align:center; font-family:var(--mono); font-size:0.9rem; padding:6px 4px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; }
+  .fc-chip input:focus{ outline:2px solid var(--teal); outline-offset:1px; }
+  .fc-chip.ok{ border-color:var(--green); }
+  .fc-chip.ok input{ color:var(--green); border-color:var(--green); }
+  .fc-chip.bad{ border-color:var(--red); }
+  .fc-chip.bad input{ color:var(--red); border-color:var(--red); }
+  .fc-answer{ margin-top:10px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--panel-2); font-size:0.75rem; line-height:1.7; }
+  .fc-answer h4{ margin:0 0 4px; font-family:var(--serif); font-size:0.9rem; color:var(--teal); }
+  .fc-answer .fc-eq{ font-family:var(--mono); color:var(--ink); }
+  .fc-answer .fc-note{ color:var(--ink-dim); margin-top:4px; }
   #hint-text.hint-count{ font-size:0.8rem; font-weight:600; color:var(--amber); background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:7px 10px; margin-top:0; }
   #hint-text.hint-count.full{ color:var(--green); border-color:var(--green); }
   #hint-text.hint-count.over{ color:var(--red); border-color:var(--red); }
@@ -1511,6 +1528,17 @@ body .ui-tooltip {
     <div class="canvas-inner">
       <canvas id="sketcher"></canvas>
     </div>
+  </div>
+
+  <div class="card fc-q" id="fc-q">
+    <label>Enter the formal charge for each element in the structure:</label>
+    <div class="fc-sub">Formal charge = valence e&#8315; &minus; nonbonding e&#8315; &minus; &frac12;(bonding e&#8315;). Atoms of the same element can be entered in any order. Example entries: 0, +1, -1.</div>
+    <div class="fc-grid" id="fc-grid"></div>
+    <div class="valence-row">
+      <button class="btn primary small" id="fc-submit" type="button">Check formal charges</button>
+      <span id="fc-result" class="valence-result" role="status" aria-live="polite"></span>
+    </div>
+    <div class="fc-answer" id="fc-answer" style="display:none;"></div>
   </div>
 
   <div class="toolbar-row" style="margin-top:14px;">
@@ -4055,6 +4083,7 @@ window.addEventListener('load', function(){
     document.getElementById('compound-meta').textContent =
       c.charge === 0 ? 'Neutral molecule' : ('Polyatomic ion \u00b7 overall charge ' + (c.charge > 0 ? '+' + c.charge : c.charge));
     resetValenceQuiz();
+    resetFormalCharge(c);
     sketcher.clear();
     document.getElementById('feedback-panel').style.display = 'none';
   }
@@ -4124,6 +4153,111 @@ window.addEventListener('load', function(){
   byId('valence-submit').addEventListener('click', submitValence);
   byId('valence-input').addEventListener('keydown', function(e){
     if (e.key === 'Enter'){ e.preventDefault(); submitValence(); }
+  });
+
+  /* ---------------------------------------------------------------
+   * Formal-charge question (graded against the reference structure)
+   * ------------------------------------------------------------- */
+  var fcData = [], fcDone = false;
+  var MINUS = '\u2212';
+  function fmtFC(n){ return n > 0 ? '+' + n : (n < 0 ? MINUS + Math.abs(n) : '0'); }
+
+  function computeFormalCharges(c){
+    var mol = c.build().mol, rows = [];
+    mol.atoms.forEach(function(a){
+      var bondSum = 0;
+      mol.bonds.forEach(function(b){ if (b.a1 === a || b.a2 === a) bondSum += b.bondOrder; });
+      var nb = 2 * (a.numLonePair || 0) + (a.numRadical || 0);
+      var V = VALENCE[a.label] || 0;
+      rows.push({ el: a.label, V: V, nb: nb, be: 2 * bondSum, fc: V - nb - bondSum });
+    });
+    // group by element in order of first appearance so the boxes are tidy
+    var order = [];
+    rows.forEach(function(r){ if (order.indexOf(r.el) < 0) order.push(r.el); });
+    var out = [];
+    order.forEach(function(el){ rows.forEach(function(r){ if (r.el === el) out.push(r); }); });
+    return out;
+  }
+
+  function resetFormalCharge(c){
+    fcDone = false;
+    fcData = computeFormalCharges(c);
+    var seen = {}, total = {};
+    fcData.forEach(function(r){ total[r.el] = (total[r.el] || 0) + 1; });
+    var grid = byId('fc-grid');
+    grid.innerHTML = '';
+    fcData.forEach(function(r, i){
+      seen[r.el] = (seen[r.el] || 0) + 1;
+      var chip = document.createElement('label');
+      chip.className = 'fc-chip';
+      chip.innerHTML = '<b>' + r.el + (total[r.el] > 1 ? '<sub>' + seen[r.el] + '</sub>' : '') + '</b>' +
+        '<input type="text" inputmode="numeric" autocomplete="off" data-i="' + i + '" placeholder="0" aria-label="Formal charge of ' + r.el + (total[r.el] > 1 ? ' ' + seen[r.el] : '') + '">';
+      grid.appendChild(chip);
+    });
+    byId('fc-submit').disabled = false;
+    var res = byId('fc-result');
+    res.textContent = ''; res.className = 'valence-result';
+    byId('fc-answer').style.display = 'none';
+    byId('fc-answer').innerHTML = '';
+  }
+
+  function parseFC(t){
+    t = t.trim().replace(/[\u2212\u2013\u2014]/g, '-');
+    var m = /^([+-]?)(\d+)$/.exec(t);
+    if (m) return parseInt(m[2], 10) * (m[1] === '-' ? -1 : 1);
+    m = /^(\d+)([+-])$/.exec(t);                       // also accept "2-" / "1+"
+    if (m) return parseInt(m[1], 10) * (m[2] === '-' ? -1 : 1);
+    return null;
+  }
+
+  function submitFormalCharge(){
+    if (fcDone || !currentCompound) return;
+    var inputs = byId('fc-grid').querySelectorAll('input'), res = byId('fc-result');
+    var vals = [];
+    for (var i = 0; i < inputs.length; i++){
+      var v = parseFC(inputs[i].value);
+      if (v === null){
+        res.className = 'valence-result bad';
+        res.textContent = 'Enter a whole number (e.g. 0, +1, -1) in every box.';
+        inputs[i].focus();
+        return;
+      }
+      vals.push(v);
+    }
+    fcDone = true;
+    byId('fc-submit').disabled = true;
+
+    // order-insensitive match within each element
+    var remaining = {}, right = 0;
+    fcData.forEach(function(r){ (remaining[r.el] = remaining[r.el] || []).push(r.fc); });
+    fcData.forEach(function(r, i){
+      var pool = remaining[r.el], k = pool.indexOf(vals[i]);
+      var ok = k >= 0;
+      if (ok){ pool.splice(k, 1); right++; }
+      var chip = inputs[i].parentNode;
+      chip.classList.add(ok ? 'ok' : 'bad');
+      inputs[i].disabled = true;
+    });
+    var all = right === fcData.length;
+    res.className = 'valence-result ' + (all ? 'ok' : 'bad');
+    res.textContent = all ? '\u2713 Correct' : ('\u2717 Incorrect \u2014 ' + right + ' of ' + fcData.length + ' correct');
+
+    var html = '<h4>Correct answer</h4>';
+    var sum = 0;
+    fcData.forEach(function(r){
+      sum += r.fc;
+      html += '<div class="fc-eq">' + r.el + ': ' + r.V + ' ' + MINUS + ' ' + r.nb + ' ' + MINUS + ' \u00bd(' + r.be + ') = <b>' + fmtFC(r.fc) + '</b></div>';
+    });
+    var ch = currentCompound.charge;
+    html += '<div class="fc-note">Sum of formal charges = ' + fmtFC(sum) + ' (equals the overall charge of the species, ' + fmtFC(ch) + '). ' +
+            'If your drawing places a charge on a different atom of the same element (resonance), that is equivalent.</div>';
+    var ans = byId('fc-answer');
+    ans.innerHTML = html;
+    ans.style.display = 'block';
+  }
+  byId('fc-submit').addEventListener('click', submitFormalCharge);
+  byId('fc-grid').addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); submitFormalCharge(); }
   });
 
   /* ---------------------------------------------------------------
