@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Limiting Reactant &amp; Yield Practice</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=JetBrains+Mono:wght@400;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<style>
+:root{--bg:#0f1417;--panel:#171e22;--panel2:#1f282d;--line:#2d3a40;--ink:#e8e6df;--muted:#8fa0a6;--amber:#f0b44c;--amber-ink:#1b1405;--teal:#3cc1b0;--teal-ink:#03211d;--bad:#ef6b5f;--good:#5fd08a;--shadow:0 8px 28px rgba(0,0,0,.45);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme=light]{--bg:#f6f3ea;--panel:#fff;--panel2:#efeadb;--line:#d6cfba;--ink:#1d2528;--muted:#5d6b70;--amber:#b87a0b;--amber-ink:#fff;--teal:#0c8577;--teal-ink:#fff;--bad:#c4382c;--good:#1a8a4a;--shadow:0 8px 24px rgba(60,50,20,.2)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;color:var(--ink);font:15px/1.5 "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;background:linear-gradient(rgba(127,127,127,.09) 1px,transparent 1px) 0 0/28px 28px,linear-gradient(90deg,rgba(127,127,127,.09) 1px,transparent 1px) 0 0/28px 28px,var(--bg);min-height:100vh}
+button{font:inherit;color:var(--ink);cursor:pointer}
+.wrap{max-width:720px;margin:0 auto;padding:12px 12px 100px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+h1{font:600 22px/1.15 Fraunces,Georgia,serif;margin:0}h1 small{display:block;font:400 12px "JetBrains Mono",monospace;color:var(--muted)}
+.btn{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel2)}
+.btn.sm{min-height:40px;padding:0 12px}.btn.teal{background:var(--teal);border-color:var(--teal);color:var(--teal-ink);font-weight:600}
+.btn.amber{background:var(--amber);border-color:var(--amber);color:var(--amber-ink);font-weight:600}.btn:disabled{opacity:.45;cursor:default}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 8px;text-align:center}
+.stat b{display:block;font-size:17px;color:var(--amber)}.stat span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.lbl{font-size:12px;color:var(--muted);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.05em}
+.seg{display:flex;gap:6px}.seg button{flex:1;min-height:44px;border:1px solid var(--line);background:var(--panel2);border-radius:10px}
+.seg button.on{background:var(--teal);color:var(--teal-ink);border-color:var(--teal);font-weight:600}
+.hint{color:var(--muted);font-size:13px;margin:8px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.row .btn{flex:1}
+.eq{overflow-x:auto;padding:8px 0;text-align:center;font-size:1.15em}
+math{font-size:1.1em}math[display=block]{text-align:center;margin:.5em 0;overflow-x:auto}
+.prog{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);margin-bottom:6px}
+.bar{height:5px;background:var(--panel2);border-radius:3px;margin-bottom:10px;overflow:hidden}.bar i{display:block;height:100%;background:var(--teal);width:0}
+.mm{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.mm span{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:13px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.opts button{min-height:56px;border:2px solid var(--line);background:var(--panel2);border-radius:12px;font-size:16px}
+.opts button.sel{border-color:var(--amber)}.opts button.ok{border-color:var(--good);background:rgba(95,208,138,.15)}.opts button.no{border-color:var(--bad);background:rgba(239,107,95,.15)}
+.ans{display:flex;gap:8px;align-items:center;margin:10px 0}
+input.num{flex:1;min-width:0;min-height:48px;font:inherit;font-size:17px;padding:0 12px;border-radius:10px;border:2px solid var(--line);background:var(--panel2);color:var(--ink)}
+input.num:focus{outline:none;border-color:var(--amber)}.unit{color:var(--muted)}
+.fb{padding:10px 12px;border-radius:10px;margin-top:10px;font-weight:600}.fb.ok{background:rgba(95,208,138,.15);color:var(--good)}.fb.no{background:rgba(239,107,95,.15);color:var(--bad)}
+.sol{margin-top:10px;font-size:14px;border-top:1px dashed var(--line);padding-top:8px}.sol div{overflow-x:auto}
+.big{font:600 40px Fraunces,Georgia,serif;color:var(--amber);text-align:center;margin:6px 0}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:70;display:flex;align-items:flex-end;justify-content:center;padding:0}
+.sheet{background:var(--panel);width:min(640px,100%);max-height:88vh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 16px calc(20px + env(safe-area-inset-bottom,0px));border:1px solid var(--line)}
+.sheet h2{font:600 20px Fraunces,serif;margin:0 0 6px;display:flex;justify-content:space-between;align-items:center}
+.sheet p{margin:10px 0 2px;color:var(--muted);font-size:13px}.am{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:4px;font-size:13px}.am span{background:var(--panel2);border-radius:6px;padding:2px 7px}
+.fab{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;border:0;background:var(--amber);color:var(--amber-ink);box-shadow:var(--shadow);z-index:50;display:grid;place-items:center;touch-action:manipulation}
+.fab svg{width:28px;height:28px}
+.calc{position:fixed;z-index:55;right:12px;bottom:calc(86px + env(safe-area-inset-bottom,0px));width:min(330px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);user-select:none;-webkit-user-select:none;overflow:hidden}
+.calc-head{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 6px 12px;background:var(--panel2);cursor:grab;touch-action:none;font-size:12.5px;color:var(--muted)}
+.calc-head .grip{display:flex;gap:8px;align-items:center}.calc-head .dots{letter-spacing:2px}
+.calc-head button{width:38px;height:38px;border:0;background:transparent;border-radius:8px;font-size:20px;line-height:1}
+.disp{padding:10px 14px 6px;text-align:right;min-height:92px;display:flex;flex-direction:column;justify-content:flex-end}
+.disp .expr{font-size:15px;color:var(--muted);min-height:22px;overflow-x:auto;white-space:nowrap;direction:rtl;text-align:left}.disp .expr span{direction:ltr;unicode-bidi:plaintext}
+.disp .res{font-size:30px;font-weight:600;overflow-x:auto;white-space:nowrap;line-height:1.25}.disp .res.err{color:var(--bad);font-size:18px}
+.disp .meta{font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between}
+.keys{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:8px 10px 10px}
+.keys button{min-height:46px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);font-size:16px;padding:0;touch-action:manipulation}
+.keys button:active{transform:translateY(1px);filter:brightness(1.15)}.keys .fn{font-size:13.5px;color:var(--teal)}.keys .op{color:var(--amber);font-weight:600}
+.keys .eq{background:var(--amber);color:var(--amber-ink);border-color:var(--amber);font-weight:700}.keys .clr{color:var(--bad)}.keys .on{background:var(--teal);color:var(--teal-ink);border-color:var(--teal)}
+.calc-foot{padding:0 10px 10px}.calc-foot .btn{width:100%;min-height:42px;font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>Limiting Reactant<small>&amp; Yield Practice</small></h1>
+    <div><button class="btn sm" id="refBtn" type="button">📖 Ref</button> <button class="btn sm" id="themeBtn" type="button" aria-label="Toggle dark/light mode">☀</button></div></div>
+  <div class="stats" id="stats"></div>
+
+  <section class="card" id="setup">
+    <div class="lbl">Difficulty</div>
+    <div class="seg" id="segD"><button data-v="easy" class="on">Easy</button><button data-v="medium">Medium</button><button data-v="hard">Hard</button></div>
+    <div class="hint" id="dHint"></div>
+    <div class="lbl">Questions</div>
+    <div class="seg" id="segN"><button data-v="10" class="on">10</button><button data-v="15">15</button><button data-v="20">20</button></div>
+    <div class="row"><button class="btn teal" id="startBtn" type="button">Start practice</button><button class="btn" id="clrBtn" type="button">Clear records</button></div>
+  </section>
+
+  <section class="card" id="quiz" hidden>
+    <div class="prog"><span id="pQ"></span><button class="btn sm" id="stopBtn" type="button">Stop / Reset</button></div>
+    <div class="bar"><i id="pBar"></i></div>
+    <div class="eq" id="qEq"></div>
+    <div id="qTxt"></div>
+    <div class="mm" id="qMM"></div>
+    <div id="qAns"></div>
+    <div class="row"><button class="btn amber" id="subBtn" type="button">Submit</button><button class="btn teal" id="nextBtn" type="button" hidden>Next</button></div>
+    <div id="fb" hidden></div><div class="sol" id="sol" hidden></div>
+  </section>
+
+  <section class="card" id="done" hidden>
+    <div class="lbl">Practice complete</div><div class="big" id="dScore"></div>
+    <div class="hint" id="dMsg" style="text-align:center"></div>
+    <div class="row"><button class="btn teal" id="againBtn" type="button">Back to setup</button></div>
+  </section>
+</div>
+
+<div class="modal" id="ref" hidden><div class="sheet"><h2>Formulas &amp; Constants <button class="btn sm" id="refX" type="button" aria-label="Close">&times;</button></h2><div id="refBody"></div></div></div>
+<button class="fab" id="fab" type="button" aria-label="Open calculator"></button>
+<div class="calc" id="calc" role="dialog" aria-label="Calculator" hidden></div>
+
+<script>
+/* ---------- chemistry data ---------- */
+const AM={H:1.008,Li:6.94,C:12.011,N:14.007,O:15.999,Na:22.99,Mg:24.305,Al:26.982,Si:28.085,S:32.06,Cl:35.45,K:39.098,Ca:40.078,Ti:47.867,Fe:55.845,Cu:63.546,Zn:65.38,Br:79.904,Ag:107.868,I:126.904,Ba:137.327,Pb:207.2};
+function mm(f){let i=0;const num=()=>{const m=/^\d+/.exec(f.slice(i));if(!m)return 1;i+=m[0].length;return +m[0]};
+  function grp(){let t=0;while(i<f.length){const c=f[i];if(c==='('){i++;const s=grp();i++;t+=s*num()}else if(c===')')return t;else{const m=/^[A-Z][a-z]?/.exec(f.slice(i))[0];i+=m.length;t+=AM[m]*num()}}return t}
+  return grp()}
+/* "reactants>products|index of product asked about" */
+const R=["2H2+O2>2H2O|0","N2+3H2>2NH3|0","4Al+3O2>2Al2O3|0","2Mg+O2>2MgO|0","2Na+Cl2>2NaCl|0","CH4+2O2>CO2+2H2O|0","C3H8+5O2>3CO2+4H2O|0","2Fe+3Cl2>2FeCl3|0","Fe2O3+3CO>2Fe+3CO2|0","2Al+3Cl2>2AlCl3|0",
+"CaCO3+2HCl>CaCl2+H2O+CO2|0","Zn+2HCl>ZnCl2+H2|1","2Al+6HCl>2AlCl3+3H2|1","Mg+2HCl>MgCl2+H2|0","NaOH+HCl>NaCl+H2O|0","2NaOH+H2SO4>Na2SO4+2H2O|0","Ca(OH)2+2HCl>CaCl2+2H2O|0","AgNO3+NaCl>AgCl+NaNO3|0","BaCl2+Na2SO4>BaSO4+2NaCl|0","Pb(NO3)2+2KI>PbI2+2KNO3|0",
+"3Ca+N2>Ca3N2|0","2Li+Br2>2LiBr|0","2C2H6+7O2>4CO2+6H2O|0","4NH3+5O2>4NO+6H2O|0","2H2S+3O2>2SO2+2H2O|0","TiCl4+2Mg>Ti+2MgCl2|0","SiO2+3C>SiC+2CO|0","2Al+Fe2O3>Al2O3+2Fe|1","CuO+H2>Cu+H2O|0","2KI+Cl2>2KCl+I2|1"];
+const RX=R.map(s=>{const[l,r]=s.split('>'),[p,t]=r.split('|');const sp=x=>x.split('+').map(u=>{const m=/^(\d*)(.+)$/.exec(u);return{c:+m[1]||1,f:m[2],M:mm(m[2])}});return{re:sp(l),pr:sp(p),t:+t}});
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const tx=(t,d)=>window.katex?katex.renderToString(t,{output:'mathml',displayMode:!!d,throwOnError:false}):t;
+const ft=f=>'\\mathrm{'+f.replace(/(\d+)/g,'_{$1}')+'}';
+const side=a=>a.map(x=>(x.c>1?x.c:'')+ft(x.f)).join(' + ');
+const sg=x=>String(+x.toPrecision(4));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const DN={easy:'Easy',medium:'Medium',hard:'Hard'};
+const DH={easy:'Given the grams of two reactants, identify the limiting reactant.',medium:'Given the grams of two reactants, calculate the theoretical yield (g) of the product.',hard:'Given the grams of two reactants and the actual product mass, calculate the percent yield.'};
+
+/* ---------- stats ---------- */
+let ST={streak:0,best:0,last:'—',high:{}};
+try{Object.assign(ST,JSON.parse(localStorage.getItem('lr-stats')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('lr-stats',JSON.stringify(ST))}catch(e){}};
+let opt={d:'easy',n:10},S=null,lastInput=null;
+function paintStats(){
+  const h=ST.high[opt.d+'-'+opt.n];
+  $('#stats').innerHTML=[['Score',S?S.score+'/'+S.n:'—'],['Streak',ST.streak+' (best '+ST.best+')'],['Last',ST.last],['High',h==null?'—':h+'/'+opt.n]].map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('');
+}
+
+/* ---------- question generation ---------- */
+function gen(rx,d){
+  const[A,B]=rx.re;let mA,mB;
+  for(let k=0;k<80;k++){
+    mA=+rnd(6,45).toFixed(1);const e=mA/A.M/A.c,f=Math.random()<.5?rnd(1.4,2.2):rnd(.45,.72);
+    mB=+(e*f*B.c*B.M).toFixed(1);if(mB>=2&&mB<=90)break;
+  }
+  const m=[mA,mB],n=[mA/A.M,mB/B.M],e=[n[0]/A.c,n[1]/B.c],li=e[0]<e[1]?0:1,P=rx.pr[rx.t],L=rx.re[li];
+  const theo=e[li]*P.c*P.M,actual=+(theo*rnd(.55,.95)).toPrecision(3),pct=actual/theo*100;
+  return{rx,d,m,n,e,li,P,L,theo,actual,pct};
+}
+function sol(q){
+  const o=[];
+  q.rx.re.forEach((x,i)=>o.push(`n_{${ft(x.f)}}=\\frac{${q.m[i]}\\ \\mathrm{g}}{${x.M.toFixed(3)}\\ \\mathrm{g/mol}}=${sg(q.n[i])}\\ \\mathrm{mol}`));
+  q.rx.re.forEach((x,i)=>o.push(`\\frac{n_{${ft(x.f)}}}{${x.c}}=\\frac{${sg(q.n[i])}}{${x.c}}=${sg(q.e[i])}`));
+  o.push(`\\text{Smaller value} \\Rightarrow \\text{limiting reactant} = ${ft(q.L.f)}`);
+  if(q.d!=='easy')o.push(`m_{\\mathrm{theo}}=${sg(q.e[q.li]*q.L.c)}\\ \\mathrm{mol}\\ ${ft(q.L.f)}\\times\\frac{${q.P.c}\\ \\mathrm{mol}\\ ${ft(q.P.f)}}{${q.L.c}\\ \\mathrm{mol}\\ ${ft(q.L.f)}}\\times ${q.P.M.toFixed(3)}\\ \\mathrm{g/mol}=${sg(q.theo)}\\ \\mathrm{g}`);
+  if(q.d==='hard')o.push(`\\%\\ \\mathrm{yield}=\\frac{\\mathrm{actual}}{\\mathrm{theoretical}}\\times100=\\frac{${q.actual}\\ \\mathrm{g}}{${sg(q.theo)}\\ \\mathrm{g}}\\times100=${sg(q.pct)}\\%`);
+  return o.map(t=>`<div>${tx(t,true)}</div>`).join('');
+}
+
+/* ---------- practice flow ---------- */
+function show(id){['setup','quiz','done'].forEach(x=>$('#'+x).hidden=x!==id)}
+function start(){
+  const idx=shuffle([...Array(RX.length).keys()]).slice(0,opt.n);   // no repeated reactions in a set
+  S={d:opt.d,n:opt.n,i:0,score:0,qs:idx.map(i=>gen(RX[i],opt.d)),answered:false,pick:null};
+  show('quiz');render();
+}
+function render(){
+  const q=S.qs[S.i];S.answered=false;S.pick=null;
+  $('#pQ').textContent=`${DN[S.d]} · Question ${S.i+1} of ${S.n}`;$('#pBar').style.width=(S.i/S.n*100)+'%';
+  $('#qEq').innerHTML=tx(side(q.rx.re)+' \\longrightarrow '+side(q.rx.pr),true);
+  const A=q.rx.re[0],B=q.rx.re[1],f=x=>tx(ft(x.f));
+  let t=`A reaction mixture contains <b>${q.m[0]} g</b> of ${f(A)} and <b>${q.m[1]} g</b> of ${f(B)}. `;
+  if(S.d==='easy')t+='Which reactant is the <b>limiting reactant</b>?';
+  else if(S.d==='medium')t+=`What is the <b>theoretical yield</b> of ${f(q.P)}?`;
+  else t+=`The reaction actually produces <b>${q.actual} g</b> of ${f(q.P)}. What is the <b>percent yield</b>?`;
+  $('#qTxt').innerHTML=t;
+  const subs=S.d==='easy'?q.rx.re:[...q.rx.re,q.P];
+  $('#qMM').innerHTML=subs.map(x=>`<span>${tx(ft(x.f))} = ${x.M.toFixed(3)} g/mol</span>`).join('');
+  if(S.d==='easy'){
+    $('#qAns').innerHTML=`<div class="opts">${q.rx.re.map((x,i)=>`<button type="button" data-i="${i}">${f(x)}</button>`).join('')}</div>`;
+    $('#qAns').onclick=e=>{const b=e.target.closest('button');if(!b||S.answered)return;S.pick=+b.dataset.i;[...$('#qAns').querySelectorAll('button')].forEach(x=>x.classList.toggle('sel',x===b))};
+  }else{
+    $('#qAns').innerHTML=`<div class="ans"><input class="num" id="inp" type="text" inputmode="decimal" autocomplete="off" placeholder="Your answer"><span class="unit">${S.d==='hard'?'%':'g'}</span></div>`;
+    $('#qAns').onclick=null;const inp=$('#inp');
+    inp.addEventListener('focus',()=>{lastInput=inp});inp.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
+  }
+  $('#subBtn').hidden=false;$('#nextBtn').hidden=true;$('#fb').hidden=true;$('#sol').hidden=true;paintStats();
+}
+function submit(){
+  if(!S||S.answered)return;const q=S.qs[S.i];let ok,txt;
+  if(S.d==='easy'){if(S.pick==null)return;ok=S.pick===q.li;txt=tx(ft(q.L.f));
+    [...$('#qAns').querySelectorAll('button')].forEach((b,i)=>{b.classList.remove('sel');if(i===q.li)b.classList.add('ok');else if(i===S.pick)b.classList.add('no')})}
+  else{const v=parseFloat($('#inp').value.replace(',','.'));if(!isFinite(v)){$('#inp').focus();return}
+    if(S.d==='medium'){ok=Math.abs(v-q.theo)/q.theo<=.01;txt=sg(q.theo)+' g'}else{ok=Math.abs(v-q.pct)<=.5;txt=sg(q.pct)+' %'}
+    $('#inp').disabled=true}
+  S.answered=true;
+  if(ok){S.score++;ST.streak++;ST.best=Math.max(ST.best,ST.streak)}else ST.streak=0;
+  save();paintStats();
+  const fb=$('#fb');fb.hidden=false;fb.className='fb '+(ok?'ok':'no');
+  fb.innerHTML=(ok?'Correct! ':'Not quite. ')+'Correct answer: '+txt+(S.d!=='easy'?'<br><small style="font-weight:400">Accepted within '+(S.d==='medium'?'1%':'±0.5 percentage points')+'.</small>':'');
+  $('#sol').hidden=false;$('#sol').innerHTML=sol(q);
+  $('#subBtn').hidden=true;$('#nextBtn').hidden=false;$('#nextBtn').textContent=S.i+1<S.n?'Next question':'Finish';
+}
+function next(){S.i++;if(S.i<S.n)render();else finish()}
+function finish(){
+  const key=S.d+'-'+S.n;ST.last=S.score+'/'+S.n;if(!(ST.high[key]>=S.score))ST.high[key]=S.score;save();
+  $('#dScore').textContent=S.score+' / '+S.n;
+  $('#dMsg').textContent=`${DN[S.d]} · ${Math.round(S.score/S.n*100)}% · best streak ${ST.best}`;
+  S=null;paintStats();show('done');
+}
+function stop(){if(S&&!confirm('Stop this practice and reset your progress in this set?'))return;S=null;ST.streak=0;save();show('setup');paintStats()}
+
+/* ---------- UI wiring ---------- */
+function seg(id,key,cb){$(id).onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$(id).children].forEach(x=>x.classList.toggle('on',x===b));opt[key]=key==='n'?+b.dataset.v:b.dataset.v;cb()}}
+seg('#segD','d',()=>{$('#dHint').textContent=DH[opt.d];paintStats()});seg('#segN','n',paintStats);
+$('#dHint').textContent=DH.easy;
+$('#startBtn').onclick=start;$('#subBtn').onclick=submit;$('#nextBtn').onclick=next;$('#stopBtn').onclick=stop;$('#againBtn').onclick=()=>show('setup');
+$('#clrBtn').onclick=()=>{if(confirm('Clear score, streak, last and high records?')){ST={streak:0,best:0,last:'—',high:{}};save();paintStats()}};
+function theme(t){document.documentElement.dataset.theme=t;$('#themeBtn').textContent=t==='dark'?'☀':'☾';try{localStorage.setItem('lr-theme',t)}catch(e){}}
+let th='dark';try{th=localStorage.getItem('lr-theme')||'dark'}catch(e){}
+theme(th);$('#themeBtn').onclick=()=>theme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+
+/* reference popup */
+$('#refBody').innerHTML=`<p>Moles &amp; molar mass</p>${tx('n=\\frac{m}{M}\\qquad M=\\sum(\\text{atomic masses})',true)}
+<p>Limiting reactant: compare each reactant's mol ÷ coefficient — the <b>smaller</b> value limits.</p>${tx('\\frac{n_A}{a}\\ \\text{vs}\\ \\frac{n_B}{b}\\quad\\text{for}\\quad aA+bB\\rightarrow cC',true)}
+<p>Theoretical yield (from the limiting reactant)</p>${tx('m_{\\mathrm{theo}}=n_{\\mathrm{lim}}\\times\\frac{c}{a}\\times M_C',true)}
+<p>Percent yield</p>${tx('\\%\\ \\mathrm{yield}=\\frac{\\mathrm{actual\\ yield}}{\\mathrm{theoretical\\ yield}}\\times100',true)}
+<p>Constants</p><div>${tx('N_A=6.022\\times10^{23}\\ \\mathrm{mol^{-1}}')}</div>
+<p>Atomic molar masses (g/mol) used in this app</p><div class="am">${Object.entries(AM).map(([k,v])=>`<span><b>${k}</b> ${v}</span>`).join('')}</div>`;
+const setRef=o=>$('#ref').hidden=!o;
+$('#refBtn').onclick=()=>setRef(true);$('#refX').onclick=()=>setRef(false);$('#ref').onclick=e=>{if(e.target.id==='ref')setRef(false)};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')setRef(false)});
+paintStats();
+
+/* ---------- floating calculator ---------- */
+$('#fab').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="5.5" width="8" height="4" rx="1"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/></svg>';
+function tokenize(s){const out=[];let i=0;while(i<s.length){const rest=s.slice(i);let m;if(/^\s/.test(rest)){i++;continue}
+  if((m=/^(\d+\.?\d*|\.\d+)(E[+-]?\d+)?/.exec(rest))){out.push({t:'num',v:parseFloat(m[0])});i+=m[0].length;continue}
+  if((m=/^(asin|acos|atan|sin|cos|tan|ln|log|sqrt|pi|ans|e)/.exec(rest))){const w=m[1];out.push({t:(w==='pi'||w==='e'||w==='ans')?'const':'fn',v:w});i+=w.length;continue}
+  if('+-*/^()'.includes(rest[0])){out.push({t:'op',v:rest[0]});i++;continue}throw new Error('Syntax error')}return out}
+function evaluate(str,opts){const tk=tokenize(str);let p=0;const peek=()=>tk[p],nxt=()=>tk[p++];
+  const isOp=(t,v)=>t&&t.t==='op'&&t.v===v;const starts=t=>t&&(t.t==='num'||t.t==='const'||t.t==='fn'||isOp(t,'('));
+  const toRad=x=>opts.deg?x*Math.PI/180:x,fromRad=x=>opts.deg?x*180/Math.PI:x;
+  const F={sin:x=>Math.sin(toRad(x)),cos:x=>Math.cos(toRad(x)),tan:x=>Math.tan(toRad(x)),asin:x=>fromRad(Math.asin(x)),acos:x=>fromRad(Math.acos(x)),atan:x=>fromRad(Math.atan(x)),ln:Math.log,log:Math.log10,sqrt:Math.sqrt};
+  function expr(){let v=term();while(isOp(peek(),'+')||isOp(peek(),'-')){const o=nxt().v;const r=term();v=o==='+'?v+r:v-r}return v}
+  function term(){let v=unary();for(;;){const t=peek();if(isOp(t,'*')||isOp(t,'/')){nxt();const r=unary();v=t.v==='*'?v*r:v/r}else if(starts(t))v*=unary();else return v}}
+  function unary(){if(isOp(peek(),'-')){nxt();return -unary()}if(isOp(peek(),'+')){nxt();return unary()}return power()}
+  function power(){const b=primary();if(isOp(peek(),'^')){nxt();return Math.pow(b,unary())}return b}
+  function primary(){const t=nxt();if(!t)throw new Error('Incomplete');if(t.t==='num')return t.v;
+    if(t.t==='const')return t.v==='pi'?Math.PI:t.v==='e'?Math.E:opts.ans;
+    if(t.t==='fn'){if(!isOp(peek(),'('))throw new Error('Use ( after '+t.v);nxt();const a=expr();if(isOp(peek(),')'))nxt();return F[t.v](a)}
+    if(isOp(t,'(')){const v=expr();if(isOp(peek(),')'))nxt();return v}throw new Error('Syntax error')}
+  const v=expr();if(p<tk.length)throw new Error('Syntax error');if(!isFinite(v))throw new Error('Math error');return v}
+function fmt(x){if(x===0)return'0';const a=Math.abs(x);if(a>=1e10||a<1e-6)return x.toExponential(6).replace(/\.?0+e/,'e').replace('e+','e');return String(Number(x.toPrecision(10)))}
+const pretty=s=>s.replace(/\*/g,'×').replace(/\//g,'÷').replace(/-/g,'−').replace(/pi/g,'π').replace(/sqrt\(/g,'√(').replace(/asin\(/g,'sin⁻¹(').replace(/acos\(/g,'cos⁻¹(').replace(/atan\(/g,'tan⁻¹(');
+window.initCalculator=function(getLastInput){
+  const st={expr:'',deg:true,inv:false,ans:0,done:false,err:''};const panel=$('#calc'),fab=$('#fab');
+  const K=(label,act,cls,extra)=>({label,act,cls:cls||'',extra:extra||''});
+  const rows=()=>[
+    [K('2nd','inv',st.inv?'on fn':'fn'),K(st.deg?'DEG':'RAD','deg','fn'),K('(','('),K(')',')'),K('⌫','back','clr')],
+    [K(st.inv?'sin⁻¹':'sin',st.inv?'asin(':'sin(','fn'),K(st.inv?'cos⁻¹':'cos',st.inv?'acos(':'cos(','fn'),K(st.inv?'tan⁻¹':'tan',st.inv?'atan(':'tan(','fn'),K(st.inv?'eˣ':'ln',st.inv?'e^(':'ln(','fn'),K(st.inv?'10ˣ':'log',st.inv?'10^(':'log(','fn')],
+    [K('√','sqrt(','fn'),K('x²','^2','fn'),K('xʸ','^','fn'),K('π','pi','fn'),K('e','e','fn')],
+    [K('7','7'),K('8','8'),K('9','9'),K('÷','/','op'),K('C','clear','clr')],
+    [K('4','4'),K('5','5'),K('6','6'),K('×','*','op'),K('Ans','ans','fn')],
+    [K('1','1'),K('2','2'),K('3','3'),K('−','-','op'),K('EE','E','fn')],
+    [K('0','0'),K('.','.'),K('+','+','op'),K('=','=','eq','grid-column:span 2')]];
+  panel.innerHTML=`<div class="calc-head" id="calcHead"><span class="grip"><span class="dots" aria-hidden="true">⠿</span>Calculator</span><button type="button" id="calcClose" aria-label="Close calculator">&times;</button></div>
+    <div class="disp"><div class="expr"><span id="cExpr"></span></div><div class="res" id="cRes">0</div><div class="meta"><span id="cMode"></span><span>drag the header to move</span></div></div>
+    <div class="keys" id="cKeys"></div><div class="calc-foot"><button type="button" class="btn teal" id="cUse">Use result in answer box</button></div>`;
+  const q=s=>panel.querySelector(s);
+  function paint(){const keys=q('#cKeys'),flat=rows().flat();
+    keys.innerHTML=flat.map((k,i)=>`<button type="button" data-i="${i}" class="${k.cls}" style="${k.extra}">${k.label}</button>`).join('');
+    keys.onclick=e=>{const b=e.target.closest('button');if(b)press(flat[Number(b.dataset.i)].act)};keys.onmousedown=e=>e.preventDefault();
+    q('#cExpr').textContent=st.done?pretty(st.shown)+' =':pretty(st.expr);const r=q('#cRes');
+    if(st.err)r.textContent=st.err;else if(st.done&&!st.expr)r.textContent=fmt(st.ans);
+    else{let t='';if(st.expr.trim()){try{t=fmt(evaluate(st.expr,st))}catch(e){}}r.textContent=t||'0'}
+    r.classList.toggle('err',!!st.err);q('#cMode').textContent=(st.deg?'degrees':'radians')+(st.ans?'   ans = '+fmt(st.ans):'')}
+  function append(s){if(st.done){st.done=false;st.expr=(/^[+\-*/^]/.test(s)?'ans':'')+s;return}st.expr+=s}
+  function press(a){st.err='';
+    if(a==='inv')st.inv=!st.inv;else if(a==='deg')st.deg=!st.deg;else if(a==='clear'){st.expr='';st.done=false}
+    else if(a==='back'){if(st.done){st.done=false;st.expr=''}else st.expr=st.expr.replace(/(asin\(|acos\(|atan\(|sqrt\(|sin\(|cos\(|tan\(|log\(|ln\(|ans|pi|.)$/,'')}
+    else if(a==='='){if(st.expr.trim()){try{st.ans=evaluate(st.expr,st);st.shown=st.expr;st.expr='';st.done=true}catch(e){st.err=e.message}}}
+    else append(a);paint()}
+  function setOpen(o){panel.hidden=!o;fab.setAttribute('aria-expanded',String(o));fab.setAttribute('aria-label',o?'Close calculator':'Open calculator');if(o)paint()}
+  fab.onclick=()=>setOpen(panel.hidden);q('#calcClose').onclick=()=>setOpen(false);fab.setAttribute('aria-controls','calc');setOpen(false);
+  q('#cUse').onclick=()=>{const inp=getLastInput&&getLastInput();
+    const v=st.done?st.ans:(()=>{try{return evaluate(st.expr||'0',st)}catch(e){return NaN}})();const b=q('#cUse');
+    if(!isFinite(v)||!inp||!document.contains(inp)||inp.disabled){b.textContent=inp&&!inp.disabled?'Nothing to insert yet':'Tap an answer box first';setTimeout(()=>{b.textContent='Use result in answer box'},1400);return}
+    inp.value=String(Number(v.toPrecision(6)));b.textContent='Inserted';setTimeout(()=>{b.textContent='Use result in answer box'},1000)};
+  document.addEventListener('keydown',e=>{if(panel.hidden||/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName||''))return;if(e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key;
+    if(/^[0-9.]$/.test(k)||'+-*/^()'.includes(k)){press(k);e.preventDefault()}else if(k==='Enter'||k==='='){press('=');e.preventDefault()}
+    else if(k==='Backspace'){press('back');e.preventDefault()}else if(k==='Escape')setOpen(false);else if(k==='p')press('pi');else if(k==='e')press('e')});
+  const head=q('#calcHead');let drag=null;
+  head.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=panel.getBoundingClientRect();drag={dx:e.clientX-r.left,dy:e.clientY-r.top};
+    panel.style.left=r.left+'px';panel.style.top=r.top+'px';panel.style.right='auto';panel.style.bottom='auto';head.setPointerCapture(e.pointerId)});
+  head.addEventListener('pointermove',e=>{if(!drag)return;const w=panel.offsetWidth,h=panel.offsetHeight;
+    panel.style.left=Math.min(Math.max(4,e.clientX-drag.dx),innerWidth-w-4)+'px';panel.style.top=Math.min(Math.max(4,e.clientY-drag.dy),innerHeight-h-4)+'px'});
+  const end=()=>{drag=null};head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end);
+  addEventListener('resize',()=>{if(panel.style.left){const r=panel.getBoundingClientRect();panel.style.left=Math.min(Math.max(4,r.left),Math.max(4,innerWidth-r.width-4))+'px';panel.style.top=Math.min(Math.max(4,r.top),Math.max(4,innerHeight-r.height-4))+'px'}});
+};
+initCalculator(()=>lastInput);
+</script>
+</body>
+</html>
