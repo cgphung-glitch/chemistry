@@ -1436,6 +1436,25 @@ body .ui-tooltip {
 
   /* nudge ChemDoodle toolbar buttons to be a bit more touch-friendly */
   .ChemDoodleWebComponent .ui-button{ margin:1px; }
+
+  /* valence-electron question + electron-count hint */
+  .opt-toggle.disabled{ opacity:0.45; cursor:not-allowed; }
+  .opt-toggle.disabled input{ cursor:not-allowed; }
+  .valence-q{ margin-top:12px; padding:10px 12px; border:1px dashed var(--border); border-radius:8px; background:var(--panel-2); }
+  .valence-q label{ display:block; font-size:0.78rem; color:var(--ink); margin-bottom:8px; }
+  .valence-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .valence-row input{
+    width:96px; font-family:var(--mono); font-size:0.9rem; padding:8px 10px;
+    background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:7px;
+  }
+  .valence-row input:focus{ outline:2px solid var(--teal); outline-offset:1px; }
+  .valence-row input:disabled{ opacity:0.6; }
+  .valence-result{ font-weight:600; font-size:0.8rem; }
+  .valence-result.ok{ color:var(--green); }
+  .valence-result.bad{ color:var(--red); }
+  #hint-text.hint-count{ font-size:0.8rem; font-weight:600; color:var(--amber); background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:7px 10px; margin-top:0; }
+  #hint-text.hint-count.full{ color:var(--green); border-color:var(--green); }
+  #hint-text.hint-count.over{ color:var(--red); border-color:var(--red); }
 </style>
 </head>
 <body>
@@ -1471,11 +1490,20 @@ body .ui-tooltip {
         <input type="checkbox" id="toggle-lewis">
         Dot-style bonds
       </label>
-      <label class="opt-toggle" id="toggle-hint-wrap">
-        <input type="checkbox" id="toggle-hint">
+      <label class="opt-toggle disabled" id="toggle-hint-wrap" title="Answer the valence-electron question to unlock">
+        <input type="checkbox" id="toggle-hint" disabled>
         Show electron-count hint
       </label>
-      <span id="hint-text" class="compound-meta" style="display:none;"></span>
+      <span id="hint-text" class="compound-meta hint-count" style="display:none;"></span>
+    </div>
+
+    <div class="valence-q" id="valence-q">
+      <label for="valence-input">How many total valence electrons is available for this species?</label>
+      <div class="valence-row">
+        <input type="number" id="valence-input" inputmode="numeric" min="0" step="1" placeholder="e.g. 8" autocomplete="off">
+        <button class="btn primary small" id="valence-submit" type="button">Check answer</button>
+        <span id="valence-result" class="valence-result" role="status" aria-live="polite"></span>
+      </div>
     </div>
   </div>
 
@@ -4026,10 +4054,77 @@ window.addEventListener('load', function(){
     document.getElementById('compound-name').textContent = c.name;
     document.getElementById('compound-meta').textContent =
       c.charge === 0 ? 'Neutral molecule' : ('Polyatomic ion \u00b7 overall charge ' + (c.charge > 0 ? '+' + c.charge : c.charge));
-    document.getElementById('hint-text').textContent = 'Total valence electrons: ' + c.totalElectrons;
+    resetValenceQuiz();
     sketcher.clear();
     document.getElementById('feedback-panel').style.display = 'none';
   }
+
+  /* ---------------------------------------------------------------
+   * Valence-electron question + live electron-count hint
+   * ------------------------------------------------------------- */
+  var valenceDone = false;
+  function byId(id){ return document.getElementById(id); }
+
+  function usedElectrons(){
+    var mol = sketcher.getMolecule() || new S.Molecule();
+    var n = 0;
+    mol.bonds.forEach(function(b){ n += 2 * b.bondOrder; });                       // bonding electrons
+    mol.atoms.forEach(function(a){ n += 2 * (a.numLonePair || 0) + (a.numRadical || 0); }); // nonbonding
+    return n;
+  }
+
+  function updateHint(){
+    if (!currentCompound) return;
+    var used = usedElectrons(), total = currentCompound.totalElectrons;
+    var el = byId('hint-text');
+    var txt = 'Electrons used: ' + used + ' / ' + total;
+    if (el.textContent !== txt) el.textContent = txt;
+    el.className = 'compound-meta hint-count' + (used === total ? ' full' : (used > total ? ' over' : ''));
+  }
+  // poll so every kind of edit (draw, bond order, lone pairs, undo, clear) is picked up
+  setInterval(updateHint, 200);
+
+  function resetValenceQuiz(){
+    valenceDone = false;
+    var inp = byId('valence-input');
+    inp.value = ''; inp.disabled = false;
+    byId('valence-submit').disabled = false;
+    var res = byId('valence-result');
+    res.textContent = ''; res.className = 'valence-result';
+    var tg = byId('toggle-hint');
+    tg.checked = false; tg.disabled = true;
+    var wrap = byId('toggle-hint-wrap');
+    wrap.classList.remove('active'); wrap.classList.add('disabled');
+    byId('hint-text').style.display = 'none';
+  }
+
+  function submitValence(){
+    if (valenceDone || !currentCompound) return;
+    var inp = byId('valence-input'), res = byId('valence-result');
+    var raw = inp.value.trim();
+    if (raw === '' || isNaN(Number(raw))){
+      res.className = 'valence-result bad';
+      res.textContent = 'Enter a number first.';
+      inp.focus();
+      return;
+    }
+    var ok = Number(raw) === currentCompound.totalElectrons;
+    valenceDone = true;
+    inp.disabled = true;
+    byId('valence-submit').disabled = true;
+    res.className = 'valence-result ' + (ok ? 'ok' : 'bad');
+    res.textContent = ok ? '\u2713 Correct' : ('\u2717 Incorrect \u2014 the total is ' + currentCompound.totalElectrons + '.');
+    // unlock the hint and switch it on
+    var tg = byId('toggle-hint'), wrap = byId('toggle-hint-wrap');
+    tg.disabled = false; tg.checked = true;
+    wrap.classList.remove('disabled'); wrap.classList.add('active');
+    byId('hint-text').style.display = 'inline';
+    updateHint();
+  }
+  byId('valence-submit').addEventListener('click', submitValence);
+  byId('valence-input').addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); submitValence(); }
+  });
 
   /* ---------------------------------------------------------------
    * Grading
