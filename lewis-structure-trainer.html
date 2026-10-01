@@ -3769,7 +3769,7 @@ window.addEventListener('load', function(){
    * Valence electron table (main group elements used in this app)
    * ------------------------------------------------------------- */
   var VALENCE = { H:1, Li:1, Be:2, B:3, C:4, N:5, O:6, F:7, Na:1, Mg:2, Al:3,
-                  Si:4, P:5, S:6, Cl:7, K:1, Ca:2, Br:7, I:7, Xe:8 };
+                  Si:4, P:5, S:6, Cl:7, K:1, Ca:2, Br:7, I:7, Xe:8, Se:6, Te:6, As:5, Sb:5 };
 
   function totalValenceElectrons(atomCounts, charge){
     var total = 0;
@@ -4130,6 +4130,45 @@ window.addEventListener('load', function(){
       return { mol: mol, bracket: makeBracket(mol, -1) };
     }
   });
+
+  // --- more seesaw (AX4E), trigonal bipyramidal (AX5) and octahedral (AX6) species ---
+  function addCenter(formula, name, charge, counts, cEl, cLp, cChg, tEl, n){
+    addCompound({
+      formula: formula, name: name, charge: charge, atomCounts: counts,
+      build: function(){
+        var C = atom(cEl, 0, 0, cLp, cChg || 0);
+        var pts = n === 4 ? [{x:0,y:-60},{x:0,y:60},{x:-56,y:22},{x:56,y:22}] : around(0,0,n,62,-90);
+        var Ts = pts.map(function(p){ return atom(tEl, p.x, p.y, 3); });
+        var mol = makeMolecule([C].concat(Ts), Ts.map(function(T){ return bond(C,T,1); }));
+        return { mol: mol, bracket: charge ? makeBracket(mol, charge) : null };
+      }
+    });
+  }
+  // seesaw: 4 bonded atoms + 1 lone pair on the central atom
+  addCenter("SeF<sub>4</sub>", "Selenium tetrafluoride", 0, { Se:1, F:4 }, 'Se', 1, 0, 'F', 4);
+  addCenter("TeCl<sub>4</sub>", "Tellurium tetrachloride", 0, { Te:1, Cl:4 }, 'Te', 1, 0, 'Cl', 4);
+  addCenter("IF<sub>4</sub><sup>+</sup>", "Tetrafluoroiodonium ion", 1, { I:1, F:4 }, 'I', 1, 1, 'F', 4);
+  addCompound({
+    formula: "XeO<sub>2</sub>F<sub>2</sub>", name: "Xenon dioxydifluoride", charge: 0, atomCounts: { Xe:1, O:2, F:2 },
+    build: function(){
+      var Xe = atom('Xe', 0, 0, 1);
+      var F1 = atom('F', 0, -60, 3), F2 = atom('F', 0, 60, 3);
+      var O1 = atom('O', -56, 22, 2), O2 = atom('O', 56, 22, 2);
+      var mol = makeMolecule([Xe,F1,F2,O1,O2], [bond(Xe,F1,1), bond(Xe,F2,1), bond(Xe,O1,2), bond(Xe,O2,2)]);
+      return { mol: mol, bracket: null };
+    }
+  });
+  // trigonal bipyramidal: 5 bonded atoms, no lone pairs
+  addCenter("PF<sub>5</sub>", "Phosphorus pentafluoride", 0, { P:1, F:5 }, 'P', 0, 0, 'F', 5);
+  addCenter("AsF<sub>5</sub>", "Arsenic pentafluoride", 0, { As:1, F:5 }, 'As', 0, 0, 'F', 5);
+  addCenter("SbCl<sub>5</sub>", "Antimony pentachloride", 0, { Sb:1, Cl:5 }, 'Sb', 0, 0, 'Cl', 5);
+  addCenter("SbF<sub>5</sub>", "Antimony pentafluoride", 0, { Sb:1, F:5 }, 'Sb', 0, 0, 'F', 5);
+  // octahedral: 6 bonded atoms, no lone pairs
+  addCenter("SeF<sub>6</sub>", "Selenium hexafluoride", 0, { Se:1, F:6 }, 'Se', 0, 0, 'F', 6);
+  addCenter("TeF<sub>6</sub>", "Tellurium hexafluoride", 0, { Te:1, F:6 }, 'Te', 0, 0, 'F', 6);
+  addCenter("PF<sub>6</sub><sup>&minus;</sup>", "Hexafluorophosphate ion", -1, { P:1, F:6 }, 'P', 0, -1, 'F', 6);
+  addCenter("AsF<sub>6</sub><sup>&minus;</sup>", "Hexafluoroarsenate ion", -1, { As:1, F:6 }, 'As', 0, -1, 'F', 6);
+  addCenter("SiF<sub>6</sub><sup>2&minus;</sup>", "Hexafluorosilicate ion", -2, { Si:1, F:6 }, 'Si', 0, -2, 'F', 6);
 
   // --- S/N/O oxo species ------------------------------------------------
   addCompound({
@@ -4612,9 +4651,10 @@ window.addEventListener('load', function(){
    * ------------------------------------------------------------- */
   var POLAR = { 'Water':1, 'Ammonia':1, 'Hydrogen chloride':1, 'Carbon monoxide':1, 'Hydrogen cyanide':1, 'Formaldehyde':1, 'Methanol':1,
     'Phosphorus trichloride':1, 'Sulfur dioxide':1, 'Ozone':1, 'Hydroxide ion':1, 'Cyanide ion':1, 'Sulfur tetrafluoride':1,
-    'Chlorine trifluoride':1, 'Bromine trifluoride':1, 'Bromine pentafluoride':1, 'Iodine pentafluoride':1, 'Chlorine pentafluoride':1 };
+    'Chlorine trifluoride':1, 'Bromine trifluoride':1, 'Bromine pentafluoride':1, 'Iodine pentafluoride':1, 'Chlorine pentafluoride':1,
+    'Selenium tetrafluoride':1, 'Tellurium tetrachloride':1, 'Tetrafluoroiodonium ion':1, 'Xenon dioxydifluoride':1 };
   var EN = { H:2.20, Li:0.98, Be:1.57, B:2.04, C:2.55, N:3.04, O:3.44, F:3.98, Na:0.93, Mg:1.31, Al:1.61, Si:1.90, P:2.19, S:2.58,
-             Cl:3.16, K:0.82, Ca:1.00, Br:2.96, I:2.66, Xe:2.60 };
+             Cl:3.16, K:0.82, Ca:1.00, Br:2.96, I:2.66, Xe:2.60, Se:2.55, Te:2.10, As:2.18, Sb:2.05 };
 
   function polarityAnswer(c){
     var polar = !!POLAR[c.name];
@@ -4695,7 +4735,7 @@ window.addEventListener('load', function(){
     }
 
     // per-atom octet check
-    var expandable = { P:1, S:1, Cl:1, Br:1, I:1, Si:1, Xe:1 };
+    var expandable = { P:1, S:1, Cl:1, Br:1, I:1, Si:1, Xe:1, Se:1, Te:1, As:1, Sb:1 };
     var lenient = { B:1, Be:1 };
     var strict = { C:1, N:1, O:1, F:1 };
     var atomIssueCount = 0;
