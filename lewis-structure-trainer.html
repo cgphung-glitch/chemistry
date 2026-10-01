@@ -1262,6 +1262,9 @@ body .ui-tooltip {
 }
 
 </style>
+<script>
+(function(){ try{ var t = localStorage.getItem('lewis-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); }catch(e){} })();
+</script>
 <style>
   :root{
     --bg: #1b1d1f;
@@ -1280,6 +1283,26 @@ body .ui-tooltip {
     --mono: 'JetBrains Mono', 'Courier New', monospace;
     --serif: 'Fraunces', Georgia, serif;
   }
+  :root[data-theme="light"]{
+    --bg: #f4f1e8;
+    --panel: #fffdf8;
+    --panel-2: #efe9da;
+    --ink: #1f2326;
+    --ink-dim: #6a665c;
+    --amber: #a8610e;
+    --amber-dim: #b9701a;
+    --teal: #0b7a6e;
+    --red: #c0392b;
+    --green: #2f7d3a;
+    --border: #d8cfb8;
+  }
+  :root[data-theme="light"] .btn.primary,
+  :root[data-theme="light"] .btn.primary:hover{ color:#fff; }
+  :root[data-theme="light"] .btn.teal:hover{ color:#fff; }
+  :root[data-theme="light"] .canvas-card,
+  :root[data-theme="light"] .card{ box-shadow: 0 2px 10px rgba(60,50,20,0.08); }
+  .header-right{ display:flex; align-items:center; gap:10px; }
+  .theme-toggle{ display:inline-flex; align-items:center; gap:6px; min-height:36px; }
   @font-face{
     font-family:'JetBrains Mono';
     src:local('JetBrains Mono');
@@ -1482,8 +1505,30 @@ body .ui-tooltip {
       <h1>Lewis Structure Trainer</h1>
       <div class="subtitle">Methodist University — Dept. of Chemistry &amp; Physical Science</div>
     </div>
-    <div class="score-pill">Score: <b id="score-correct">0</b> / <span id="score-total">0</span></div>
+    <div class="header-right">
+      <button class="btn small theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme"></button>
+      <div class="score-pill">Score: <b id="score-correct">0</b> / <span id="score-total">0</span></div>
+    </div>
   </header>
+  <script>
+  (function(){
+    var root = document.documentElement, btn = document.getElementById('theme-toggle');
+    function paint(){
+      var light = root.getAttribute('data-theme') === 'light';
+      btn.innerHTML = light ? '\u263E Dark' : '\u2600 Light';
+      btn.setAttribute('aria-label', light ? 'Switch to dark theme' : 'Switch to light theme');
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute('content', light ? '#f4f1e8' : '#1b1d1f');
+    }
+    btn.addEventListener('click', function(){
+      var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      root.setAttribute('data-theme', next);
+      try{ localStorage.setItem('lewis-theme', next); }catch(e){}
+      paint();
+    });
+    paint();
+  })();
+  </script>
 
   <div class="card">
     <div class="compound-row">
