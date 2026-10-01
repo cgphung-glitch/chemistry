@@ -1488,6 +1488,10 @@ body .ui-tooltip {
   .fc-chip.ok input{ color:var(--green); border-color:var(--green); }
   .fc-chip.bad{ border-color:var(--red); }
   .fc-chip.bad input{ color:var(--red); border-color:var(--red); }
+  .hyb-select{ font-family:var(--mono); font-size:0.9rem; padding:8px 10px; min-height:40px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:7px; }
+  .hyb-select:focus{ outline:2px solid var(--teal); outline-offset:1px; }
+  .hyb-select.ok{ border-color:var(--green); color:var(--green); }
+  .hyb-select.bad{ border-color:var(--red); color:var(--red); }
   .fc-answer{ margin-top:10px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--panel-2); font-size:0.75rem; line-height:1.7; }
   .fc-answer h4{ margin:0 0 4px; font-family:var(--serif); font-size:0.9rem; color:var(--teal); }
   .fc-answer .fc-eq{ font-family:var(--mono); color:var(--ink); }
@@ -1584,6 +1588,64 @@ body .ui-tooltip {
       <span id="fc-result" class="valence-result" role="status" aria-live="polite"></span>
     </div>
     <div class="fc-answer" id="fc-answer" style="display:none;"></div>
+  </div>
+
+  <div class="card fc-q" id="hyb-q">
+    <label for="hyb-select">What is the hybrid orbital of the central atom?</label>
+    <div class="fc-sub">Central atom: <b id="hyb-atom" style="color:var(--amber);"></b></div>
+    <div class="valence-row">
+      <select id="hyb-select" class="hyb-select" aria-label="Hybridization of the central atom">
+        <option value="">Select&hellip;</option>
+        <option value="sp">sp</option>
+        <option value="sp2">sp&sup2;</option>
+        <option value="sp3">sp&sup3;</option>
+        <option value="sp3d">sp&sup3;d</option>
+        <option value="sp3d2">sp&sup3;d&sup2;</option>
+      </select>
+      <button class="btn primary small" id="hyb-submit" type="button">Check answer</button>
+      <span id="hyb-result" class="valence-result" role="status" aria-live="polite"></span>
+    </div>
+    <div class="fc-answer" id="hyb-answer" style="display:none;"></div>
+  </div>
+
+  <div class="card fc-q" id="geo-q">
+    <label for="geo-select">What is the molecular geometry on the atom?</label>
+    <div class="fc-sub">Atom: <b id="geo-atom" style="color:var(--amber);"></b> (the same atom as in the hybridization question)</div>
+    <div class="valence-row">
+      <select id="geo-select" class="hyb-select" aria-label="Molecular geometry">
+        <option value="">Select&hellip;</option>
+        <option value="linear">linear</option>
+        <option value="trigonal-planar">trigonal planar</option>
+        <option value="bent-120">120&deg; bent</option>
+        <option value="tetrahedral">tetrahedral</option>
+        <option value="trigonal-pyramidal">trigonal pyramidal</option>
+        <option value="bent-109">109.5&deg; bent</option>
+        <option value="trigonal-bipyramidal">trigonal bipyramidal</option>
+        <option value="seesaw">seesaw</option>
+        <option value="t-shape">T-shape</option>
+        <option value="octahedral">octahedral</option>
+        <option value="square-pyramidal">square pyramidal</option>
+        <option value="square-planar">square planar</option>
+      </select>
+      <button class="btn primary small" id="geo-submit" type="button">Check answer</button>
+      <span id="geo-result" class="valence-result" role="status" aria-live="polite"></span>
+    </div>
+    <div class="fc-answer" id="geo-answer" style="display:none;"></div>
+  </div>
+
+  <div class="card fc-q" id="pol-q">
+    <label for="pol-select">Is the species polar or nonpolar?</label>
+    <div class="fc-sub">For an ion, decide from the bond dipoles and the shape of the ion (ignore its overall charge).</div>
+    <div class="valence-row">
+      <select id="pol-select" class="hyb-select" aria-label="Polar or nonpolar">
+        <option value="">Select&hellip;</option>
+        <option value="polar">Polar</option>
+        <option value="nonpolar">Nonpolar</option>
+      </select>
+      <button class="btn primary small" id="pol-submit" type="button">Check answer</button>
+      <span id="pol-result" class="valence-result" role="status" aria-live="polite"></span>
+    </div>
+    <div class="fc-answer" id="pol-answer" style="display:none;"></div>
   </div>
 
   <div class="toolbar-row" style="margin-top:14px;">
@@ -3707,7 +3769,7 @@ window.addEventListener('load', function(){
    * Valence electron table (main group elements used in this app)
    * ------------------------------------------------------------- */
   var VALENCE = { H:1, Li:1, Be:2, B:3, C:4, N:5, O:6, F:7, Na:1, Mg:2, Al:3,
-                  Si:4, P:5, S:6, Cl:7, K:1, Ca:2, Br:7, I:7 };
+                  Si:4, P:5, S:6, Cl:7, K:1, Ca:2, Br:7, I:7, Xe:8 };
 
   function totalValenceElectrons(atomCounts, charge){
     var total = 0;
@@ -3964,6 +4026,111 @@ window.addEventListener('load', function(){
     }
   });
 
+  // --- expanded octets WITH lone pairs on the central atom (sp3d / sp3d2) ---
+  addCompound({
+    formula: "SF<sub>4</sub>", name: "Sulfur tetrafluoride", charge: 0, atomCounts: { S:1, F:4 },
+    build: function(){
+      var Sc = atom('S', 0, 0, 1);
+      var F1 = atom('F', 0, -60, 3), F2 = atom('F', 0, 60, 3);
+      var F3 = atom('F', -56, 22, 3), F4 = atom('F', 56, 22, 3);
+      var mol = makeMolecule([Sc,F1,F2,F3,F4], [bond(Sc,F1,1), bond(Sc,F2,1), bond(Sc,F3,1), bond(Sc,F4,1)]);
+      return { mol: mol, bracket: null };
+    }
+  });
+
+  addCompound({
+    formula: "ClF<sub>3</sub>", name: "Chlorine trifluoride", charge: 0, atomCounts: { Cl:1, F:3 },
+    build: function(){
+      var Cl = atom('Cl', 0, 0, 2);
+      var F1 = atom('F', 0, -60, 3), F2 = atom('F', 0, 60, 3), F3 = atom('F', -62, 0, 3);
+      var mol = makeMolecule([Cl,F1,F2,F3], [bond(Cl,F1,1), bond(Cl,F2,1), bond(Cl,F3,1)]);
+      return { mol: mol, bracket: null };
+    }
+  });
+
+  addCompound({
+    formula: "BrF<sub>3</sub>", name: "Bromine trifluoride", charge: 0, atomCounts: { Br:1, F:3 },
+    build: function(){
+      var Br = atom('Br', 0, 0, 2);
+      var F1 = atom('F', 0, -60, 3), F2 = atom('F', 0, 60, 3), F3 = atom('F', -62, 0, 3);
+      var mol = makeMolecule([Br,F1,F2,F3], [bond(Br,F1,1), bond(Br,F2,1), bond(Br,F3,1)]);
+      return { mol: mol, bracket: null };
+    }
+  });
+
+  addCompound({
+    formula: "XeF<sub>2</sub>", name: "Xenon difluoride", charge: 0, atomCounts: { Xe:1, F:2 },
+    build: function(){
+      var Xe = atom('Xe', 0, 0, 3);
+      var F1 = atom('F', -62, 0, 3), F2 = atom('F', 62, 0, 3);
+      var mol = makeMolecule([Xe,F1,F2], [bond(Xe,F1,1), bond(Xe,F2,1)]);
+      return { mol: mol, bracket: null };
+    }
+  });
+
+  addCompound({
+    formula: "I<sub>3</sub><sup>&minus;</sup>", name: "Triiodide ion", charge: -1, atomCounts: { I:3 },
+    build: function(){
+      var Ic = atom('I', 0, 0, 3, -1);
+      var I1 = atom('I', -66, 0, 3), I2 = atom('I', 66, 0, 3);
+      var mol = makeMolecule([Ic,I1,I2], [bond(Ic,I1,1), bond(Ic,I2,1)]);
+      return { mol: mol, bracket: makeBracket(mol, -1) };
+    }
+  });
+
+  addCompound({
+    formula: "BrF<sub>5</sub>", name: "Bromine pentafluoride", charge: 0, atomCounts: { Br:1, F:5 },
+    build: function(){
+      var Br = atom('Br', 0, 0, 1);
+      var pts = around(0,0,5,62,-90);
+      var Fs = pts.map(function(p){ return atom('F', p.x, p.y, 3); });
+      var mol = makeMolecule([Br].concat(Fs), Fs.map(function(F){ return bond(Br,F,1); }));
+      return { mol: mol, bracket: null };
+    }
+  });
+
+  addCompound({
+    formula: "IF<sub>5</sub>", name: "Iodine pentafluoride", charge: 0, atomCounts: { I:1, F:5 },
+    build: function(){
+      var I = atom('I', 0, 0, 1);
+      var pts = around(0,0,5,62,-90);
+      var Fs = pts.map(function(p){ return atom('F', p.x, p.y, 3); });
+      var mol = makeMolecule([I].concat(Fs), Fs.map(function(F){ return bond(I,F,1); }));
+      return { mol: mol, bracket: null };
+    }
+  });
+
+  addCompound({
+    formula: "ClF<sub>5</sub>", name: "Chlorine pentafluoride", charge: 0, atomCounts: { Cl:1, F:5 },
+    build: function(){
+      var Cl = atom('Cl', 0, 0, 1);
+      var pts = around(0,0,5,62,-90);
+      var Fs = pts.map(function(p){ return atom('F', p.x, p.y, 3); });
+      var mol = makeMolecule([Cl].concat(Fs), Fs.map(function(F){ return bond(Cl,F,1); }));
+      return { mol: mol, bracket: null };
+    }
+  });
+
+  addCompound({
+    formula: "XeF<sub>4</sub>", name: "Xenon tetrafluoride", charge: 0, atomCounts: { Xe:1, F:4 },
+    build: function(){
+      var Xe = atom('Xe', 0, 0, 2);
+      var F1 = atom('F', 0, -60, 3), F2 = atom('F', 60, 0, 3), F3 = atom('F', 0, 60, 3), F4 = atom('F', -60, 0, 3);
+      var mol = makeMolecule([Xe,F1,F2,F3,F4], [bond(Xe,F1,1), bond(Xe,F2,1), bond(Xe,F3,1), bond(Xe,F4,1)]);
+      return { mol: mol, bracket: null };
+    }
+  });
+
+  addCompound({
+    formula: "ICl<sub>4</sub><sup>&minus;</sup>", name: "Tetrachloroiodate(III) ion", charge: -1, atomCounts: { I:1, Cl:4 },
+    build: function(){
+      var I = atom('I', 0, 0, 2, -1);
+      var C1 = atom('Cl', 0, -62, 3), C2 = atom('Cl', 62, 0, 3), C3 = atom('Cl', 0, 62, 3), C4 = atom('Cl', -62, 0, 3);
+      var mol = makeMolecule([I,C1,C2,C3,C4], [bond(I,C1,1), bond(I,C2,1), bond(I,C3,1), bond(I,C4,1)]);
+      return { mol: mol, bracket: makeBracket(mol, -1) };
+    }
+  });
+
   // --- S/N/O oxo species ------------------------------------------------
   addCompound({
     formula: "SO<sub>2</sub>", name: "Sulfur dioxide", charge: 0, atomCounts: { S:1, O:2 },
@@ -4129,6 +4296,9 @@ window.addEventListener('load', function(){
       c.charge === 0 ? 'Neutral molecule' : ('Polyatomic ion \u00b7 overall charge ' + (c.charge > 0 ? '+' + c.charge : c.charge));
     resetValenceQuiz();
     resetFormalCharge(c);
+    resetHybridization(c);
+    geoQ.reset(geometryAnswer(c));
+    polQ.reset(polarityAnswer(c));
     sketcher.clear();
     document.getElementById('feedback-panel').style.display = 'none';
   }
@@ -4306,6 +4476,169 @@ window.addEventListener('load', function(){
   });
 
   /* ---------------------------------------------------------------
+   * Hybridization question (graded against the reference structure)
+   * Central atom = atom with more than one bonded atom (most bonded atoms wins,
+   * ties -> first listed). For 2-atom species: first atom with > 2 electrons around it.
+   * ------------------------------------------------------------- */
+  var hybData = null, hybDone = false;
+  var HYB_KEYS = { 2:'sp', 3:'sp2', 4:'sp3', 5:'sp3d', 6:'sp3d2' };
+  var HYB_LABEL = { sp:'sp', sp2:'sp\u00b2', sp3:'sp\u00b3', sp3d:'sp\u00b3d', sp3d2:'sp\u00b3d\u00b2' };
+
+  function computeHybridization(c){
+    var mol = c.build().mol;
+    var info = mol.atoms.map(function(a){
+      var nbrs = [], orderSum = 0;
+      mol.bonds.forEach(function(b){
+        if (b.a1 === a){ if (nbrs.indexOf(b.a2) < 0) nbrs.push(b.a2); orderSum += b.bondOrder; }
+        else if (b.a2 === a){ if (nbrs.indexOf(b.a1) < 0) nbrs.push(b.a1); orderSum += b.bondOrder; }
+      });
+      var lp = a.numLonePair || 0, rad = a.numRadical || 0;
+      return { el: a.label, bonded: nbrs.length, lp: lp, rad: rad, around: 2 * orderSum + 2 * lp + rad };
+    });
+    var pick = null;
+    if (mol.atoms.length === 2){
+      info.some(function(x){ if (x.around > 2){ pick = x; return true; } return false; });
+    } else {
+      info.forEach(function(x){ if (x.bonded > 1 && (!pick || x.bonded > pick.bonded)) pick = x; });
+    }
+    if (!pick) pick = info[0];
+    pick.regions = pick.bonded + pick.lp + (pick.rad ? 1 : 0);
+    pick.key = HYB_KEYS[pick.regions] || null;
+    return pick;
+  }
+
+  function resetHybridization(c){
+    hybDone = false;
+    hybData = computeHybridization(c);
+    byId('hyb-atom').textContent = hybData.el;
+    var sel = byId('hyb-select');
+    sel.value = ''; sel.disabled = false; sel.className = 'hyb-select';
+    byId('hyb-submit').disabled = false;
+    var res = byId('hyb-result');
+    res.textContent = ''; res.className = 'valence-result';
+    byId('hyb-answer').style.display = 'none';
+    byId('hyb-answer').innerHTML = '';
+  }
+
+  function submitHybridization(){
+    if (hybDone || !hybData) return;
+    var sel = byId('hyb-select'), res = byId('hyb-result');
+    if (!sel.value){
+      res.className = 'valence-result bad';
+      res.textContent = 'Choose an option first.';
+      sel.focus();
+      return;
+    }
+    hybDone = true;
+    sel.disabled = true;
+    byId('hyb-submit').disabled = true;
+    var ok = sel.value === hybData.key;
+    sel.classList.add(ok ? 'ok' : 'bad');
+    res.className = 'valence-result ' + (ok ? 'ok' : 'bad');
+    res.textContent = ok ? '\u2713 Correct' : '\u2717 Incorrect';
+    var d = hybData;
+    var ans = byId('hyb-answer');
+    ans.innerHTML = '<h4>Correct answer: ' + (d.key ? HYB_LABEL[d.key] : '\u2014') + '</h4>' +
+      '<div class="fc-eq">Central atom ' + d.el + ': ' + d.bonded + ' bonded atom' + (d.bonded === 1 ? '' : 's') +
+      ' + ' + d.lp + ' lone pair' + (d.lp === 1 ? '' : 's') + ' = <b>' + d.regions + '</b> electron regions</div>' +
+      '<div class="fc-note">Count each bonded atom once (a double or triple bond is still one region) and each lone pair once. ' +
+      '2 regions = sp, 3 = sp\u00b2, 4 = sp\u00b3, 5 = sp\u00b3d, 6 = sp\u00b3d\u00b2.</div>';
+    ans.style.display = 'block';
+  }
+  byId('hyb-submit').addEventListener('click', submitHybridization);
+
+  /* ---------------------------------------------------------------
+   * Shared helper for "pick one from a drop-down" questions
+   * ------------------------------------------------------------- */
+  function setupSelectQuestion(id){
+    var st = { done:false, ans:null };
+    var sel = byId(id + '-select'), btn = byId(id + '-submit'), res = byId(id + '-result'), box = byId(id + '-answer');
+    function reset(ans){
+      st.done = false; st.ans = ans;
+      sel.value = ''; sel.disabled = false; sel.className = 'hyb-select';
+      btn.disabled = false;
+      res.textContent = ''; res.className = 'valence-result';
+      box.style.display = 'none'; box.innerHTML = '';
+    }
+    function submit(){
+      if (st.done || !st.ans) return;
+      if (!sel.value){
+        res.className = 'valence-result bad'; res.textContent = 'Choose an option first.'; sel.focus(); return;
+      }
+      st.done = true; sel.disabled = true; btn.disabled = true;
+      var ok = sel.value === st.ans.key;
+      sel.classList.add(ok ? 'ok' : 'bad');
+      res.className = 'valence-result ' + (ok ? 'ok' : 'bad');
+      res.textContent = ok ? '\u2713 Correct' : '\u2717 Incorrect';
+      box.innerHTML = st.ans.html; box.style.display = 'block';
+    }
+    btn.addEventListener('click', submit);
+    return { reset: reset };
+  }
+
+  /* ---------------------------------------------------------------
+   * Molecular geometry (about the same atom as the hybridization question)
+   * keyed by bonded atoms (X) + lone pairs (E) on that atom
+   * ------------------------------------------------------------- */
+  var GEO = {
+    '20':'linear', '21':'bent-120', '22':'bent-109', '23':'linear',
+    '30':'trigonal-planar', '31':'trigonal-pyramidal', '32':'t-shape',
+    '40':'tetrahedral', '41':'seesaw', '42':'square-planar',
+    '50':'trigonal-bipyramidal', '51':'square-pyramidal', '60':'octahedral'
+  };
+  var GEO_LABEL = { 'linear':'linear', 'trigonal-planar':'trigonal planar', 'bent-120':'120\u00b0 bent', 'tetrahedral':'tetrahedral',
+    'trigonal-pyramidal':'trigonal pyramidal', 'bent-109':'109.5\u00b0 bent', 'trigonal-bipyramidal':'trigonal bipyramidal',
+    'seesaw':'seesaw', 't-shape':'T-shape', 'octahedral':'octahedral', 'square-pyramidal':'square pyramidal', 'square-planar':'square planar' };
+  var EDOM = { 2:'linear', 3:'trigonal planar', 4:'tetrahedral', 5:'trigonal bipyramidal', 6:'octahedral' };
+
+  function geometryAnswer(c){
+    var d = computeHybridization(c);                       // same atom as the hybridization question
+    byId('geo-atom').textContent = d.el;
+    var key = d.bonded === 1 ? 'linear' : (GEO[d.bonded + '' + d.lp] || 'linear');
+    var notation = 'AX' + d.bonded + (d.lp ? 'E' + d.lp : '');
+    var html = '<h4>Correct answer: ' + GEO_LABEL[key] + '</h4>' +
+      '<div class="fc-eq">Atom ' + d.el + ': ' + d.bonded + ' bonded atom' + (d.bonded === 1 ? '' : 's') + ' + ' + d.lp +
+      ' lone pair' + (d.lp === 1 ? '' : 's') + ' (' + notation + ')</div>' +
+      '<div class="fc-note">' + (d.bonded === 1
+        ? 'Only one atom is attached, so the two atoms always lie along a line.'
+        : d.regions + ' electron regions give a ' + (EDOM[d.regions] || '') + ' electron geometry; ' +
+          (d.lp ? (d.lp === 1 ? 'the lone pair occupies space' : 'the lone pairs occupy space') + ' but ' + (d.lp === 1 ? 'is' : 'are') + ' not part of the molecular shape, so the shape is ' : 'with no lone pairs the molecular geometry is ') +
+          GEO_LABEL[key] + '.') + '</div>';
+    return { key: key, html: html };
+  }
+
+  /* ---------------------------------------------------------------
+   * Polarity of the whole species
+   * ------------------------------------------------------------- */
+  var POLAR = { 'Water':1, 'Ammonia':1, 'Hydrogen chloride':1, 'Carbon monoxide':1, 'Hydrogen cyanide':1, 'Formaldehyde':1, 'Methanol':1,
+    'Phosphorus trichloride':1, 'Sulfur dioxide':1, 'Ozone':1, 'Hydroxide ion':1, 'Cyanide ion':1, 'Sulfur tetrafluoride':1,
+    'Chlorine trifluoride':1, 'Bromine trifluoride':1, 'Bromine pentafluoride':1, 'Iodine pentafluoride':1, 'Chlorine pentafluoride':1 };
+  var EN = { H:2.20, Li:0.98, Be:1.57, B:2.04, C:2.55, N:3.04, O:3.44, F:3.98, Na:0.93, Mg:1.31, Al:1.61, Si:1.90, P:2.19, S:2.58,
+             Cl:3.16, K:0.82, Ca:1.00, Br:2.96, I:2.66, Xe:2.60 };
+
+  function polarityAnswer(c){
+    var polar = !!POLAR[c.name];
+    var mol = c.build().mol, anyPolarBond = false;
+    mol.bonds.forEach(function(b){
+      if (Math.abs((EN[b.a1.label] || 0) - (EN[b.a2.label] || 0)) >= 0.4) anyPolarBond = true;
+    });
+    var why;
+    if (!polar && !anyPolarBond){
+      why = 'All bonds are nonpolar (identical atoms, or an electronegativity difference too small to matter), so there are no bond dipoles and the species is nonpolar.';
+    } else if (!polar){
+      why = 'The bonds are polar, but the arrangement is symmetric, so the bond dipoles cancel and there is no net dipole \u2014 nonpolar.';
+    } else if (mol.atoms.length === 2){
+      why = 'The single bond joins two different atoms, so it is polar, and with only one bond dipole nothing can cancel it \u2014 polar.';
+    } else {
+      why = 'The bonds are polar and the bond dipoles do not cancel (lone pair(s) on the central atom and/or different atoms around it make the shape unsymmetrical) \u2014 polar.';
+    }
+    return { key: polar ? 'polar' : 'nonpolar', html: '<h4>Correct answer: ' + (polar ? 'Polar' : 'Nonpolar') + '</h4><div class="fc-note" style="margin-top:0;">' + why + '</div>' };
+  }
+
+  var geoQ = setupSelectQuestion('geo');
+  var polQ = setupSelectQuestion('pol');
+
+  /* ---------------------------------------------------------------
    * Grading
    * ------------------------------------------------------------- */
   function checkStructure(){
@@ -4362,7 +4695,7 @@ window.addEventListener('load', function(){
     }
 
     // per-atom octet check
-    var expandable = { P:1, S:1, Cl:1, Br:1, I:1, Si:1 };
+    var expandable = { P:1, S:1, Cl:1, Br:1, I:1, Si:1, Xe:1 };
     var lenient = { B:1, Be:1 };
     var strict = { C:1, N:1, O:1, F:1 };
     var atomIssueCount = 0;
