@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('qchem-theme'); } catch (e) {}
+      if (t !== 'dark' && t !== 'light') t = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      if (t === 'dark') document.documentElement.classList.add('dark');
+    })();
+  </script>
   <title>Quantum Mechanics & Atomic Structure Practice</title>
   <style>
     :root {
@@ -15,6 +23,37 @@
       --success: #10b981;
       --danger: #ef4444;
       --border: #e2e8f0;
+      --on-primary: #ffffff;
+      --btn2: #f1f5f9;
+      --btn2-hover: #e2e8f0;
+      --solution-text: #334155;
+      --ok-bg: #ecfdf5; --ok-text: #065f46; --ok-border: #a7f3d0;
+      --bad-bg: #fef2f2; --bad-text: #991b1b; --bad-border: #fecaca;
+      color-scheme: light;
+
+      /* floating calculator: mapped to this app's palette */
+      --panel: var(--card-bg); --panel2: var(--btn2); --line: var(--border); --ink: var(--text); --muted: var(--text-muted);
+      --amber: var(--primary); --amber-ink: var(--on-primary);
+      --teal: #0f766e; --teal-ink: #ffffff; --bad: #e11d48;
+      --shadow: 0 8px 28px rgba(15,23,42,.28);
+    }
+    :root.dark {
+      --primary: #60a5fa;
+      --primary-hover: #93c5fd;
+      --on-primary: #0b1220;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --btn2: #334155;
+      --btn2-hover: #475569;
+      --solution-text: #cbd5e1;
+      --ok-bg: #064e3b; --ok-text: #a7f3d0; --ok-border: #065f46;
+      --bad-bg: #450a0a; --bad-text: #fecaca; --bad-border: #7f1d1d;
+      color-scheme: dark;
+      --teal: #2dd4bf; --teal-ink: #042f2e; --bad: #fb7185;
+      --shadow: 0 8px 28px rgba(0,0,0,.55);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,7 +63,7 @@
       background-color: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      padding: 16px;
+      padding: 16px 16px 96px;
       max-width: 600px;
       margin: 0 auto;
     }
@@ -32,9 +71,25 @@
     header {
       text-align: center;
       margin-bottom: 20px;
+      position: relative;
+      padding: 0 48px;
     }
 
-    h1 { font-size: 1.4rem; font-weight: 700; color: #0f172a; }
+    h1 { font-size: 1.4rem; font-weight: 700; color: var(--text); }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: absolute; top: 50%; right: 0; transform: translateY(-50%);
+      flex: none; width: 40px; height: 40px; padding: 0;
+      display: grid; place-items: center;
+      background: var(--card-bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 10px;
+    }
+    .theme-toggle:hover { background: var(--btn2); }
+    .theme-toggle svg { width: 20px; height: 20px; }
+    .theme-toggle .icon-sun { display: none; }
+    :root.dark .theme-toggle .icon-sun { display: block; }
+    :root.dark .theme-toggle .icon-moon { display: none; }
 
     /* Scoreboard */
     .scoreboard {
@@ -111,6 +166,8 @@
       font-size: 1.1rem;
       border-radius: 8px;
       border: 1px solid var(--border);
+      background-color: var(--card-bg);
+      color: var(--text);
       outline: none;
       font-family: monospace;
     }
@@ -141,10 +198,10 @@
       transition: background 0.2s;
     }
 
-    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary { background: var(--primary); color: var(--on-primary); }
     .btn-primary:hover { background: var(--primary-hover); }
-    .btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
-    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-secondary { background: var(--btn2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--btn2-hover); }
 
     /* Math typography */
     .formula { font-family: "Georgia", serif; font-style: italic; }
@@ -163,8 +220,8 @@
       margin-top: 16px;
       display: none;
     }
-    .feedback.correct { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-    .feedback.incorrect { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .feedback.correct { background: var(--ok-bg); color: var(--ok-text); border: 1px solid var(--ok-border); }
+    .feedback.incorrect { background: var(--bad-bg); color: var(--bad-text); border: 1px solid var(--bad-border); }
 
     .solution {
       margin-top: 16px;
@@ -172,16 +229,46 @@
       border-top: 1px dashed var(--border);
       display: none;
       font-size: 0.9rem;
-      color: #334155;
+      color: var(--solution-text);
     }
 
     .solution h4 { margin-bottom: 8px; color: var(--text); }
+
+    /* ---- Floating calculator ---- */
+        .calc button,.fab{font-family:inherit;color:var(--ink);cursor:pointer}
+        .calc{color:var(--ink);font-size:14px}
+        .calc[hidden]{display:none}
+        .fab{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;border:0;background:var(--amber);color:var(--amber-ink);box-shadow:var(--shadow);z-index:50;display:grid;place-items:center;touch-action:manipulation}
+        .fab svg{width:28px;height:28px}
+        .calc{position:fixed;z-index:55;right:12px;bottom:calc(86px + env(safe-area-inset-bottom,0px));width:min(330px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);user-select:none;-webkit-user-select:none;overflow:hidden}
+        .calc-head{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 6px 12px;background:var(--panel2);cursor:grab;touch-action:none;font-size:12.5px;color:var(--muted)}
+        .calc-head:active{cursor:grabbing}
+        .calc-head .grip{display:flex;gap:8px;align-items:center}.calc-head .dots{letter-spacing:2px}
+        .calc-head button{width:38px;height:38px;padding:0;flex:none;border:0;background:transparent;border-radius:8px;font-size:20px;line-height:1}
+        .disp{padding:10px 14px 6px;text-align:right;min-height:92px;display:flex;flex-direction:column;justify-content:flex-end}
+        .disp .expr{font-size:15px;color:var(--muted);min-height:22px;overflow-x:auto;white-space:nowrap;direction:rtl;text-align:left}.disp .expr span{direction:ltr;unicode-bidi:plaintext}
+        .disp .res{font-size:30px;font-weight:600;overflow-x:auto;white-space:nowrap;line-height:1.25}.disp .res.err{color:var(--bad);font-size:18px}
+        .disp .meta{font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between}
+        .keys{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:8px 10px 10px}
+        .keys button{min-height:46px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);font-size:16px;padding:0;touch-action:manipulation}
+        .keys button:active{transform:translateY(1px);filter:brightness(1.15)}
+        .keys .fn{font-size:13.5px;color:var(--teal)}.keys .op{color:var(--amber);font-weight:600}
+        .keys .eq{background:var(--amber);color:var(--amber-ink);border-color:var(--amber);font-weight:700}
+        .keys .clr{color:var(--bad)}
+        .keys .on{background:var(--teal);color:var(--teal-ink);border-color:var(--teal)}
+        .calc-foot{padding:0 10px 10px}
+        .calc-foot .btn{width:100%;min-height:42px;font-size:13.5px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--ink);cursor:pointer}
+        .calc-foot .btn.teal{background:var(--teal);border-color:var(--teal);color:var(--teal-ink);font-weight:600}
   </style>
 </head>
 <body>
 
   <header>
     <h1>Quantum Chem Practice</h1>
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to dark theme" title="Toggle dark/light theme">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
   </header>
 
   <div class="scoreboard">
@@ -505,6 +592,90 @@
 
     // Initial Load
     loadProblem();
+  </script>
+  <button class="fab" id="fab" type="button" aria-label="Open calculator"></button>
+  <div class="calc" id="calc" role="dialog" aria-label="Calculator" hidden></div>
+
+  <script>
+  (function(){
+    /* ---------- theme toggle ---------- */
+    const root=document.documentElement, tbtn=document.getElementById('theme-toggle');
+    function syncToggle(){const d=root.classList.contains('dark');tbtn.setAttribute('aria-label',d?'Switch to light theme':'Switch to dark theme');tbtn.setAttribute('aria-pressed',String(d))}
+    tbtn.addEventListener('click',()=>{const d=root.classList.toggle('dark');try{localStorage.setItem('qchem-theme',d?'dark':'light')}catch(e){}syncToggle()});
+    syncToggle();
+
+    /* ---------- floating calculator ---------- */
+    const $=s=>document.querySelector(s);
+/* ---------- floating calculator ---------- */
+$('#fab').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="5.5" width="8" height="4" rx="1"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/></svg>';
+function tokenize(s){const out=[];let i=0;while(i<s.length){const rest=s.slice(i);let m;if(/^\s/.test(rest)){i++;continue}
+  if((m=/^(\d+\.?\d*|\.\d+)(E[+-]?\d+)?/.exec(rest))){out.push({t:'num',v:parseFloat(m[0])});i+=m[0].length;continue}
+  if((m=/^(asin|acos|atan|sin|cos|tan|ln|log|sqrt|pi|ans|e)/.exec(rest))){const w=m[1];out.push({t:(w==='pi'||w==='e'||w==='ans')?'const':'fn',v:w});i+=w.length;continue}
+  if('+-*/^()'.includes(rest[0])){out.push({t:'op',v:rest[0]});i++;continue}throw new Error('Syntax error')}return out}
+function evaluate(str,opts){const tk=tokenize(str);let p=0;const peek=()=>tk[p],nxt=()=>tk[p++];
+  const isOp=(t,v)=>t&&t.t==='op'&&t.v===v;const starts=t=>t&&(t.t==='num'||t.t==='const'||t.t==='fn'||isOp(t,'('));
+  const toRad=x=>opts.deg?x*Math.PI/180:x,fromRad=x=>opts.deg?x*180/Math.PI:x;
+  const F={sin:x=>Math.sin(toRad(x)),cos:x=>Math.cos(toRad(x)),tan:x=>Math.tan(toRad(x)),asin:x=>fromRad(Math.asin(x)),acos:x=>fromRad(Math.acos(x)),atan:x=>fromRad(Math.atan(x)),ln:Math.log,log:Math.log10,sqrt:Math.sqrt};
+  function expr(){let v=term();while(isOp(peek(),'+')||isOp(peek(),'-')){const o=nxt().v;const r=term();v=o==='+'?v+r:v-r}return v}
+  function term(){let v=unary();for(;;){const t=peek();if(isOp(t,'*')||isOp(t,'/')){nxt();const r=unary();v=t.v==='*'?v*r:v/r}else if(starts(t))v*=unary();else return v}}
+  function unary(){if(isOp(peek(),'-')){nxt();return -unary()}if(isOp(peek(),'+')){nxt();return unary()}return power()}
+  function power(){const b=primary();if(isOp(peek(),'^')){nxt();return Math.pow(b,unary())}return b}
+  function primary(){const t=nxt();if(!t)throw new Error('Incomplete');if(t.t==='num')return t.v;
+    if(t.t==='const')return t.v==='pi'?Math.PI:t.v==='e'?Math.E:opts.ans;
+    if(t.t==='fn'){if(!isOp(peek(),'('))throw new Error('Use ( after '+t.v);nxt();const a=expr();if(isOp(peek(),')'))nxt();return F[t.v](a)}
+    if(isOp(t,'(')){const v=expr();if(isOp(peek(),')'))nxt();return v}throw new Error('Syntax error')}
+  const v=expr();if(p<tk.length)throw new Error('Syntax error');if(!isFinite(v))throw new Error('Math error');return v}
+function fmt(x){if(x===0)return'0';const a=Math.abs(x);if(a>=1e10||a<1e-6)return x.toExponential(6).replace(/\.?0+e/,'e').replace('e+','e');return String(Number(x.toPrecision(10)))}
+const pretty=s=>s.replace(/\*/g,'×').replace(/\//g,'÷').replace(/-/g,'−').replace(/pi/g,'π').replace(/sqrt\(/g,'√(').replace(/asin\(/g,'sin⁻¹(').replace(/acos\(/g,'cos⁻¹(').replace(/atan\(/g,'tan⁻¹(');
+window.initCalculator=function(getLastInput){
+  const st={expr:'',deg:true,inv:false,ans:0,done:false,err:''};const panel=$('#calc'),fab=$('#fab');
+  const K=(label,act,cls,extra)=>({label,act,cls:cls||'',extra:extra||''});
+  const rows=()=>[
+    [K('2nd','inv',st.inv?'on fn':'fn'),K(st.deg?'DEG':'RAD','deg','fn'),K('(','('),K(')',')'),K('⌫','back','clr')],
+    [K(st.inv?'sin⁻¹':'sin',st.inv?'asin(':'sin(','fn'),K(st.inv?'cos⁻¹':'cos',st.inv?'acos(':'cos(','fn'),K(st.inv?'tan⁻¹':'tan',st.inv?'atan(':'tan(','fn'),K(st.inv?'eˣ':'ln',st.inv?'e^(':'ln(','fn'),K(st.inv?'10ˣ':'log',st.inv?'10^(':'log(','fn')],
+    [K('√','sqrt(','fn'),K('x²','^2','fn'),K('xʸ','^','fn'),K('π','pi','fn'),K('e','e','fn')],
+    [K('7','7'),K('8','8'),K('9','9'),K('÷','/','op'),K('C','clear','clr')],
+    [K('4','4'),K('5','5'),K('6','6'),K('×','*','op'),K('Ans','ans','fn')],
+    [K('1','1'),K('2','2'),K('3','3'),K('−','-','op'),K('EE','E','fn')],
+    [K('0','0'),K('.','.'),K('+','+','op'),K('=','=','eq','grid-column:span 2')]];
+  panel.innerHTML=`<div class="calc-head" id="calcHead"><span class="grip"><span class="dots" aria-hidden="true">⠿</span>Calculator</span><button type="button" id="calcClose" aria-label="Close calculator">&times;</button></div>
+    <div class="disp"><div class="expr"><span id="cExpr"></span></div><div class="res" id="cRes">0</div><div class="meta"><span id="cMode"></span><span>drag the header to move</span></div></div>
+    <div class="keys" id="cKeys"></div><div class="calc-foot"><button type="button" class="btn teal" id="cUse">Use result in answer box</button></div>`;
+  const q=s=>panel.querySelector(s);
+  function paint(){const keys=q('#cKeys'),flat=rows().flat();
+    keys.innerHTML=flat.map((k,i)=>`<button type="button" data-i="${i}" class="${k.cls}" style="${k.extra}">${k.label}</button>`).join('');
+    keys.onclick=e=>{const b=e.target.closest('button');if(b)press(flat[Number(b.dataset.i)].act)};keys.onmousedown=e=>e.preventDefault();
+    q('#cExpr').textContent=st.done?pretty(st.shown)+' =':pretty(st.expr);const r=q('#cRes');
+    if(st.err)r.textContent=st.err;else if(st.done&&!st.expr)r.textContent=fmt(st.ans);
+    else{let t='';if(st.expr.trim()){try{t=fmt(evaluate(st.expr,st))}catch(e){}}r.textContent=t||'0'}
+    r.classList.toggle('err',!!st.err);q('#cMode').textContent=(st.deg?'degrees':'radians')+(st.ans?'   ans = '+fmt(st.ans):'')}
+  function append(s){if(st.done){st.done=false;st.expr=(/^[+\-*/^]/.test(s)?'ans':'')+s;return}st.expr+=s}
+  function press(a){st.err='';
+    if(a==='inv')st.inv=!st.inv;else if(a==='deg')st.deg=!st.deg;else if(a==='clear'){st.expr='';st.done=false}
+    else if(a==='back'){if(st.done){st.done=false;st.expr=''}else st.expr=st.expr.replace(/(asin\(|acos\(|atan\(|sqrt\(|sin\(|cos\(|tan\(|log\(|ln\(|ans|pi|.)$/,'')}
+    else if(a==='='){if(st.expr.trim()){try{st.ans=evaluate(st.expr,st);st.shown=st.expr;st.expr='';st.done=true}catch(e){st.err=e.message}}}
+    else append(a);paint()}
+  function setOpen(o){panel.hidden=!o;fab.setAttribute('aria-expanded',String(o));fab.setAttribute('aria-label',o?'Close calculator':'Open calculator');if(o)paint()}
+  fab.onclick=()=>setOpen(panel.hidden);q('#calcClose').onclick=()=>setOpen(false);fab.setAttribute('aria-controls','calc');setOpen(false);
+  q('#cUse').onclick=()=>{const inp=getLastInput&&getLastInput();
+    const v=st.done?st.ans:(()=>{try{return evaluate(st.expr||'0',st)}catch(e){return NaN}})();const b=q('#cUse');
+    if(!isFinite(v)||!inp||!document.contains(inp)||inp.disabled){b.textContent=inp&&!inp.disabled?'Nothing to insert yet':'Tap an answer box first';setTimeout(()=>{b.textContent='Use result in answer box'},1400);return}
+    inp.value=String(Number(v.toPrecision(6)));b.textContent='Inserted';setTimeout(()=>{b.textContent='Use result in answer box'},1000)};
+  document.addEventListener('keydown',e=>{if(panel.hidden||/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName||''))return;if(e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key;
+    if(/^[0-9.]$/.test(k)||'+-*/^()'.includes(k)){press(k);e.preventDefault()}else if(k==='Enter'||k==='='){press('=');e.preventDefault()}
+    else if(k==='Backspace'){press('back');e.preventDefault()}else if(k==='Escape')setOpen(false);else if(k==='p')press('pi');else if(k==='e')press('e')});
+  const head=q('#calcHead');let drag=null;
+  head.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=panel.getBoundingClientRect();drag={dx:e.clientX-r.left,dy:e.clientY-r.top};
+    panel.style.left=r.left+'px';panel.style.top=r.top+'px';panel.style.right='auto';panel.style.bottom='auto';head.setPointerCapture(e.pointerId)});
+  head.addEventListener('pointermove',e=>{if(!drag)return;const w=panel.offsetWidth,h=panel.offsetHeight;
+    panel.style.left=Math.min(Math.max(4,e.clientX-drag.dx),innerWidth-w-4)+'px';panel.style.top=Math.min(Math.max(4,e.clientY-drag.dy),innerHeight-h-4)+'px'});
+  const end=()=>{drag=null};head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end);
+  addEventListener('resize',()=>{if(panel.style.left){const r=panel.getBoundingClientRect();panel.style.left=Math.min(Math.max(4,r.left),Math.max(4,innerWidth-r.width-4))+'px';panel.style.top=Math.min(Math.max(4,r.top),Math.max(4,innerHeight-r.height-4))+'px'}});
+};
+
+
+    initCalculator(()=>document.getElementById('user-answer'));
+  })();
   </script>
 </body>
 </html>
