@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="color-scheme" content="light dark">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <script>
+        // apply saved/system theme before first paint (no flash)
+        (function () {
+            var t = null;
+            try { t = localStorage.getItem('ice_theme'); } catch (e) {}
+            if (t !== 'dark' && t !== 'light') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+    <title>ICE Table Trainer · Square & Fixed Check</title>
+    <style>
+
+        /* ===== THEME VARIABLES ===== */
+        :root {
+        color-scheme: light;
+        /* widget aliases */
+        --panel: var(--card); --panel2: var(--btn-bg); --line: var(--border);
+        --bg: #f5f9ff;
+        --ink: #1a2b3c;
+        --card: #ffffff;
+        --head: #0a2a44;
+        --head2: #003057;
+        --accent: #1d6fa5;
+        --border: #cde0ee;
+        --border2: #d7e7f5;
+        --border3: #b8d2e7;
+        --blue-text: #004b7a;
+        --blue-text2: #1a4b6d;
+        --blue-text3: #2a577a;
+        --disabled-text: #3a5a72;
+        --mid: #3b8fc2;
+        --muted2: #4a5f73;
+        --muted: #5e7a94;
+        --muted-b: #5f7f9a;
+        --faint: #7b94a8;
+        --subhead-bg: #f0f7fe;
+        --stats-bg: #e9f2fa;
+        --eq-bg: #f2f9ff;
+        --kinfo-bg: #e2effa;
+        --ice-bg: #f7fcff;
+        --th-bg: #e1eefb;
+        --td-first-bg: #ecf5fe;
+        --given-bg: #eef7ff;
+        --answer-bg: #f4faff;
+        --disabled-bg: #eef4fa;
+        --btn-bg: #e3eff9;
+        --ok: #2e9e5b;
+        --ok-bg: #eafaf0;
+        --bad: #d9534f;
+        --bad-bg: #fdecea;
+        --hint-bg: #ffe7b3;
+        --hint-text: #7a5300;
+        --hint-border: #ffd98c;
+        --sol-label: #6a4c93;
+        --sol-disabled: #b8a8d1;
+        --hintbox-bg: #fff6e0;
+        --hintbox-text: #3a2e1b;
+        --fb-ok-bg: #dcf5e6;
+        --fb-ok-text: #0c5b2e;
+        --fb-err-bg: #ffe3e0;
+        --fb-err-text: #a12b1e;
+        --sol-bg: #f7f4ff;
+        --sol-border: #d4c8e8;
+        --sol-title: #4a2d7a;
+        --sol-text: #2a1f3d;
+        --sol-accent: #8a6bbf;
+        --sol-math-bg: #f0ecf8;
+        --hintbox-border: #ffb347;
+        --accent-solid: #1d6fa5;
+        --accent-solid-down: #145a88;
+        --on-accent: #ffffff;
+        --sol-btn: #6a4c93;
+        --ring: rgba(29, 111, 165, 0.12);
+        --btn-shadow: rgba(29, 111, 165, 0.2);
+        --shadow-app: rgba(0, 30, 60, 0.08);
+        --amber: #b36b00;
+        --amber-ink: #ffffff;
+        --teal: #1d6fa5;
+        --teal-ink: #ffffff;
+        --shadow: 0 10px 28px rgba(0, 30, 60, 0.28);
+        }
+        :root[data-theme="dark"] {
+        color-scheme: dark;
+        --bg: #0c1620;
+        --ink: #dce8f3;
+        --card: #15222e;
+        --head: #e9f2fb;
+        --head2: #d3e8f9;
+        --accent: #5fb3e8;
+        --border: #2b3f50;
+        --border2: #2a3b4a;
+        --border3: #3a5368;
+        --blue-text: #9fd0f3;
+        --blue-text2: #8fc3e8;
+        --blue-text3: #9bc4e2;
+        --disabled-text: #8fa9bf;
+        --mid: #5aa7d6;
+        --muted2: #9fb3c5;
+        --muted: #8fa8bd;
+        --muted-b: #8fa8bd;
+        --faint: #7a93a9;
+        --subhead-bg: #11202d;
+        --stats-bg: #112030;
+        --eq-bg: #10202e;
+        --kinfo-bg: #14293a;
+        --ice-bg: #111e2a;
+        --th-bg: #17293a;
+        --td-first-bg: #142637;
+        --given-bg: #162b3d;
+        --answer-bg: #111f2b;
+        --disabled-bg: #1b2a37;
+        --btn-bg: #1d3143;
+        --ok: #3fb871;
+        --ok-bg: #12301f;
+        --bad: #e5645f;
+        --bad-bg: #351a1a;
+        --hint-bg: #4a3a14;
+        --hint-text: #ffd98c;
+        --hint-border: #6b5320;
+        --sol-label: #b79ce6;
+        --sol-disabled: #4b4263;
+        --hintbox-bg: #2b2412;
+        --hintbox-text: #f1e3c4;
+        --fb-ok-bg: #123826;
+        --fb-ok-text: #8be3b0;
+        --fb-err-bg: #3a1c1a;
+        --fb-err-text: #ff9d94;
+        --sol-bg: #1a1727;
+        --sol-border: #3b3358;
+        --sol-title: #c8b4f0;
+        --sol-text: #e4dcf5;
+        --sol-accent: #9a7fd0;
+        --sol-math-bg: #262038;
+        --hintbox-border: #ffb347;
+        --accent-solid: #2477b0;
+        --accent-solid-down: #1b6396;
+        --on-accent: #ffffff;
+        --sol-btn: #7b5ea8;
+        --ring: rgba(95, 179, 232, 0.35);
+        --btn-shadow: rgba(0, 0, 0, 0.35);
+        --shadow-app: rgba(0, 0, 0, 0.45);
+        --amber: #ffb347;
+        --amber-ink: #2b1d00;
+        --teal: #6bbcf0;
+        --teal-ink: #0c1620;
+        --shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 12px;
+            background: var(--bg);
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .app-container {
+            max-width: 640px;
+            width: 100%;
+            background: var(--card);
+            border-radius: 28px;
+            padding: 18px 16px 24px;
+            box-shadow: 0 8px 24px var(--shadow-app);
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            margin: 0 0 6px;
+            letter-spacing: -0.02em;
+            color: var(--head);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .subhead {
+            font-size: 0.9rem;
+            color: var(--muted2);
+            margin-bottom: 18px;
+            border-left: 4px solid var(--mid);
+            padding-left: 12px;
+            background: var(--subhead-bg);
+            border-radius: 0 8px 8px 0;
+            padding: 8px 12px;
+        }
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            background: var(--stats-bg);
+            padding: 12px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .stat-item {
+            flex: 1 0 auto;
+            text-align: center;
+            background: var(--card);
+            padding: 8px 4px;
+            border-radius: 14px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+            min-width: 70px;
+        }
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .stat-value {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--head);
+            line-height: 1.2;
+        }
+        .reaction-panel {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: 24px;
+            padding: 16px 14px;
+            margin-bottom: 18px;
+        }
+        .reaction-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--mid);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .reaction-eq {
+            font-size: 1.3rem;
+            font-weight: 600;
+            background: var(--eq-bg);
+            padding: 12px 8px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 10px;
+            word-break: break-word;
+            line-height: 1.4;
+            color: var(--head2);
+        }
+        .k-info {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            background: var(--kinfo-bg);
+            padding: 8px 12px;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--blue-text);
+        }
+        .k-info span {
+            background: var(--card);
+            padding: 4px 16px;
+            border-radius: 40px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        /* ICE TABLE */
+        .ice-table-container {
+            margin: 14px 0 10px;
+            overflow-x: auto;
+            border-radius: 18px;
+            background: var(--ice-bg);
+            padding: 2px 0;
+        }
+        .ice-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 420px;
+        }
+        .ice-table th, .ice-table td {
+            padding: 10px 6px;
+            text-align: center;
+            border-bottom: 1px solid var(--border2);
+        }
+        .ice-table th {
+            background: var(--th-bg);
+            font-weight: 600;
+            color: var(--blue-text);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .ice-table td:first-child {
+            font-weight: 600;
+            color: var(--blue-text2);
+            background: var(--td-first-bg);
+            text-align: left;
+            padding-left: 12px;
+            width: 60px;
+        }
+        .ice-table input {
+            width: 100%;
+            padding: 10px 4px;
+            text-align: center;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            background: var(--card);
+            color: var(--head);
+            outline: none;
+            transition: 0.1s;
+        }
+        .ice-table input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--ring);
+        }
+        .ice-table input:disabled {
+            background: var(--disabled-bg);
+            color: var(--disabled-text);
+        }
+        .ice-table .given-value {
+            font-weight: 600;
+            color: var(--accent);
+            padding: 8px 4px;
+            background: var(--given-bg);
+            border-radius: 10px;
+            display: block;
+        }
+
+        /* ANSWER ROW */
+        .answer-section {
+            margin: 18px 0 12px;
+            background: var(--answer-bg);
+            border-radius: 20px;
+            padding: 14px 12px;
+            border: 1.5px solid var(--border2);
+        }
+        .answer-header {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--blue-text2);
+            margin-bottom: 10px;
+        }
+        .answer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 10px;
+        }
+        .answer-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .answer-item label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--blue-text3);
+            text-align: center;
+        }
+        .answer-item input {
+            padding: 12px 8px;
+            text-align: center;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 500;
+            background: var(--card);
+            color: var(--head);
+            outline: none;
+            transition: 0.1s;
+        }
+        .answer-item input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--ring);
+        }
+        .answer-item input:disabled {
+            background: var(--disabled-bg);
+            color: var(--disabled-text);
+        }
+        .answer-item input.correct {
+            border-color: var(--ok);
+            background: var(--ok-bg);
+        }
+        .answer-item input.incorrect {
+            border-color: var(--bad);
+            background: var(--bad-bg);
+        }
+
+        .input-area {
+            margin: 18px 0 12px;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn {
+            border: none;
+            background: var(--btn-bg);
+            color: var(--blue-text);
+            font-weight: 600;
+            padding: 14px 18px;
+            border-radius: 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.1s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .btn-primary {
+            background: var(--accent-solid);
+            color: var(--on-accent);
+            box-shadow: 0 6px 12px var(--btn-shadow);
+        }
+        .btn-primary:active {
+            background: var(--accent-solid-down);
+            transform: scale(0.98);
+        }
+        .btn-secondary {
+            background: var(--card);
+            border: 1.5px solid var(--border3);
+        }
+        .btn-hint {
+            background: var(--hint-bg);
+            color: var(--hint-text);
+            border: 1px solid var(--hint-border);
+        }
+        .btn-solution {
+            background: var(--sol-btn);
+            color: var(--on-accent);
+            padding: 14px 16px;
+        }
+        .btn-solution:disabled {
+            background: var(--sol-disabled);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin: 16px 0 8px;
+        }
+        .button-row .btn {
+            flex: 1 0 auto;
+            min-width: 100px;
+        }
+        .hint-box {
+            background: var(--hintbox-bg);
+            border-left: 6px solid var(--hintbox-border);
+            padding: 14px 16px;
+            border-radius: 16px;
+            margin: 10px 0 6px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--hintbox-text);
+            display: none;
+        }
+        .hint-box.show {
+            display: block;
+        }
+        .feedback {
+            font-size: 0.95rem;
+            padding: 10px 12px;
+            border-radius: 14px;
+            margin-top: 8px;
+            font-weight: 500;
+            display: none;
+        }
+        .feedback.success {
+            background: var(--fb-ok-bg);
+            color: var(--fb-ok-text);
+            display: block;
+        }
+        .feedback.error {
+            background: var(--fb-err-bg);
+            color: var(--fb-err-text);
+            display: block;
+        }
+        .footer {
+            font-size: 0.75rem;
+            color: var(--faint);
+            text-align: center;
+            margin-top: 10px;
+        }
+        .small-note {
+            font-size: 0.75rem;
+            color: var(--muted-b);
+            margin-top: 4px;
+            text-align: center;
+        }
+
+        /* STEP-BY-STEP SOLUTION */
+        .solution-panel {
+            margin: 16px 0 8px;
+            background: var(--sol-bg);
+            border: 1.5px solid var(--sol-border);
+            border-radius: 20px;
+            padding: 16px 14px;
+            display: none;
+        }
+        .solution-panel.show {
+            display: block;
+        }
+        .solution-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--sol-title);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .solution-step {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--sol-text);
+            border-left: 4px solid var(--sol-accent);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+        }
+        .solution-step:last-child {
+            margin-bottom: 0;
+        }
+        .solution-step .step-label {
+            font-weight: 700;
+            color: var(--sol-label);
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .solution-step .math {
+            font-family: 'Courier New', monospace;
+            background: var(--sol-math-bg);
+            padding: 6px 10px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 4px 0;
+            color: var(--sol-text);
+            font-size: 0.9rem;
+            word-break: break-word;
+        }
+        .solution-step ul {
+            margin: 6px 0 0;
+            padding-left: 20px;
+        }
+        .solution-step li {
+            margin-bottom: 4px;
+        }
+    
+        /* ===== THEME TOGGLE ===== */
+        .title-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .title-row h1 { margin: 0; }
+        .theme-toggle {
+            flex: 0 0 auto;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border3);
+            background: var(--card);
+            color: var(--blue-text);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            padding: 0;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .theme-toggle:hover { background: var(--btn-bg); }
+        .theme-toggle:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+        .theme-toggle svg { width: 22px; height: 22px; }
+        sub, sup { line-height: 0; }
+        ::placeholder { color: var(--faint); opacity: 1; }
+        body { padding-bottom: 92px; }
+
+        /* ===== FLOATING SCIENTIFIC CALCULATOR (reusable widget) ===== */
+        .calc button { color: var(--ink); font-family: inherit; }
+        .fab {
+          position: fixed; right: 14px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: 58px; height: 58px; border-radius: 50%; border: 0;
+          background: var(--amber); color: var(--amber-ink); box-shadow: var(--shadow); z-index: 50; display: grid; place-items: center; touch-action: manipulation; cursor: pointer;
+        }
+        .fab svg { width: 28px; height: 28px; }
+        .calc {
+          position: fixed; z-index: 55; right: 12px; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); width: min(330px, calc(100vw - 24px));
+          background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); user-select: none; -webkit-user-select: none; overflow: hidden;
+        }
+        .calc-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 6px 12px; background: var(--panel2); cursor: grab; touch-action: none; font-size: 12.5px; color: var(--muted); }
+        .calc-head:active { cursor: grabbing; }
+        .calc-head .grip { display: flex; gap: 8px; align-items: center; }
+        .calc-head .dots { letter-spacing: 2px; }
+        .calc-head button { width: 38px; height: 38px; border: 0; background: transparent; border-radius: 8px; font-size: 20px; line-height: 1; cursor: pointer; }
+        .disp { padding: 10px 14px 6px; text-align: right; min-height: 92px; display: flex; flex-direction: column; justify-content: flex-end; }
+        .disp .expr { font-size: 15px; color: var(--muted); min-height: 22px; overflow-x: auto; white-space: nowrap; direction: rtl; text-align: left; }
+        .disp .expr span { direction: ltr; unicode-bidi: plaintext; }
+        .disp .res { font-size: 30px; font-weight: 600; overflow-x: auto; white-space: nowrap; line-height: 1.25; }
+        .disp .res.err { color: var(--bad); font-size: 18px; }
+        .disp .meta { font-size: 11.5px; color: var(--muted); display: flex; justify-content: space-between; }
+        .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 8px 10px 10px; }
+        .keys button {
+          min-height: 46px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); font-size: 16px; padding: 0; touch-action: manipulation; cursor: pointer;
+        }
+        .keys button:active { transform: translateY(1px); filter: brightness(1.15); }
+        .keys .fn { font-size: 13.5px; color: var(--teal); }
+        .keys .op { color: var(--amber); font-weight: 600; }
+        .keys .eq { background: var(--amber); color: var(--amber-ink); border-color: var(--amber); font-weight: 700; }
+        .keys .clr { color: var(--bad); }
+        .keys .on { background: var(--teal); color: var(--teal-ink); border-color: var(--teal); }
+        .calc-foot { padding: 0 10px 10px; }
+        .calc-foot .btn { width: 100%; min-height: 42px; font-size: 13.5px; padding: 10px 14px; }
+        .btn.teal { background: var(--teal); border-color: var(--teal); color: var(--teal-ink); font-weight: 600; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="title-row">
+        <h1>🧪 ICE Table Trainer</h1>
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Switch to dark theme" aria-pressed="false" title="Toggle dark / light theme"></button>
+    </div>
+    <div class="subhead">Fill the ICE table and enter equilibrium concentration for <strong>every species</strong>.</div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-item"><div class="stat-label">Score</div><div class="stat-value" id="scoreDisplay">0%</div></div>
+        <div class="stat-item"><div class="stat-label">Last</div><div class="stat-value" id="lastScoreDisplay">—</div></div>
+        <div class="stat-item"><div class="stat-label">High</div><div class="stat-value" id="highScoreDisplay">0%</div></div>
+        <div class="stat-item"><div class="stat-label">Streak</div><div class="stat-value" id="streakDisplay">0</div></div>
+    </div>
+
+    <!-- Reaction card -->
+    <div class="reaction-panel" id="reactionPanel">
+        <div class="reaction-title">⚖️ Equilibrium reaction</div>
+        <div class="reaction-eq" id="reactionEq">—</div>
+        <div class="k-info" id="kInfo">K = —</div>
+    </div>
+
+    <!-- ICE TABLE -->
+    <div class="ice-table-container">
+        <table class="ice-table" id="iceTable">
+            <thead id="iceHead"></thead>
+            <tbody id="iceBody"></tbody>
+        </table>
+    </div>
+    <div class="small-note">Change row: enter algebraic change (e.g., -x, +2x). Equil. row: enter expression or value.</div>
+
+    <!-- ANSWER SECTION FOR ALL SPECIES -->
+    <div class="answer-section" id="answerSection">
+        <div class="answer-header">📝 Final equilibrium concentrations (M) for each species:</div>
+        <div class="answer-grid" id="answerGrid"></div>
+    </div>
+
+    <!-- Submit -->
+    <div class="input-area">
+        <div class="input-row" style="justify-content: center;">
+            <button class="btn btn-primary" id="submitBtn" style="flex:2;">✓ Submit All Answers</button>
+        </div>
+        <div id="feedback" class="feedback"></div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="button-row">
+        <button class="btn btn-hint" id="hintBtn">💡 Hint (-10%)</button>
+        <button class="btn btn-secondary" id="newProblemBtn">🔄 New</button>
+        <button class="btn btn-solution" id="showSolutionBtn" disabled>📖 Show Solution</button>
+    </div>
+
+    <!-- Hint box -->
+    <div class="hint-box" id="hintBox"></div>
+
+    <!-- STEP-BY-STEP SOLUTION PANEL -->
+    <div class="solution-panel" id="solutionPanel">
+        <div class="solution-title">📖 Step-by-Step Solution</div>
+        <div id="solutionContent"></div>
+    </div>
+
+    <div class="footer">ICE table • quadratic or successive approx.</div>
+</div>
+
+<!-- Floating scientific calculator (reusable widget) -->
+<button class="fab" id="fab" type="button" aria-label="Open calculator"></button>
+<div class="calc" id="calc" role="dialog" aria-label="Calculator" hidden></div>
+
+<script>
+    // ---------- REACTION STOCK (20 reactions) ----------
+    const reactions = [
+        { eq: "HA ⇌ H⁺ + A⁻", Kname: "Ka", K: 1.8e-5, type: 'acid', reactant: "HA", products: ["H⁺", "A⁻"], coeff: [1,1,1] },
+        { eq: "HB ⇌ H⁺ + B⁻", Kname: "Ka", K: 6.3e-5, type: 'acid', reactant: "HB", products: ["H⁺", "B⁻"], coeff: [1,1,1] },
+        { eq: "HC ⇌ H⁺ + C⁻", Kname: "Ka", K: 4.2e-4, type: 'acid', reactant: "HC", products: ["H⁺", "C⁻"], coeff: [1,1,1] },
+        { eq: "HD ⇌ H⁺ + D⁻", Kname: "Ka", K: 2.9e-8, type: 'acid', reactant: "HD", products: ["H⁺", "D⁻"], coeff: [1,1,1] },
+        { eq: "HE ⇌ H⁺ + E⁻", Kname: "Ka", K: 5.6e-3, type: 'acid', reactant: "HE", products: ["H⁺", "E⁻"], coeff: [1,1,1] },
+        { eq: "B + H₂O ⇌ BH⁺ + OH⁻", Kname: "Kb", K: 1.8e-5, type: 'base', reactant: "B", products: ["BH⁺", "OH⁻"], coeff: [1,1,1] },
+        { eq: "N + H₂O ⇌ NH⁺ + OH⁻", Kname: "Kb", K: 4.4e-4, type: 'base', reactant: "N", products: ["NH⁺", "OH⁻"], coeff: [1,1,1] },
+        { eq: "M + H₂O ⇌ MH⁺ + OH⁻", Kname: "Kb", K: 7.4e-6, type: 'base', reactant: "M", products: ["MH⁺", "OH⁻"], coeff: [1,1,1] },
+        { eq: "X + H₂O ⇌ XH⁺ + OH⁻", Kname: "Kb", K: 3.3e-3, type: 'base', reactant: "X", products: ["XH⁺", "OH⁻"], coeff: [1,1,1] },
+        { eq: "MX(s) ⇌ M⁺ + X⁻", Kname: "Ksp", K: 2.5e-9, type: 'salt', reactant: "MX(s)", products: ["M⁺", "X⁻"], coeff: [1,1] },
+        { eq: "MY(s) ⇌ M⁺ + Y⁻", Kname: "Ksp", K: 1.2e-12, type: 'salt', reactant: "MY(s)", products: ["M⁺", "Y⁻"], coeff: [1,1] },
+        { eq: "MZ(s) ⇌ M⁺ + Z⁻", Kname: "Ksp", K: 5.8e-7, type: 'salt', reactant: "MZ(s)", products: ["M⁺", "Z⁻"], coeff: [1,1] },
+        { eq: "A ⇌ 2B", Kname: "K", K: 0.045, type: 'general', reactant: "A", products: ["B"], coeff: [1,2] },
+        { eq: "C ⇌ 2D", Kname: "K", K: 0.012, type: 'general', reactant: "C", products: ["D"], coeff: [1,2] },
+        { eq: "E ⇌ 2F", Kname: "K", K: 1.8, type: 'general', reactant: "E", products: ["F"], coeff: [1,2] },
+        { eq: "2G ⇌ H + I", Kname: "K", K: 3.6e-4, type: 'general2', reactant: "G", products: ["H","I"], coeff: [2,1,1] },
+        { eq: "2J ⇌ K + L", Kname: "K", K: 9.2e-5, type: 'general2', reactant: "J", products: ["K","L"], coeff: [2,1,1] },
+        { eq: "HX ⇌ H⁺ + X⁻", Kname: "Ka", K: 1.3e-3, type: 'acid', reactant: "HX", products: ["H⁺","X⁻"], coeff: [1,1,1] },
+        { eq: "HY ⇌ H⁺ + Y⁻", Kname: "Ka", K: 7.9e-6, type: 'acid', reactant: "HY", products: ["H⁺","Y⁻"], coeff: [1,1,1] },
+        { eq: "HZ ⇌ H⁺ + Z⁻", Kname: "Ka", K: 2.1e-4, type: 'acid', reactant: "HZ", products: ["H⁺","Z⁻"], coeff: [1,1,1] }
+    ];
+
+    // ---------- STATE ----------
+    let currentReaction = null;
+    let currentInitialConc = 0;
+    let correctAnswers = [];
+    let speciesList = [];
+    let hintUsed = false;
+    let score = 100;
+    let totalScore = 0;
+    let problemsAttempted = 0;
+    let highScore = 0;
+    let lastScore = null;
+    let streak = 0;
+    let answered = false;
+    let solutionShown = false;
+
+    // Load from localStorage
+    try {
+        const savedHigh = localStorage.getItem('ice_highScore');
+        if (savedHigh) highScore = parseFloat(savedHigh) || 0;
+        const savedStreak = localStorage.getItem('ice_streak');
+        if (savedStreak) streak = parseInt(savedStreak) || 0;
+    } catch(e) {}
+
+    // DOM elements
+    const reactionEqEl = document.getElementById('reactionEq');
+    const kInfoEl = document.getElementById('kInfo');
+    const iceHead = document.getElementById('iceHead');
+    const iceBody = document.getElementById('iceBody');
+    const answerGrid = document.getElementById('answerGrid');
+    const submitBtn = document.getElementById('submitBtn');
+    const hintBtn = document.getElementById('hintBtn');
+    const newProblemBtn = document.getElementById('newProblemBtn');
+    const showSolutionBtn = document.getElementById('showSolutionBtn');
+    const solutionPanel = document.getElementById('solutionPanel');
+    const solutionContent = document.getElementById('solutionContent');
+    const hintBox = document.getElementById('hintBox');
+    const feedbackEl = document.getElementById('feedback');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const lastScoreDisplay = document.getElementById('lastScoreDisplay');
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+    const streakDisplay = document.getElementById('streakDisplay');
+
+    // ---------- UTILS ----------
+    // Scientific notation as HTML:  1.8 × 10<sup>−5</sup>   (output is for innerHTML)
+    function sciHTML(num, digits = 2, trim = false) {
+        if (num === 0) return '0';
+        let [m, e] = num.toExponential(digits).split('e');
+        if (trim) m = m.replace(/\.?0+$/, '');
+        const exp = parseInt(e, 10);
+        return `${m} × 10<sup>${exp < 0 ? '−' : ''}${Math.abs(exp)}</sup>`;
+    }
+    // Concentrations etc.: plain decimal in the mid range, scientific notation otherwise
+    function formatSci(num) {
+        if (num === 0) return "0";
+        if (Math.abs(num) < 0.001 || Math.abs(num) >= 10000) return sciHTML(num, 2);
+        return num.toFixed(4).replace(/\.?0+$/, '');
+    }
+    // Equilibrium constants: ALWAYS scientific notation (trailing zeros trimmed: 4.50 → 4.5)
+    function formatK(K) { return sciHTML(K, 2, true); }
+    // K with a true subscript: Ka → K<sub>a</sub>, Ksp → K<sub>sp</sub>, K → K
+    function kLabel(name) {
+        return name.length > 1 && name[0] === 'K' ? `K<sub>${name.slice(1)}</sub>` : name;
+    }
+
+    // Solve for equilibrium concentrations for ALL species
+    function solveAllEquilibrium(reaction, initialConc) {
+        const K = reaction.K;
+        const type = reaction.type;
+        const coeff = reaction.coeff;
+        
+        if (type === 'acid' || type === 'base') {
+            const C = initialConc;
+            const a = 1, b = K, c = -K * C;
+            const disc = b*b - 4*a*c;
+            if (disc < 0) return null;
+            const x = (-b + Math.sqrt(disc)) / (2*a);
+            const result = [C - x];
+            reaction.products.forEach(() => result.push(x));
+            return result;
+        } else if (type === 'salt') {
+            const x = Math.sqrt(K);
+            const result = [0];
+            reaction.products.forEach(() => result.push(x));
+            return result;
+        } else if (type === 'general') {
+            const C = initialConc;
+            const a = 4, b = K, c = -K * C;
+            const disc = b*b - 4*a*c;
+            if (disc < 0) return null;
+            const x = (-b + Math.sqrt(disc)) / (2*a);
+            const result = [C - x];
+            reaction.products.forEach(() => result.push(2*x));
+            return result;
+        } else if (type === 'general2') {
+            const C = initialConc;
+            const sqrtK = Math.sqrt(K);
+            const y = (sqrtK * C) / (1 + 2 * sqrtK);
+            const result = [C - 2*y];
+            reaction.products.forEach(() => result.push(y));
+            return result;
+        }
+        return null;
+    }
+
+    // Build species list from reaction
+    function buildSpeciesList(reaction) {
+        const list = [];
+        list.push({ name: reaction.reactant, coeff: reaction.coeff[0], isReactant: true, isSolid: reaction.type === 'salt' });
+        reaction.products.forEach((p, i) => {
+            list.push({ name: p, coeff: reaction.coeff[i+1], isReactant: false, isSolid: false });
+        });
+        return list;
+    }
+
+    // Render ICE table
+    function renderICETable(reaction, initialConc) {
+        speciesList = buildSpeciesList(reaction);
+        
+        let headHtml = '<tr><th>ICE</th>';
+        speciesList.forEach(s => {
+            let label = s.name;
+            if (s.coeff > 1) label = s.coeff + label;
+            headHtml += `<th>${label}</th>`;
+        });
+        headHtml += '</tr>';
+        iceHead.innerHTML = headHtml;
+        
+        let rowInitial = '<tr><td>Initial</td>';
+        speciesList.forEach(s => {
+            if (s.isSolid) {
+                rowInitial += `<td><span class="given-value">solid</span></td>`;
+            } else if (s.isReactant) {
+                rowInitial += `<td><span class="given-value">${initialConc.toFixed(3)} M</span></td>`;
+            } else {
+                rowInitial += `<td><span class="given-value">0 M</span></td>`;
+            }
+        });
+        rowInitial += '</tr>';
+        
+        let rowChange = '<tr><td>Change</td>';
+        speciesList.forEach((s, idx) => {
+            let signHint = s.isReactant ? '−' : '+';
+            rowChange += `<td><input type="text" id="change_${idx}" placeholder="e.g. ${signHint}x" value=""></td>`;
+        });
+        rowChange += '</tr>';
+        
+        let rowEq = '<tr><td>Equil.</td>';
+        speciesList.forEach((s, idx) => {
+            rowEq += `<td><input type="text" id="eq_${idx}" placeholder="expression" value=""></td>`;
+        });
+        rowEq += '</tr>';
+        
+        iceBody.innerHTML = rowInitial + rowChange + rowEq;
+    }
+
+    // Render answer inputs for all species
+    function renderAnswerInputs() {
+        let html = '';
+        speciesList.forEach((s, idx) => {
+            if (s.isSolid) {
+                html += `<div class="answer-item">
+                    <label>${s.name} (solid)</label>
+                    <input type="text" id="ans_${idx}" placeholder="solid" value="solid" disabled>
+                </div>`;
+            } else {
+                html += `<div class="answer-item">
+                    <label>${s.name}</label>
+                    <input type="text" id="ans_${idx}" placeholder="M" inputmode="decimal">
+                </div>`;
+            }
+        });
+        answerGrid.innerHTML = html;
+    }
+
+    // ---------- STEP-BY-STEP SOLUTION BUILDER ----------
+    function buildSolutionSteps(reaction, initialConc) {
+        const steps = [];
+        const type = reaction.type;
+        const K = reaction.K;
+        const Kname = reaction.Kname;
+        const C = initialConc;
+        const r = reaction.reactant;
+        const products = reaction.products;
+        const coeff = reaction.coeff;
+
+        let kExpr = '';
+        if (type === 'acid' || type === 'base') {
+            kExpr = `[${products[0]}][${products[1]}] / [${r}]`;
+        } else if (type === 'salt') {
+            kExpr = `[${products[0]}][${products[1]}]`;
+        } else if (type === 'general') {
+            kExpr = `[${products[0]}]² / [${r}]`;
+        } else if (type === 'general2') {
+            kExpr = `[${products[0]}][${products[1]}] / [${r}]²`;
+        }
+
+        steps.push({
+            label: 'Step 1: Reaction and Equilibrium Expression',
+            content: `
+                <div class="math">${reaction.eq}</div>
+                <div>${kLabel(Kname)} = ${kExpr} = ${formatK(K)}</div>
+            `
+        });
+
+        let initialRow = '<ul>';
+        speciesList.forEach(s => {
+            if (s.isSolid) {
+                initialRow += `<li>${s.name}: solid (activity = 1)</li>`;
+            } else if (s.isReactant) {
+                initialRow += `<li>${s.name}: ${C.toFixed(3)} M</li>`;
+            } else {
+                initialRow += `<li>${s.name}: 0 M</li>`;
+            }
+        });
+        initialRow += '</ul>';
+
+        steps.push({
+            label: 'Step 2: Initial Concentrations (I row)',
+            content: initialRow
+        });
+
+        let changeDesc = '';
+        let eqDesc = '';
+
+        if (type === 'acid' || type === 'base') {
+            changeDesc = `<ul>
+                <li>${r}: −x</li>
+                ${products.map(p => `<li>${p}: +x</li>`).join('')}
+            </ul>`;
+            eqDesc = `<ul>
+                <li>[${r}] = ${C.toFixed(3)} − x</li>
+                ${products.map(p => `<li>[${p}] = x</li>`).join('')}
+            </ul>`;
+        } else if (type === 'salt') {
+            changeDesc = `<ul>
+                <li>${r}: solid (no change)</li>
+                ${products.map(p => `<li>${p}: +x</li>`).join('')}
+            </ul>`;
+            eqDesc = `<ul>
+                <li>[${r}] = solid</li>
+                ${products.map(p => `<li>[${p}] = x</li>`).join('')}
+            </ul>`;
+        } else if (type === 'general') {
+            changeDesc = `<ul>
+                <li>${r}: −x</li>
+                <li>${products[0]}: +2x</li>
+            </ul>`;
+            eqDesc = `<ul>
+                <li>[${r}] = ${C.toFixed(3)} − x</li>
+                <li>[${products[0]}] = 2x</li>
+            </ul>`;
+        } else if (type === 'general2') {
+            changeDesc = `<ul>
+                <li>${r}: −2x</li>
+                ${products.map(p => `<li>${p}: +x</li>`).join('')}
+            </ul>`;
+            eqDesc = `<ul>
+                <li>[${r}] = ${C.toFixed(3)} − 2x</li>
+                ${products.map(p => `<li>[${p}] = x</li>`).join('')}
+            </ul>`;
+        }
+
+        steps.push({
+            label: 'Step 3: Change (C row) and Equilibrium (E row)',
+            content: `<strong>Change:</strong>${changeDesc}<strong>Equilibrium:</strong>${eqDesc}`
+        });
+
+        let equation = '';
+        let solveSteps = '';
+
+        if (type === 'acid' || type === 'base') {
+            equation = `${formatK(K)} = x² / (${C.toFixed(3)} − x)`;
+            solveSteps = `
+                <div>Rearrange: x² + ${formatK(K)}·x − ${formatK(K)}·${C.toFixed(3)} = 0</div>
+                <div>Using quadratic formula:</div>
+                <div class="math">x = [−K + √(K² + 4·K·C₀)] / 2</div>
+                <div>x = ${formatSci(correctAnswers[1])} M</div>
+            `;
+        } else if (type === 'salt') {
+            equation = `${formatK(K)} = x²`;
+            solveSteps = `
+                <div>Take square root of both sides:</div>
+                <div class="math">x = √${kLabel('Ksp')} = √(${formatK(K)})</div>
+                <div>x = ${formatSci(correctAnswers[1])} M</div>
+            `;
+        } else if (type === 'general') {
+            equation = `${formatK(K)} = (2x)² / (${C.toFixed(3)} − x) = 4x² / (${C.toFixed(3)} − x)`;
+            solveSteps = `
+                <div>Rearrange: 4x² + ${formatK(K)}·x − ${formatK(K)}·${C.toFixed(3)} = 0</div>
+                <div>Using quadratic formula:</div>
+                <div class="math">x = [−K + √(K² + 16·K·C₀)] / 8</div>
+                <div>x = ${formatSci(correctAnswers[1] / 2)} M</div>
+            `;
+        } else if (type === 'general2') {
+            equation = `${formatK(K)} = x² / (${C.toFixed(3)} − 2x)²`;
+            solveSteps = `
+                <div>Take square root of both sides:</div>
+                <div class="math">√K = x / (${C.toFixed(3)} − 2x)</div>
+                <div>Rearrange: x = √K · (${C.toFixed(3)} − 2x)</div>
+                <div>x + 2√K·x = √K·${C.toFixed(3)}</div>
+                <div>x(1 + 2√K) = √K·${C.toFixed(3)}</div>
+                <div class="math">x = (√K · C₀) / (1 + 2√K)</div>
+                <div>x = ${formatSci(correctAnswers[1])} M</div>
+            `;
+        }
+
+        steps.push({
+            label: 'Step 4: Substitute into K expression and solve for x',
+            content: `
+                <div class="math">${equation}</div>
+                ${solveSteps}
+            `
+        });
+
+        let finalList = '<ul>';
+        speciesList.forEach((s, idx) => {
+            if (s.isSolid) {
+                finalList += `<li>[${s.name}] = solid (excluded from K)</li>`;
+            } else {
+                finalList += `<li>[${s.name}] = ${formatSci(correctAnswers[idx])} M</li>`;
+            }
+        });
+        finalList += '</ul>';
+
+        steps.push({
+            label: 'Step 5: Final Equilibrium Concentrations',
+            content: finalList
+        });
+
+        let verify = '';
+        if (type === 'acid' || type === 'base') {
+            const num = correctAnswers[1] * correctAnswers[2];
+            const den = correctAnswers[0];
+            verify = `${kLabel(Kname)} = (${formatSci(correctAnswers[1])} × ${formatSci(correctAnswers[2])}) / ${formatSci(correctAnswers[0])} = ${formatSci(num/den)} ≈ ${formatK(K)} ✓`;
+        } else if (type === 'salt') {
+            const num = correctAnswers[1] * correctAnswers[2];
+            verify = `${kLabel('Ksp')} = (${formatSci(correctAnswers[1])})² = ${formatSci(num)} ≈ ${formatK(K)} ✓`;
+        } else if (type === 'general') {
+            const num = Math.pow(correctAnswers[1], 2);
+            const den = correctAnswers[0];
+            verify = `K = (${formatSci(correctAnswers[1])})² / ${formatSci(correctAnswers[0])} = ${formatSci(num/den)} ≈ ${formatK(K)} ✓`;
+        } else if (type === 'general2') {
+            const num = correctAnswers[1] * correctAnswers[2];
+            const den = Math.pow(correctAnswers[0], 2);
+            verify = `K = (${formatSci(correctAnswers[1])} × ${formatSci(correctAnswers[2])}) / (${formatSci(correctAnswers[0])})² = ${formatSci(num/den)} ≈ ${formatK(K)} ✓`;
+        }
+
+        steps.push({
+            label: 'Step 6: Verification',
+            content: `<div>${verify}</div>`
+        });
+
+        return steps;
+    }
+
+    function renderSolution() {
+        if (!answered) return;
+        const steps = buildSolutionSteps(currentReaction, currentInitialConc);
+        let html = '';
+        steps.forEach(s => {
+            html += `<div class="solution-step">
+                <span class="step-label">${s.label}</span>
+                ${s.content}
+            </div>`;
+        });
+        solutionContent.innerHTML = html;
+        solutionPanel.classList.add('show');
+        solutionShown = true;
+    }
+
+    // Generate a problem
+    function generateProblem() {
+        hintUsed = false;
+        answered = false;
+        solutionShown = false;
+        score = 100;
+        feedbackEl.className = 'feedback';
+        feedbackEl.style.display = 'none';
+        hintBox.classList.remove('show');
+        solutionPanel.classList.remove('show');
+        solutionContent.innerHTML = '';
+        showSolutionBtn.disabled = true;
+        submitBtn.disabled = false;
+
+        const idx = Math.floor(Math.random() * reactions.length);
+        currentReaction = JSON.parse(JSON.stringify(reactions[idx]));
+
+        let initConc = 0;
+        if (currentReaction.type !== 'salt') {
+            initConc = (Math.random() * 1.15 + 0.05);
+            initConc = Math.round(initConc * 1000) / 1000;
+        } else {
+            initConc = 0;
+        }
+        currentInitialConc = initConc;
+
+        speciesList = buildSpeciesList(currentReaction);
+
+        const ansArray = solveAllEquilibrium(currentReaction, initConc);
+        if (ansArray === null || ansArray.some(v => isNaN(v) || v < 0)) {
+            return generateProblem();
+        }
+        correctAnswers = ansArray;
+
+        reactionEqEl.textContent = currentReaction.eq;
+        kInfoEl.innerHTML = `<span>${currentReaction.Kname} = ${formatK(currentReaction.K)}</span>`;
+
+        renderICETable(currentReaction, initConc);
+        renderAnswerInputs();
+
+        updateStatsUI();
+    }
+
+    function updateStatsUI() {
+        scoreDisplay.textContent = (answered ? Math.round(score) : 100) + '%';
+        lastScoreDisplay.textContent = (lastScore !== null) ? Math.round(lastScore) + '%' : '—';
+        highScoreDisplay.textContent = Math.round(highScore) + '%';
+        streakDisplay.textContent = streak;
+        if (highScore > 0) localStorage.setItem('ice_highScore', highScore);
+        localStorage.setItem('ice_streak', streak);
+    }
+
+    // ---- FIXED: Properly parse scientific notation and check answers ----
+    function parseConcentration(str) {
+        if (!str) return NaN;
+        // Remove spaces and replace unicode minus
+        let s = str.trim().replace(/−/g, '-').replace(/×10\^/g, 'e').replace(/×10/g, 'e');
+        // Handle "1.8 x 10^-5" style
+        s = s.replace(/\s*x\s*10\s*\^?\s*/i, 'e');
+        // Handle plain "e" notation already present
+        const num = parseFloat(s);
+        return num;
+    }
+
+    // Submit all answers
+    function handleSubmit() {
+        if (answered) return;
+        
+        const userAnswers = [];
+        let allFilled = true;
+        let hasInvalid = false;
+        
+        speciesList.forEach((s, idx) => {
+            if (s.isSolid) {
+                userAnswers.push(null);
+                return;
+            }
+            const input = document.getElementById(`ans_${idx}`);
+            const val = input.value.trim();
+            if (val === '') {
+                allFilled = false;
+            } else {
+                const num = parseConcentration(val);
+                if (isNaN(num)) {
+                    hasInvalid = true;
+                }
+                userAnswers.push(num);
+            }
+        });
+        
+        if (!allFilled) {
+            feedbackEl.className = 'feedback error';
+            feedbackEl.textContent = 'Please fill in equilibrium concentrations for all species.';
+            return;
+        }
+        if (hasInvalid) {
+            feedbackEl.className = 'feedback error';
+            feedbackEl.textContent = 'Please enter valid numbers (scientific notation like 1.8e-5 is OK).';
+            return;
+        }
+        
+        let allCorrect = true;
+        let correctCount = 0;
+        let totalCount = 0;
+        const results = [];
+        
+        speciesList.forEach((s, idx) => {
+            if (s.isSolid) return;
+            totalCount++;
+            const userVal = userAnswers[idx];
+            const correctVal = correctAnswers[idx];
+            // Use relative tolerance, but handle very small numbers safely
+            let relError;
+            if (correctVal === 0) {
+                relError = Math.abs(userVal) < 1e-12 ? 0 : 1;
+            } else {
+                relError = Math.abs(userVal - correctVal) / Math.abs(correctVal);
+            }
+            const isCorrect = relError < 0.02;
+            if (isCorrect) correctCount++;
+            else allCorrect = false;
+            results.push({ name: s.name, user: userVal, correct: correctVal, ok: isCorrect, idx: idx });
+        });
+        
+        answered = true;
+        submitBtn.disabled = true;
+        showSolutionBtn.disabled = false;
+        
+        // Disable inputs and color-code them
+        speciesList.forEach((s, idx) => {
+            if (s.isSolid) return;
+            const input = document.getElementById(`ans_${idx}`);
+            input.disabled = true;
+            const result = results.find(r => r.idx === idx);
+            if (result) {
+                if (result.ok) {
+                    input.classList.add('correct');
+                } else {
+                    input.classList.add('incorrect');
+                }
+            }
+        });
+        
+        if (allCorrect) {
+            if (!hintUsed) score = 100;
+            streak += 1;
+            if (score > highScore) highScore = score;
+            feedbackEl.className = 'feedback success';
+            feedbackEl.textContent = `✅ All correct! Great job. Click "Show Solution" to see the full worked-out steps.`;
+        } else {
+            streak = 0;
+            let wrongList = results.filter(r => !r.ok).map(r => 
+                `${r.name}: you ${isNaN(r.user) ? '?' : sciHTML(r.user, 3)}, correct ${sciHTML(r.correct, 3)}`
+            ).join('; ');
+            feedbackEl.className = 'feedback error';
+            feedbackEl.innerHTML = `❌ ${correctCount}/${totalCount} correct. ${wrongList}. Click "Show Solution" for step-by-step help.`;
+        }
+        
+        lastScore = score;
+        problemsAttempted++;
+        if (score > highScore) highScore = score;
+        updateStatsUI();
+    }
+
+    // hint
+    function showHint() {
+        if (answered) {
+            alert('Problem already answered. Start a new one.');
+            return;
+        }
+        if (!hintUsed) {
+            hintUsed = true;
+            score = Math.max(0, score - 10);
+            updateStatsUI();
+        }
+        let hintText = '';
+        const r = currentReaction;
+        if (r.type === 'acid' || r.type === 'base') {
+            hintText = `ICE table: ${r.reactant} ⇌ products. Let x = change. ` +
+                `${kLabel('Ka')} or ${kLabel('Kb')} = x² / (C₀ - x). Solve quadratic: x² + Kx - K·C₀ = 0. ` +
+                `C₀ = ${currentInitialConc.toFixed(3)} M, K = ${formatK(r.K)}. ` +
+                `Then [reactant] = C₀ - x, [products] = x.`;
+        } else if (r.type === 'salt') {
+            hintText = `For a 1:1 salt, ${kLabel('Ksp')} = [M⁺][X⁻] = x². So x = √${kLabel('Ksp')}. ${kLabel('Ksp')} = ${formatK(r.K)}. ` +
+                `Both ion concentrations = x.`;
+        } else if (r.type === 'general') {
+            hintText = `Reaction: A ⇌ 2B. ICE: A: C₀ - x, B: 2x. K = (2x)²/(C₀ - x) = 4x²/(C₀ - x). ` +
+                `Solve 4x² + Kx - K·C₀ = 0. C₀ = ${currentInitialConc.toFixed(3)} M, K = ${formatK(r.K)}. ` +
+                `Then [A] = C₀ - x, [B] = 2x.`;
+        } else if (r.type === 'general2') {
+            hintText = `Reaction: 2G ⇌ H + I. ICE: G: C₀ - 2x, H: x, I: x. K = x²/(C₀ - 2x)². ` +
+                `Take square root: √K = x/(C₀ - 2x). Solve for x. C₀ = ${currentInitialConc.toFixed(3)} M, K = ${formatK(r.K)}. ` +
+                `Then [G] = C₀ - 2x, [H] = x, [I] = x.`;
+        }
+        hintBox.innerHTML = '💡 ' + hintText;   // hint text contains <sub>/<sup>
+        hintBox.classList.add('show');
+    }
+
+    // new problem
+    function newProblem() {
+        generateProblem();
+        feedbackEl.style.display = 'none';
+        hintBox.classList.remove('show');
+        solutionPanel.classList.remove('show');
+        solutionContent.innerHTML = '';
+        showSolutionBtn.disabled = true;
+    }
+
+    // ---------- FLOATING SCIENTIFIC CALCULATOR (reusable widget) ----------
+    /* ---------- expression engine (no eval) ---------- */
+    function tokenize(s) {
+      const out = []; let i = 0;
+      while (i < s.length) {
+        const rest = s.slice(i); let m;
+        if (/^\s/.test(rest)) { i++; continue; }
+        if ((m = /^(\d+\.?\d*|\.\d+)(E[+-]?\d+)?/.exec(rest))) { out.push({ t: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue; }
+        if ((m = /^(asin|acos|atan|sin|cos|tan|ln|log|sqrt|pi|ans|e)/.exec(rest))) {
+          const w = m[1]; out.push({ t: (w === 'pi' || w === 'e' || w === 'ans') ? 'const' : 'fn', v: w }); i += w.length; continue;
+        }
+        if ('+-*/^()'.includes(rest[0])) { out.push({ t: 'op', v: rest[0] }); i++; continue; }
+        throw new Error('Syntax error');
+      }
+      return out;
+    }
+    function evaluate(str, opts) {
+      const tk = tokenize(str); let p = 0;
+      const peek = () => tk[p], nxt = () => tk[p++];
+      const isOp = (t, v) => t && t.t === 'op' && t.v === v;
+      const starts = (t) => t && (t.t === 'num' || t.t === 'const' || t.t === 'fn' || isOp(t, '('));
+      const toRad = (x) => (opts.deg ? x * Math.PI / 180 : x);
+      const fromRad = (x) => (opts.deg ? x * 180 / Math.PI : x);
+      const F = {
+        sin: (x) => Math.sin(toRad(x)), cos: (x) => Math.cos(toRad(x)), tan: (x) => Math.tan(toRad(x)),
+        asin: (x) => fromRad(Math.asin(x)), acos: (x) => fromRad(Math.acos(x)), atan: (x) => fromRad(Math.atan(x)),
+        ln: Math.log, log: Math.log10, sqrt: Math.sqrt,
+      };
+      function expr() {
+        let v = term();
+        while (isOp(peek(), '+') || isOp(peek(), '-')) { const o = nxt().v; const r = term(); v = o === '+' ? v + r : v - r; }
+        return v;
+      }
+      function term() {
+        let v = unary();
+        for (;;) {
+          const t = peek();
+          if (isOp(t, '*') || isOp(t, '/')) { nxt(); const r = unary(); v = t.v === '*' ? v * r : v / r; }
+          else if (starts(t)) v *= unary();
+          else return v;
+        }
+      }
+      function unary() {
+        if (isOp(peek(), '-')) { nxt(); return -unary(); }
+        if (isOp(peek(), '+')) { nxt(); return unary(); }
+        return power();
+      }
+      function power() {
+        const b = primary();
+        if (isOp(peek(), '^')) { nxt(); return Math.pow(b, unary()); }
+        return b;
+      }
+      function primary() {
+        const t = nxt();
+        if (!t) throw new Error('Incomplete');
+        if (t.t === 'num') return t.v;
+        if (t.t === 'const') return t.v === 'pi' ? Math.PI : t.v === 'e' ? Math.E : opts.ans;
+        if (t.t === 'fn') {
+          if (!isOp(peek(), '(')) throw new Error('Use ( after ' + t.v);
+          nxt(); const a = expr(); if (isOp(peek(), ')')) nxt();
+          return F[t.v](a);
+        }
+        if (isOp(t, '(')) { const v = expr(); if (isOp(peek(), ')')) nxt(); return v; }
+        throw new Error('Syntax error');
+      }
+      const v = expr();
+      if (p < tk.length) throw new Error('Syntax error');
+      if (!isFinite(v)) throw new Error('Math error');
+      return v;
+    }
+    function fmt(x) {
+      if (x === 0) return '0';
+      const a = Math.abs(x);
+      if (a >= 1e10 || a < 1e-6) return x.toExponential(6).replace(/\.?0+e/, 'e').replace('e+', 'e');
+      return String(Number(x.toPrecision(10)));
+    }
+    const pretty = (s) => s.replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−').replace(/pi/g, 'π').replace(/sqrt\(/g, '√(').replace(/asin\(/g, 'sin⁻¹(').replace(/acos\(/g, 'cos⁻¹(').replace(/atan\(/g, 'tan⁻¹(');
+
+    /* ---------- UI ---------- */
+    /* initCalculator(getLastInput): getLastInput returns the numeric input element
+       that "Use result in answer box" should write into. */
+    window.initCalculator = function (getLastInput) {
+      const st = { expr: '', deg: true, inv: false, ans: 0, done: false, err: '' };
+      const panel = document.getElementById('calc'), fab = document.getElementById('fab');
+      const K = (label, act, cls, extra) => ({ label, act, cls: cls || '', extra: extra || '' });
+      const rows = () => [
+        [K('2nd', 'inv', st.inv ? 'on fn' : 'fn'), K(st.deg ? 'DEG' : 'RAD', 'deg', 'fn'), K('(', '('), K(')', ')'), K('⌫', 'back', 'clr')],
+        [K(st.inv ? 'sin⁻¹' : 'sin', st.inv ? 'asin(' : 'sin(', 'fn'), K(st.inv ? 'cos⁻¹' : 'cos', st.inv ? 'acos(' : 'cos(', 'fn'), K(st.inv ? 'tan⁻¹' : 'tan', st.inv ? 'atan(' : 'tan(', 'fn'), K(st.inv ? 'eˣ' : 'ln', st.inv ? 'e^(' : 'ln(', 'fn'), K(st.inv ? '10ˣ' : 'log', st.inv ? '10^(' : 'log(', 'fn')],
+        [K('√', 'sqrt(', 'fn'), K('x²', '^2', 'fn'), K('xʸ', '^', 'fn'), K('π', 'pi', 'fn'), K('e', 'e', 'fn')],
+        [K('7', '7'), K('8', '8'), K('9', '9'), K('÷', '/', 'op'), K('C', 'clear', 'clr')],
+        [K('4', '4'), K('5', '5'), K('6', '6'), K('×', '*', 'op'), K('Ans', 'ans', 'fn')],
+        [K('1', '1'), K('2', '2'), K('3', '3'), K('−', '-', 'op'), K('EE', 'E', 'fn')],
+        [K('0', '0'), K('.', '.'), K('+', '+', 'op'), K('=', '=', 'eq', 'grid-column:span 2')],
+      ];
+      panel.innerHTML = `
+        <div class="calc-head" id="calcHead"><span class="grip"><span class="dots" aria-hidden="true">⠿</span>Calculator</span>
+          <button type="button" id="calcClose" aria-label="Close calculator">&times;</button></div>
+        <div class="disp"><div class="expr"><span id="cExpr"></span></div><div class="res" id="cRes">0</div>
+          <div class="meta"><span id="cMode"></span><span>drag the header to move</span></div></div>
+        <div class="keys" id="cKeys"></div>
+        <div class="calc-foot"><button type="button" class="btn teal" id="cUse">Use result in answer box</button></div>`;
+      const $ = (s) => panel.querySelector(s);
+
+      function preview() {
+        if (!st.expr.trim()) return { txt: '' };
+        try { return { txt: fmt(evaluate(st.expr, st)) }; } catch (e) { return { txt: '' }; }
+      }
+      function paint() {
+        const keys = $('#cKeys'), flat = rows().flat();
+        keys.innerHTML = flat.map((k, i) => `<button type="button" data-i="${i}" class="${k.cls}" style="${k.extra}">${k.label}</button>`).join('');
+        keys.onclick = (e) => { const b = e.target.closest('button'); if (b) press(flat[Number(b.dataset.i)].act); };
+        keys.onmousedown = (e) => e.preventDefault();
+        $('#cExpr').textContent = st.done ? pretty(st.shown) + ' =' : pretty(st.expr);
+        const r = $('#cRes');
+        if (st.err) r.textContent = st.err;
+        else if (st.done && !st.expr) r.textContent = fmt(st.ans);
+        else r.textContent = preview().txt || '0';
+        r.classList.toggle('err', !!st.err);
+        $('#cMode').textContent = (st.deg ? 'degrees' : 'radians') + (st.ans ? '   ans = ' + fmt(st.ans) : '');
+      }
+      function append(s) {
+        if (st.done) {
+          st.done = false;
+          st.expr = (/^[+\-*/^]/.test(s) ? 'ans' : '') + s;   // operators continue from the last answer
+          return;
+        }
+        st.expr += s;
+      }
+      function press(a) {
+        st.err = '';
+        if (a === 'inv') st.inv = !st.inv;
+        else if (a === 'deg') st.deg = !st.deg;
+        else if (a === 'clear') { st.expr = ''; st.done = false; }
+        else if (a === 'back') {
+          if (st.done) { st.done = false; st.expr = ''; }
+          else st.expr = st.expr.replace(/(asin\(|acos\(|atan\(|sqrt\(|sin\(|cos\(|tan\(|log\(|ln\(|ans|pi|.)$/, '');
+        } else if (a === '=') {
+          if (st.expr.trim()) {
+            try { st.ans = evaluate(st.expr, st); st.shown = st.expr; st.expr = ''; st.done = true; }
+            catch (e) { st.err = e.message; }
+          }
+        } else append(a);
+        paint();
+      }
+
+      /* open/close */
+      function setOpen(o) {
+        panel.hidden = !o; fab.setAttribute('aria-expanded', String(o));
+        fab.setAttribute('aria-label', o ? 'Close calculator' : 'Open calculator');
+        if (o) paint();
+      }
+      fab.onclick = () => setOpen(panel.hidden);
+      $('#calcClose').onclick = () => setOpen(false);
+      fab.setAttribute('aria-controls', 'calc'); setOpen(false);
+
+      /* insert result into the last-focused answer box */
+      $('#cUse').onclick = () => {
+        const inp = getLastInput && getLastInput();
+        let v = st.done ? st.ans : (() => { try { return evaluate(st.expr || '0', st); } catch (e) { return NaN; } })();
+        if (!isFinite(v) || !inp || !document.contains(inp) || inp.disabled) {
+          $('#cUse').textContent = inp && !inp.disabled ? 'Nothing to insert yet' : 'Tap an answer box first';
+          setTimeout(() => { $('#cUse').textContent = 'Use result in answer box'; }, 1400); return;
+        }
+        inp.value = String(Number(v.toPrecision(6)));
+        $('#cUse').textContent = 'Inserted';
+        setTimeout(() => { $('#cUse').textContent = 'Use result in answer box'; }, 1000);
+      };
+
+      /* keyboard (only when focus is not in a form field) */
+      document.addEventListener('keydown', (e) => {
+        if (panel.hidden || /^(INPUT|SELECT|TEXTAREA)$/.test((e.target.tagName || ''))) return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const k = e.key;
+        if (/^[0-9.]$/.test(k) || '+-*/^()'.includes(k)) { press(k); e.preventDefault(); }
+        else if (k === 'Enter' || k === '=') { press('='); e.preventDefault(); }
+        else if (k === 'Backspace') { press('back'); e.preventDefault(); }
+        else if (k === 'Escape') { setOpen(false); }
+        else if (k === 'p') press('pi'); else if (k === 'e') press('e');
+      });
+
+      /* drag by header (mouse, touch, pen) */
+      const head = $('#calcHead'); let drag = null;
+      head.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('button')) return;
+        const r = panel.getBoundingClientRect();
+        drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+        panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px'; panel.style.right = 'auto'; panel.style.bottom = 'auto';
+        head.setPointerCapture(e.pointerId);
+      });
+      head.addEventListener('pointermove', (e) => {
+        if (!drag) return;
+        const w = panel.offsetWidth, h = panel.offsetHeight;
+        const x = Math.min(Math.max(4, e.clientX - drag.dx), window.innerWidth - w - 4);
+        const y = Math.min(Math.max(4, e.clientY - drag.dy), window.innerHeight - h - 4);
+        panel.style.left = x + 'px'; panel.style.top = y + 'px';
+      });
+      const end = () => { drag = null; };
+      head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
+      window.addEventListener('resize', () => {
+        if (panel.style.left) {
+          const r = panel.getBoundingClientRect();
+          panel.style.left = Math.min(Math.max(4, r.left), Math.max(4, window.innerWidth - r.width - 4)) + 'px';
+          panel.style.top = Math.min(Math.max(4, r.top), Math.max(4, window.innerHeight - r.height - 4)) + 'px';
+        }
+      });
+    };
+
+    // ---------- EVENT LISTENERS ----------
+    submitBtn.addEventListener('click', handleSubmit);
+    hintBtn.addEventListener('click', showHint);
+    newProblemBtn.addEventListener('click', newProblem);
+    showSolutionBtn.addEventListener('click', renderSolution);
+
+    // ---------- THEME TOGGLE ----------
+    const themeBtn = document.getElementById('themeToggle');
+    const ICON_MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+    const ICON_SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+    function applyTheme(t, save) {
+        document.documentElement.setAttribute('data-theme', t);
+        const dark = t === 'dark';
+        themeBtn.innerHTML = dark ? ICON_SUN : ICON_MOON;   // shows the theme you will switch to
+        themeBtn.setAttribute('aria-pressed', String(dark));
+        themeBtn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+        if (save) { try { localStorage.setItem('ice_theme', t); } catch (e) {} }
+    }
+    themeBtn.addEventListener('click', () => {
+        applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+    });
+    applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+
+    // ---------- CALCULATOR BOOT ----------
+    document.getElementById('fab').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="5.5" width="8" height="4" rx="1"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/></svg>';
+    let lastInput = null;   // last-focused answer / equilibrium box, for "Use result in answer box"
+    document.addEventListener('focusin', (e) => {
+        const t = e.target;
+        if (t && t.matches && t.matches('input[id^="ans_"], input[id^="eq_"]')) lastInput = t;
+    });
+    window.initCalculator(() => lastInput);
+
+    // Initialize
+    generateProblem();
+    updateStatsUI();
+</script>
+</body>
+</html>
