@@ -399,6 +399,15 @@
             background: var(--bad-bg);
         }
 
+        .answer-item input.partial {
+            border-color: var(--hintbox-border);
+            background: var(--hint-bg);
+        }
+        /* graded cells in the ICE table */
+        .ice-table input.correct   { border-color: var(--ok);  background: var(--ok-bg); }
+        .ice-table input.partial   { border-color: var(--hintbox-border); background: var(--hint-bg); }
+        .ice-table input.incorrect { border-color: var(--bad); background: var(--bad-bg); }
+
         .input-area {
             margin: 18px 0 12px;
         }
@@ -495,6 +504,16 @@
             color: var(--fb-err-text);
             display: block;
         }
+        .feedback.partial {
+            background: var(--hintbox-bg);
+            color: var(--hintbox-text);
+            border-left: 6px solid var(--hintbox-border);
+            display: block;
+        }
+        .feedback .score-line { font-size: 1.05rem; margin-bottom: 4px; }
+        .feedback .breakdown { font-weight: 400; font-size: 0.85rem; margin-bottom: 4px; }
+        .feedback .miss-list { margin: 6px 0 0 18px; padding: 0; font-weight: 400; font-size: 0.85rem; text-align: left; }
+        .feedback .miss-list li { margin: 2px 0; }
         .footer {
             font-size: 0.75rem;
             color: var(--faint);
@@ -668,7 +687,8 @@
             <tbody id="iceBody"></tbody>
         </table>
     </div>
-    <div class="small-note">Change row: enter algebraic change (e.g., -x, +2x). Equil. row: enter expression or value.</div>
+    <div class="small-note">Change row: enter algebraic change (e.g., -x, +2x). Equil. row: enter expression (e.g., 0.500 − x) or a value.<br>
+        Scoring: Change row 25 + Equil. row 25 + concentrations 50 = 100 points, with partial credit. Using the hint costs 10 points.</div>
 
     <!-- ANSWER SECTION FOR ALL SPECIES -->
     <div class="answer-section" id="answerSection">
@@ -873,14 +893,22 @@
         
         let rowChange = '<tr><td>Change</td>';
         speciesList.forEach((s, idx) => {
+            if (s.isSolid) {
+                rowChange += `<td><input type="text" id="change_${idx}" value="—" disabled title="Pure solid: not part of K, not graded"></td>`;
+                return;
+            }
             let signHint = s.isReactant ? '−' : '+';
-            rowChange += `<td><input type="text" id="change_${idx}" placeholder="e.g. ${signHint}x" value=""></td>`;
+            rowChange += `<td><input type="text" id="change_${idx}" placeholder="e.g. ${signHint}x" value="" autocomplete="off" autocapitalize="off" spellcheck="false"></td>`;
         });
         rowChange += '</tr>';
         
         let rowEq = '<tr><td>Equil.</td>';
         speciesList.forEach((s, idx) => {
-            rowEq += `<td><input type="text" id="eq_${idx}" placeholder="expression" value=""></td>`;
+            if (s.isSolid) {
+                rowEq += `<td><input type="text" id="eq_${idx}" value="solid" disabled title="Pure solid: not part of K, not graded"></td>`;
+                return;
+            }
+            rowEq += `<td><input type="text" id="eq_${idx}" placeholder="expression" value="" autocomplete="off" autocapitalize="off" spellcheck="false"></td>`;
         });
         rowEq += '</tr>';
         
@@ -1106,6 +1134,7 @@
     function generateProblem() {
         hintUsed = false;
         answered = false;
+        blankWarned = false;
         solutionShown = false;
         score = 100;
         feedbackEl.className = 'feedback';
@@ -1146,7 +1175,7 @@
     }
 
     function updateStatsUI() {
-        scoreDisplay.textContent = (answered ? Math.round(score) : 100) + '%';
+        scoreDisplay.textContent = (answered ? Math.round(score) : (hintUsed ? 100 - HINT_PENALTY : 100)) + '%';
         lastScoreDisplay.textContent = (lastScore !== null) ? Math.round(lastScore) + '%' : '—';
         highScoreDisplay.textContent = Math.round(highScore) + '%';
         streakDisplay.textContent = streak;
@@ -1154,114 +1183,259 @@
         localStorage.setItem('ice_streak', streak);
     }
 
-    // ---- FIXED: Properly parse scientific notation and check answers ----
-    function parseConcentration(str) {
-        if (!str) return NaN;
-        // Remove spaces and replace unicode minus
-        let s = str.trim().replace(/−/g, '-').replace(/×10\^/g, 'e').replace(/×10/g, 'e');
-        // Handle "1.8 x 10^-5" style
-        s = s.replace(/\s*x\s*10\s*\^?\s*/i, 'e');
-        // Handle plain "e" notation already present
-        const num = parseFloat(s);
-        return num;
+    // =====================================================================
+    //  SCORING  (100 points total, partial credit everywhere)
+    //    ICE table – Change row ........ 25 pts
+    //    ICE table – Equilibrium row ... 25 pts
+    //    Final concentrations .......... 50 pts
+    //  Every graded species (solids are skipped) carries an equal share of its
+    //  section.  If the hint was used, HINT_PENALTY points come off the total.
+    // =====================================================================
+    const W_CHANGE = 25, W_EQ = 25, W_CONC = 50;
+    const HINT_PENALTY = 10;          // points deducted when the hint is used
+    const TOL_FULL = 0.02;            // concentration within 2 %  -> full credit
+    const TOL_PART = 0.10;            // concentration within 10 % -> half credit
+    let blankWarned = false;
+
+    function escHTML(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
+    function fmtPts(n) { return String(Math.round(n * 10) / 10); }
+
+    // ---- numeric answers: 0.0123, 1.8e-5, 1.8x10^-5, 1.8 × 10⁻⁵, "0.25 M" ----
+    function parseConcentration(str) {
+        if (str == null) return NaN;
+        const sup = { '⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁻':'-','⁺':'+' };
+        let s = String(str).trim()
+            .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]/g, ch => sup[ch])
+            .replace(/[−–—]/g, '-')
+            .replace(/\s*M$/i, '')
+            .replace(/\s*[x×*]\s*10\s*\^?\s*/i, 'e')
+            .replace(/\s+/g, '');
+        if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return NaN;
+        return parseFloat(s);
+    }
+
+    // ---- algebraic entries: parse "0.500 - 2x", "+2x", "-x", "2(x)" into a + b·x ----
+    function parseLinear(str) {
+        if (str == null) return null;
+        const s = String(str).trim().toLowerCase()
+            .replace(/[−–—]/g, '-').replace(/[×·]/g, '*').replace(/\s*M$/i, '');
+        if (s === '') return null;
+        const tok = [];
+        for (let i = 0; i < s.length; ) {
+            const c = s[i];
+            if (c === ' ') { i++; continue; }
+            const m = /^(\d+\.?\d*|\.\d+)(e[+-]?\d+)?/.exec(s.slice(i));
+            if (m) { tok.push({ t: 'n', v: parseFloat(m[0]) }); i += m[0].length; continue; }
+            if (c === 'x') { tok.push({ t: 'x' }); i++; continue; }
+            if ('+-*/()'.indexOf(c) >= 0) { tok.push({ t: c }); i++; continue; }
+            return null;
+        }
+        let p = 0;
+        const peek = () => (p < tok.length ? tok[p].t : null);
+        const mul = (u, v) => {
+            if (Math.abs(u.b) > 0 && Math.abs(v.b) > 0) throw new Error('nonlinear');
+            return { a: u.a * v.a, b: u.a * v.b + v.a * u.b };
+        };
+        function expr() {
+            let v = term();
+            while (peek() === '+' || peek() === '-') {
+                const op = tok[p++].t, w = term();
+                v = op === '+' ? { a: v.a + w.a, b: v.b + w.b } : { a: v.a - w.a, b: v.b - w.b };
+            }
+            return v;
+        }
+        function term() {
+            let v = unary();
+            for (;;) {
+                const t = peek();
+                if (t === '*') { p++; v = mul(v, unary()); }
+                else if (t === '/') {
+                    p++; const w = unary();
+                    if (Math.abs(w.b) > 0 || w.a === 0) throw new Error('bad divide');
+                    v = { a: v.a / w.a, b: v.b / w.a };
+                }
+                else if (t === 'x' || t === '(') { v = mul(v, unary()); }   // implicit: 2x, 2(x)
+                else break;
+            }
+            return v;
+        }
+        function unary() {
+            if (peek() === '+') { p++; return unary(); }
+            if (peek() === '-') { p++; const v = unary(); return { a: -v.a, b: -v.b }; }
+            return primary();
+        }
+        function primary() {
+            const t = tok[p++];
+            if (!t) throw new Error('end');
+            if (t.t === 'n') return { a: t.v, b: 0 };
+            if (t.t === 'x') return { a: 0, b: 1 };
+            if (t.t === '(') {
+                const v = expr();
+                if (tok[p++] === undefined || tok[p - 1].t !== ')') throw new Error('paren');
+                return v;
+            }
+            throw new Error('unexpected');
+        }
+        try {
+            const v = expr();
+            if (p !== tok.length) return null;
+            return v;
+        } catch (e) { return null; }
+    }
+
+    // ---- display helpers for "expected" answers ----
+    function xTerm(b) { const m = Math.abs(b); return (m === 1 ? '' : String(m)) + 'x'; }
+    function fmtChangeExpr(b) { return (b < 0 ? '−' : '+') + xTerm(b); }
+    function fmtEqExpr(a, b) {
+        if (a === 0) return (b < 0 ? '−' : '') + xTerm(b);
+        return a.toFixed(3) + (b < 0 ? ' − ' : ' + ') + xTerm(b);
+    }
+
+    // ---- what the ICE table should contain, per species ----
+    function expectedICE(reaction, C0) {
+        return speciesList.map((s, idx) => {
+            if (s.isSolid) return null;
+            const nu = (idx === 0 ? reaction.coeff[0] : reaction.coeff[idx]) || 1;
+            return idx === 0
+                ? { change: { a: 0, b: -nu }, eq: { a: C0, b: -nu } }
+                : { change: { a: 0, b: +nu }, eq: { a: 0,  b: +nu } };
+        });
+    }
+
+    // ---- graders: each returns a fraction 0 … 1 ----
+    // Change row: 50 % for the correct sign, 50 % for the correct stoichiometric
+    // coefficient.  A constant term in the change row (e.g. "0.5 − x") earns 0.
+    function gradeChange(u, e) {
+        if (!u || Math.abs(u.a) > 1e-9 || u.b === 0) return 0;
+        const signOK = Math.sign(u.b) === Math.sign(e.b);
+        const magOK = Math.abs(Math.abs(u.b) - Math.abs(e.b)) < 1e-9;
+        return (signOK ? 0.5 : 0) + (magOK ? 0.5 : 0);
+    }
+    // Equilibrium row: 50 % for the constant term (initial amount), 50 % for the
+    // x-term.  A plain number is also accepted and graded like a concentration.
+    function gradeEq(u, e, correctConc) {
+        if (!u) return 0;
+        if (Math.abs(u.b) < 1e-12) return gradeConc(u.a, correctConc);
+        const aTol = Math.max(1e-9, 0.005 * Math.abs(e.a));
+        const aOK = Math.abs(u.a - e.a) <= aTol;
+        const bOK = Math.abs(u.b - e.b) < 1e-9;
+        return (aOK ? 0.5 : 0) + (bOK ? 0.5 : 0);
+    }
+    // Concentration: ≤ 2 % off = full, ≤ 10 % off = half, otherwise 0.
+    function gradeConc(user, correct) {
+        if (isNaN(user)) return 0;
+        const rel = correct === 0 ? (Math.abs(user) < 1e-12 ? 0 : 1) : Math.abs(user - correct) / Math.abs(correct);
+        if (rel <= TOL_FULL) return 1;
+        if (rel <= TOL_PART) return 0.5;
+        return 0;
+    }
+    const cellClass = f => (f >= 0.999 ? 'correct' : f > 0 ? 'partial' : 'incorrect');
 
     // Submit all answers
     function handleSubmit() {
         if (answered) return;
-        
-        const userAnswers = [];
-        let allFilled = true;
-        let hasInvalid = false;
-        
-        speciesList.forEach((s, idx) => {
-            if (s.isSolid) {
-                userAnswers.push(null);
-                return;
-            }
-            const input = document.getElementById(`ans_${idx}`);
-            const val = input.value.trim();
-            if (val === '') {
-                allFilled = false;
-            } else {
-                const num = parseConcentration(val);
-                if (isNaN(num)) {
-                    hasInvalid = true;
-                }
-                userAnswers.push(num);
-            }
+
+        const graded = [];                       // indices of non-solid species
+        speciesList.forEach((s, idx) => { if (!s.isSolid) graded.push(idx); });
+        const N = graded.length;
+
+        const raw = { change: {}, eq: {}, conc: {} };      // text typed by the student
+        let blanks = 0, badMsg = '';
+        graded.forEach(idx => {
+            const nm = speciesList[idx].name;
+            const c = document.getElementById(`change_${idx}`).value.trim();
+            const q = document.getElementById(`eq_${idx}`).value.trim();
+            const a = document.getElementById(`ans_${idx}`).value.trim();
+            raw.change[idx] = c; raw.eq[idx] = q; raw.conc[idx] = a;
+            if (c === '') blanks++; else if (!badMsg && !parseLinear(c))
+                badMsg = `Can't read the Change entry for ${nm} ("${c}"). Use forms like −x, +2x, −2x.`;
+            if (q === '') blanks++; else if (!badMsg && !parseLinear(q))
+                badMsg = `Can't read the Equil. entry for ${nm} ("${q}"). Use forms like 0.500 − x, 2x, or a number.`;
+            if (a === '') blanks++; else if (!badMsg && isNaN(parseConcentration(a)))
+                badMsg = `Please enter a valid number for [${nm}] (scientific notation like 1.8e-5 is OK).`;
         });
-        
-        if (!allFilled) {
+
+        if (badMsg) {
             feedbackEl.className = 'feedback error';
-            feedbackEl.textContent = 'Please fill in equilibrium concentrations for all species.';
+            feedbackEl.style.display = 'block';
+            feedbackEl.textContent = badMsg;
             return;
         }
-        if (hasInvalid) {
+        if (blanks > 0 && !blankWarned) {
+            blankWarned = true;
             feedbackEl.className = 'feedback error';
-            feedbackEl.textContent = 'Please enter valid numbers (scientific notation like 1.8e-5 is OK).';
+            feedbackEl.style.display = 'block';
+            feedbackEl.textContent = `${blanks} field${blanks > 1 ? 's are' : ' is'} blank. Blank fields score 0 — fill them in, or press Submit again to submit as is.`;
             return;
         }
-        
-        let allCorrect = true;
-        let correctCount = 0;
-        let totalCount = 0;
-        const results = [];
-        
-        speciesList.forEach((s, idx) => {
-            if (s.isSolid) return;
-            totalCount++;
-            const userVal = userAnswers[idx];
-            const correctVal = correctAnswers[idx];
-            // Use relative tolerance, but handle very small numbers safely
-            let relError;
-            if (correctVal === 0) {
-                relError = Math.abs(userVal) < 1e-12 ? 0 : 1;
-            } else {
-                relError = Math.abs(userVal - correctVal) / Math.abs(correctVal);
-            }
-            const isCorrect = relError < 0.02;
-            if (isCorrect) correctCount++;
-            else allCorrect = false;
-            results.push({ name: s.name, user: userVal, correct: correctVal, ok: isCorrect, idx: idx });
+
+        // ---- grade ----
+        const exp = expectedICE(currentReaction, currentInitialConc);
+        const fChange = {}, fEq = {}, fConc = {};
+        let sChange = 0, sEq = 0, sConc = 0;
+        const misses = [];
+
+        graded.forEach(idx => {
+            const nm = speciesList[idx].name;
+            const e = exp[idx];
+            const correct = correctAnswers[idx];
+
+            fChange[idx] = raw.change[idx] === '' ? 0 : gradeChange(parseLinear(raw.change[idx]), e.change);
+            fEq[idx]     = raw.eq[idx] === ''     ? 0 : gradeEq(parseLinear(raw.eq[idx]), e.eq, correct);
+            fConc[idx]   = raw.conc[idx] === ''   ? 0 : gradeConc(parseConcentration(raw.conc[idx]), correct);
+
+            sChange += fChange[idx] * (W_CHANGE / N);
+            sEq     += fEq[idx]     * (W_EQ / N);
+            sConc   += fConc[idx]   * (W_CONC / N);
+
+            const note = f => (f > 0 ? ' <em>(partial credit)</em>' : '');
+            const you = t => (t === '' ? '(blank)' : `“${escHTML(t)}”`);
+            if (fChange[idx] < 0.999) misses.push(`Change, ${nm}: you ${you(raw.change[idx])} → expected <strong>${fmtChangeExpr(e.change.b)}</strong>${note(fChange[idx])}`);
+            if (fEq[idx] < 0.999)     misses.push(`Equil., ${nm}: you ${you(raw.eq[idx])} → expected <strong>${fmtEqExpr(e.eq.a, e.eq.b)}</strong> (= ${sciHTML(correct, 3)} M)${note(fEq[idx])}`);
+            if (fConc[idx] < 0.999)   misses.push(`[${nm}]: you ${you(raw.conc[idx])} → expected <strong>${sciHTML(correct, 3)} M</strong>${note(fConc[idx])}`);
         });
-        
+
+        const rawTotal = sChange + sEq + sConc;                       // before hint penalty
+        const penalty = hintUsed ? HINT_PENALTY : 0;
+        score = Math.max(0, rawTotal - penalty);
+        const perfect = rawTotal >= 99.999;
+
+        // ---- lock + colour the inputs ----
         answered = true;
         submitBtn.disabled = true;
         showSolutionBtn.disabled = false;
-        
-        // Disable inputs and color-code them
-        speciesList.forEach((s, idx) => {
-            if (s.isSolid) return;
-            const input = document.getElementById(`ans_${idx}`);
-            input.disabled = true;
-            const result = results.find(r => r.idx === idx);
-            if (result) {
-                if (result.ok) {
-                    input.classList.add('correct');
-                } else {
-                    input.classList.add('incorrect');
-                }
-            }
+        graded.forEach(idx => {
+            [['change_', fChange], ['eq_', fEq], ['ans_', fConc]].forEach(([pre, f]) => {
+                const input = document.getElementById(pre + idx);
+                input.disabled = true;
+                input.classList.add(cellClass(f[idx]));
+            });
         });
-        
-        if (allCorrect) {
-            if (!hintUsed) score = 100;
-            streak += 1;
-            if (score > highScore) highScore = score;
-            feedbackEl.className = 'feedback success';
-            feedbackEl.textContent = `✅ All correct! Great job. Click "Show Solution" to see the full worked-out steps.`;
-        } else {
-            streak = 0;
-            let wrongList = results.filter(r => !r.ok).map(r => 
-                `${r.name}: you ${isNaN(r.user) ? '?' : sciHTML(r.user, 3)}, correct ${sciHTML(r.correct, 3)}`
-            ).join('; ');
-            feedbackEl.className = 'feedback error';
-            feedbackEl.innerHTML = `❌ ${correctCount}/${totalCount} correct. ${wrongList}. Click "Show Solution" for step-by-step help.`;
-        }
-        
+
+        // ---- feedback ----
+        const shown = Math.round(score);
+        let head;
+        if (perfect) head = hintUsed
+            ? `✅ All correct! 100% − ${HINT_PENALTY}% hint penalty = <strong>${shown}%</strong>`
+            : `✅ All correct! <strong>100%</strong>`;
+        else head = `${rawTotal > 0 ? '🟡' : '❌'} Score: <strong>${shown}%</strong>`;
+
+        const breakdown = `ICE Change row ${fmtPts(sChange)}/${W_CHANGE} · ICE Equil. row ${fmtPts(sEq)}/${W_EQ} · ` +
+            `Concentrations ${fmtPts(sConc)}/${W_CONC}` + (hintUsed ? ` · Hint penalty −${HINT_PENALTY}` : '');
+        feedbackEl.className = 'feedback ' + (perfect ? 'success' : rawTotal > 0 ? 'partial' : 'error');
+        feedbackEl.style.display = 'block';
+        feedbackEl.innerHTML =
+            `<div class="score-line">${head}</div>` +
+            (perfect && !hintUsed ? '' : `<div class="breakdown">${breakdown}</div>`) +
+            (misses.length ? `<ul class="miss-list">${misses.map(m => `<li>${m}</li>`).join('')}</ul>` : '') +
+            `<div class="breakdown" style="margin-top:6px;">Click "Show Solution" for the step-by-step worked answer.</div>`;
+
+        if (perfect) streak += 1; else streak = 0;
         lastScore = score;
         problemsAttempted++;
+        totalScore += score;
         if (score > highScore) highScore = score;
         updateStatsUI();
     }
@@ -1273,8 +1447,7 @@
             return;
         }
         if (!hintUsed) {
-            hintUsed = true;
-            score = Math.max(0, score - 10);
+            hintUsed = true;          // the penalty is applied when the answers are graded
             updateStatsUI();
         }
         let hintText = '';
@@ -1519,6 +1692,7 @@
 
     // ---------- EVENT LISTENERS ----------
     submitBtn.addEventListener('click', handleSubmit);
+    document.addEventListener('input', (e) => { if (e.target && e.target.matches && e.target.matches('.ice-table input, .answer-item input')) blankWarned = false; });
     hintBtn.addEventListener('click', showHint);
     newProblemBtn.addEventListener('click', newProblem);
     showSolutionBtn.addEventListener('click', renderSolution);
