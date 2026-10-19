@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Oxidation State Trainer</title>
+<style>
+:root{--bg:#f6f3ea;--pn:#fffdf7;--ink:#1f2a33;--mut:#5b6770;--ln:#d9d2c0;--acc:#b45309;--ok:#0f766e;--bad:#b91c1c;--gr:rgba(0,0,0,.05);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a22;--pn:#15232d;--ink:#e7edf1;--mut:#93a4b0;--ln:#28404f;--acc:#f5b342;--ok:#2dd4bf;--bad:#fb7185;--gr:rgba(255,255,255,.04)}}
+:root[data-theme="dark"]{--bg:#0f1a22;--pn:#15232d;--ink:#e7edf1;--mut:#93a4b0;--ln:#28404f;--acc:#f5b342;--ok:#2dd4bf;--bad:#fb7185;--gr:rgba(255,255,255,.04)}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background-image:linear-gradient(var(--gr) 1px,transparent 1px),linear-gradient(90deg,var(--gr) 1px,transparent 1px);background-size:24px 24px;min-height:100vh}
+.w{max-width:640px;margin:0 auto;padding:14px}
+header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+h1{font:700 1.25rem Georgia,serif;margin:0;flex:1}h1 span{color:var(--acc)}
+.ib{background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:10px;height:40px;min-width:40px;padding:0 10px;font-size:1rem;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.st{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:6px 4px;text-align:center}
+.st b{display:block;font:700 1.05rem ui-monospace,Menlo,monospace;color:var(--acc)}.st small{color:var(--mut);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.seg button{background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:10px;padding:9px 2px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+select{width:100%;background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:10px;padding:9px;font-size:.95rem;margin-bottom:10px}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:14px;padding:16px}
+.pg{color:var(--mut);font-size:.85rem;margin-bottom:6px}.bar{height:6px;background:var(--ln);border-radius:3px;margin-bottom:10px;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc)}
+.q{font:700 1.05rem Georgia,serif;text-align:center}.q em{font-style:normal;color:var(--acc)}
+.f{font:600 2.2rem ui-monospace,Menlo,monospace;text-align:center;margin:14px 0 18px;overflow-wrap:anywhere}
+.f sub,.f sup{font-size:.55em}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px}
+.g button{background:var(--bg);color:var(--ink);border:1px solid var(--ln);border-radius:10px;padding:12px 0;font:700 1.05rem ui-monospace,Menlo,monospace;cursor:pointer}
+.g button:not(:disabled):active{transform:scale(.96)}
+.g button.c{background:var(--ok);color:var(--bg);border-color:var(--ok)}.g button.x{background:var(--bad);color:var(--bg);border-color:var(--bad)}
+.fb{margin-top:14px;padding:12px;border-radius:10px;border:1px solid var(--ln);background:var(--bg);font-size:.95rem}
+.fb h3{margin:0 0 4px;font-size:1.05rem}.fb .y{color:var(--ok)}.fb .n{color:var(--bad)}
+.go{display:block;width:100%;margin-top:12px;background:var(--acc);color:var(--bg);border:0;border-radius:10px;padding:12px;font-weight:700;font-size:1rem;cursor:pointer}
+.go.s{background:var(--pn);color:var(--ink);border:1px solid var(--ln)}
+.big{font:700 2.4rem ui-monospace,monospace;text-align:center;color:var(--acc)}
+.ms{margin:8px 0 0;padding:0;list-style:none;font-size:.95rem}.ms li{padding:6px 0;border-top:1px solid var(--ln);display:flex;justify-content:space-between;gap:8px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sh{background:var(--pn);color:var(--ink);width:100%;max-width:640px;max-height:88vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sh h2{font:700 1.2rem Georgia,serif;margin:0 0 8px;display:flex;justify-content:space-between}
+.sh ol{padding-left:20px;margin:6px 0}.sh li{margin-bottom:6px}.sh table{width:100%;border-collapse:collapse;font-size:.88rem;margin:6px 0}.sh td,.sh th{border:1px solid var(--ln);padding:4px 6px;text-align:left}
+.sh code{font-family:ui-monospace,monospace;color:var(--acc)}
+</style>
+</head>
+<body>
+<div class="w">
+<header><h1>Oxidation <span>State</span> Trainer</h1><button class="ib" id="rb" aria-label="Rules reference sheet">📖 Rules</button><button class="ib" id="tb" aria-label="Toggle dark or light theme">🌙</button></header>
+<div class="stats" id="stats"></div>
+<div class="seg" id="seg"></div>
+<select id="ft" aria-label="Category filter"><option value="all">All species</option><option value="basic">Elements &amp; simple ions</option><option value="comp">Compounds</option><option value="ion">Polyatomic ions</option><option value="sp">Special cases (peroxides, hydrides, organics…)</option></select>
+<div class="card" id="card"></div>
+</div>
+<div class="ov" id="ov" hidden><div class="sh">
+<h2>Oxidation number rules <button class="ib" id="cl" aria-label="Close">✕</button></h2>
+<p style="margin:0;color:var(--mut);font-size:.9rem">Apply in order; when rules conflict, the earlier (higher) rule wins.</p>
+<ol>
+<li>An atom in an <b>uncombined element</b> (Na, O₂, S₈, P₄) is <code>0</code>.</li>
+<li>A <b>monatomic ion</b> has an oxidation state equal to its charge (Fe³⁺ = <code>+3</code>).</li>
+<li>The oxidation states of all atoms <b>sum to the overall charge</b>: 0 for a neutral compound, the ion’s charge for a polyatomic ion.</li>
+<li><b>Group 1</b> metals are always <code>+1</code>; <b>Group 2</b> metals always <code>+2</code>. Al is <code>+3</code>; Zn is <code>+2</code>; Ag is <code>+1</code>.</li>
+<li><b>Fluorine</b> is always <code>−1</code>.</li>
+<li><b>Hydrogen</b> is <code>+1</code> with nonmetals, but <code>−1</code> with metals or B/Si (hydrides: NaH, CaH₂, LiAlH₄).</li>
+<li><b>Oxygen</b> is usually <code>−2</code>. Exceptions: peroxides (H₂O₂, Na₂O₂, O₂²⁻) <code>−1</code>; superoxides <code>−½</code>; OF₂ <code>+2</code>.</li>
+<li>Other <b>halogens</b> (Cl, Br, I) are <code>−1</code>, unless bonded to O, F or a heavier halogen (then positive).</li>
+<li>The more electronegative element in a binary compound is negative: Group 16 <code>−2</code>, Group 15 <code>−3</code> (H₂S, NH₃).</li>
+</ol>
+<p><b>Method:</b> write <code>Σ(count × oxidation state) = charge</code>, fill in the known atoms, solve for the unknown.</p>
+<p><b>Example:</b> Cr in Cr₂O₇²⁻: 2x + 7(−2) = −2 → 2x = +12 → x = <code>+6</code>.</p>
+<table><tr><th>Element</th><th>Common states</th></tr>
+<tr><td>Cl, Br, I</td><td>−1, +1, +3, +5, +7</td></tr><tr><td>N</td><td>−3, −2, +1, +2, +3, +4, +5</td></tr><tr><td>S</td><td>−2, +2, +4, +6</td></tr><tr><td>P</td><td>−3, +1, +3, +5</td></tr><tr><td>C</td><td>−4 to +4</td></tr><tr><td>Mn</td><td>+2, +4, +6, +7</td></tr><tr><td>Cr</td><td>+2, +3, +6</td></tr><tr><td>Fe, Co</td><td>+2, +3</td></tr><tr><td>Cu</td><td>+1, +2</td></tr><tr><td>Sn, Pb</td><td>+2, +4</td></tr></table>
+<p style="color:var(--mut);font-size:.85rem">Oxidation states can be fractional or averaged when atoms of the same element are not equivalent (e.g. S in S₂O₃²⁻ is averaged to +2; carbon in organic molecules is an average).</p>
+</div></div>
+<script>
+const R=`S8|0|S:0
+Cl2|0|Cl:0
+O3|0|O:0
+P4|0|P:0
+N2|0|N:0
+Fe|0|Fe:0
+Fe|3|Fe:3
+Cu|2|Cu:2
+Cu|1|Cu:1
+S|-2|S:-2
+Mn|2|Mn:2
+Cr|3|Cr:3
+Sn|4|Sn:4
+N|-3|N:-3
+Br|-1|Br:-1
+Pb|2|Pb:2
+NaCl|0|Na:1,Cl:-1
+MgO|0|Mg:2,O:-2
+CaF2|0|Ca:2,F:-1
+Al2O3|0|Al:3,O:-2
+Fe2O3|0|Fe:3,O:-2
+FeO|0|Fe:2,O:-2
+FeCl3|0|Fe:3,Cl:-1
+Cu2O|0|Cu:1,O:-2
+CuO|0|Cu:2,O:-2
+Cu2S|0|Cu:1,S:-2
+SnCl4|0|Sn:4,Cl:-1
+PbO2|0|Pb:4,O:-2
+MnO2|0|Mn:4,O:-2
+ZnS|0|Zn:2,S:-2
+Ag2S|0|Ag:1,S:-2
+HgCl2|0|Hg:2,Cl:-1
+Hg2Cl2|0|Hg:1,Cl:-1
+TiO2|0|Ti:4,O:-2
+CrCl3|0|Cr:3,Cl:-1
+V2O5|0|V:5,O:-2
+CrO3|0|Cr:6,O:-2
+Mn2O7|0|Mn:7,O:-2
+OsO4|0|Os:8,O:-2
+CO2|0|C:4,O:-2
+CO|0|C:2,O:-2
+CH4|0|C:-4,H:1
+CCl4|0|C:4,Cl:-1
+CS2|0|C:4,S:-2
+SO2|0|S:4,O:-2
+SO3|0|S:6,O:-2
+H2S|0|H:1,S:-2
+NH3|0|N:-3,H:1
+NO|0|N:2,O:-2
+NO2|0|N:4,O:-2
+N2O|0|N:1,O:-2
+N2O3|0|N:3,O:-2
+N2O5|0|N:5,O:-2
+N2H4|0|N:-2,H:1
+NF3|0|N:3,F:-1
+PCl3|0|P:3,Cl:-1
+PCl5|0|P:5,Cl:-1
+P4O10|0|P:5,O:-2
+POCl3|0|P:5,O:-2,Cl:-1
+SF6|0|S:6,F:-1
+SOCl2|0|S:4,O:-2,Cl:-1
+SO2Cl2|0|S:6,O:-2,Cl:-1
+Cl2O|0|Cl:1,O:-2
+Cl2O7|0|Cl:7,O:-2
+ClO2|0|Cl:4,O:-2
+BrF3|0|Br:3,F:-1
+IF5|0|I:5,F:-1
+XeF4|0|Xe:4,F:-1
+XeO3|0|Xe:6,O:-2
+SiO2|0|Si:4,O:-2
+BF3|0|B:3,F:-1
+HCl|0|H:1,Cl:-1
+H2O|0|H:1,O:-2
+HF|0|H:1,F:-1
+NaH|0|Na:1,H:-1|H is −1 in metal hydrides.
+CaH2|0|Ca:2,H:-1|H is −1 in metal hydrides.
+LiAlH4|0|Li:1,Al:3,H:-1|H is −1 in metal hydrides.
+NaBH4|0|Na:1,B:3,H:-1|H is −1 when bonded to a less electronegative element (B).
+SiH4|0|Si:4,H:-1|H is −1 here because Si is less electronegative than H.
+H2O2|0|H:1,O:-1|Peroxide: O–O bond, so O is −1.
+Na2O2|0|Na:1,O:-1|Peroxide: O is −1.
+BaO2|0|Ba:2,O:-1|Peroxide: O is −1.
+OF2|0|O:2,F:-1|F outranks O, so O is +2 here.
+H2SO4|0|H:1,S:6,O:-2
+H2SO3|0|H:1,S:4,O:-2
+HNO3|0|H:1,N:5,O:-2
+HNO2|0|H:1,N:3,O:-2
+H3PO4|0|H:1,P:5,O:-2
+H3PO3|0|H:1,P:3,O:-2
+H3PO2|0|H:1,P:1,O:-2
+H2CO3|0|H:1,C:4,O:-2
+HClO|0|H:1,Cl:1,O:-2
+HClO2|0|H:1,Cl:3,O:-2
+HClO3|0|H:1,Cl:5,O:-2
+HClO4|0|H:1,Cl:7,O:-2
+HBrO3|0|H:1,Br:5,O:-2
+HIO4|0|H:1,I:7,O:-2
+H2CrO4|0|H:1,Cr:6,O:-2
+HCN|0|H:1,C:2,N:-3
+H2C2O4|0|H:1,C:3,O:-2|Average oxidation state of carbon.
+CH3OH|0|C:-2,H:1,O:-2|Average oxidation state of carbon.
+CH2O|0|C:0,H:1,O:-2|Average oxidation state of carbon.
+HCOOH|0|C:2,H:1,O:-2|Average oxidation state of carbon.
+C6H12O6|0|C:0,H:1,O:-2|Average oxidation state of carbon.
+C2H6|0|C:-3,H:1|Average oxidation state of carbon.
+C2H4|0|C:-2,H:1|Average oxidation state of carbon.
+C2H2|0|C:-1,H:1|Average oxidation state of carbon.
+CH3COOH|0|C:0,H:1,O:-2|Average of the two non-equivalent carbons (−3 and +3).
+C2H5OH|0|C:-2,H:1,O:-2|Average of the two non-equivalent carbons (−3 and −1).
+CH3CHO|0|C:-1,H:1,O:-2|Average of the two non-equivalent carbons (−3 and +1).
+CHCl3|0|C:2,H:1,Cl:-1
+CH2Cl2|0|C:0,H:1,Cl:-1
+CH3Cl|0|C:-2,H:1,Cl:-1
+KMnO4|0|K:1,Mn:7,O:-2
+K2Cr2O7|0|K:1,Cr:6,O:-2
+K2CrO4|0|K:1,Cr:6,O:-2
+(NH4)2Cr2O7|0|N:-3,H:1,Cr:6,O:-2
+NaClO|0|Na:1,Cl:1,O:-2
+KClO3|0|K:1,Cl:5,O:-2
+KClO4|0|K:1,Cl:7,O:-2
+KIO3|0|K:1,I:5,O:-2
+NaBrO3|0|Na:1,Br:5,O:-2
+NaNO2|0|Na:1,N:3,O:-2
+Na2SO4|0|Na:1,S:6,O:-2
+Na2S2O3|0|Na:1,S:2,O:-2|Average of two non-equivalent S atoms (+6 and −2).
+Na3PO4|0|Na:1,P:5,O:-2
+CaCO3|0|Ca:2,C:4,O:-2
+NaHCO3|0|Na:1,H:1,C:4,O:-2
+Ca(NO3)2|0|Ca:2,N:5,O:-2
+Ca(OH)2|0|Ca:2,O:-2,H:1
+KOH|0|K:1,O:-2,H:1
+(NH4)2SO4|0|N:-3,H:1,S:6,O:-2
+NH4Cl|0|N:-3,H:1,Cl:-1
+Fe2(SO4)3|0|Fe:3,S:6,O:-2
+FeSO4|0|Fe:2,S:6,O:-2
+Cu(NO3)2|0|Cu:2,N:5,O:-2
+AgNO3|0|Ag:1,N:5,O:-2
+Al2(SO4)3|0|Al:3,S:6,O:-2
+Ca3(PO4)2|0|Ca:2,P:5,O:-2
+Ba(MnO4)2|0|Ba:2,Mn:7,O:-2
+K3[Fe(CN)6]|0|K:1,Fe:3,C:2,N:-3
+K4[Fe(CN)6]|0|K:1,Fe:2,C:2,N:-3
+[Co(NH3)6]Cl3|0|Co:3,N:-3,H:1,Cl:-1
+OH|-1|O:-2,H:1
+NH4|1|N:-3,H:1
+H3O|1|H:1,O:-2
+NH2|-1|N:-3,H:1
+NO|1|N:3,O:-2
+NO2|1|N:5,O:-2
+NO3|-1|N:5,O:-2
+NO2|-1|N:3,O:-2
+SO4|-2|S:6,O:-2
+SO3|-2|S:4,O:-2
+HSO4|-1|H:1,S:6,O:-2
+HSO3|-1|H:1,S:4,O:-2
+S2O3|-2|S:2,O:-2|Average of two non-equivalent S atoms (+6 and −2).
+PO4|-3|P:5,O:-2
+PO3|-3|P:3,O:-2
+HPO4|-2|H:1,P:5,O:-2
+H2PO4|-1|H:1,P:5,O:-2
+CO3|-2|C:4,O:-2
+HCO3|-1|H:1,C:4,O:-2
+C2O4|-2|C:3,O:-2|Average oxidation state of carbon.
+C2H3O2|-1|C:0,H:1,O:-2|Average oxidation state of carbon (acetate).
+CN|-1|C:2,N:-3
+SCN|-1|S:-2,C:4,N:-3
+ClO|-1|Cl:1,O:-2
+ClO2|-1|Cl:3,O:-2
+ClO3|-1|Cl:5,O:-2
+ClO4|-1|Cl:7,O:-2
+BrO3|-1|Br:5,O:-2
+IO3|-1|I:5,O:-2
+IO4|-1|I:7,O:-2
+MnO4|-1|Mn:7,O:-2
+MnO4|-2|Mn:6,O:-2
+CrO4|-2|Cr:6,O:-2
+Cr2O7|-2|Cr:6,O:-2
+VO2|1|V:5,O:-2
+VO|2|V:4,O:-2
+UO2|2|U:6,O:-2
+AsO4|-3|As:5,O:-2
+SeO4|-2|Se:6,O:-2
+BO3|-3|B:3,O:-2
+SiO3|-2|Si:4,O:-2
+XeO6|-4|Xe:8,O:-2
+PF6|-1|P:5,F:-1
+BF4|-1|B:3,F:-1
+O2|-2|O:-1|Peroxide ion: O–O bond, so O is −1.
+Hg2|2|Hg:1
+[Fe(CN)6]|-3|Fe:3,C:2,N:-3
+[Fe(CN)6]|-4|Fe:2,C:2,N:-3
+[Cu(NH3)4]|2|Cu:2,N:-3,H:1
+[Fe(H2O)6]|3|Fe:3,H:1,O:-2
+[Ag(NH3)2]|1|Ag:1,N:-3,H:1
+[Cr(OH)4]|-1|Cr:3,O:-2,H:1
+[Al(OH)4]|-1|Al:3,O:-2,H:1
+[Zn(OH)4]|-2|Zn:2,O:-2,H:1`;
+const D=R.split('\n').map(l=>{const[f,c,m,n]=l.split('|'),o={};m.split(',').forEach(p=>{const[e,v]=p.split(':');o[e]=+v});return{f,c:+c,m:o,n:n||''}});
+const $=s=>document.querySelector(s),G1=['Li','Na','K','Rb','Cs'],G2=['Be','Mg','Ca','Sr','Ba'];
+const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const sg=v=>v>0?'+'+v:v<0?'−'+(-v):'0';
+function cnt(f){const st=[{}],re=/([A-Z][a-z]?)(\d*)|([(\[])|([)\]])(\d*)/g;let m;while(m=re.exec(f)){if(m[1]){const o=st[st.length-1];o[m[1]]=(o[m[1]]||0)+(+m[2]||1)}else if(m[3])st.push({});else{const t=st.pop(),k=+m[5]||1,o=st[st.length-1];for(const e in t)o[e]=(o[e]||0)+t[e]*k}}return st[0]}
+const fm=(f,c)=>f.replace(/\d+/g,'<sub>$&</sub>')+(c?'<sup>'+(Math.abs(c)>1?Math.abs(c):'')+(c>0?'+':'−')+'</sup>':'');
+const fixed=(e,o)=>G1.includes(e)||G2.includes(e)||['Al','Zn','Ag','F'].includes(e)||(e=='H'&&o==1)||(e=='O'&&o==-2)||(['Cl','Br','I'].includes(e)&&o==-1);
+function why(e,o){if(G1.includes(e))return e+' is +1 (Group 1)';if(G2.includes(e))return e+' is +2 (Group 2)';if(e=='Al')return 'Al is +3';if(e=='Zn')return 'Zn is +2';if(e=='Ag')return 'Ag is +1';if(e=='F')return 'F is −1 (always)';
+if(e=='H')return o==1?'H is +1 (with nonmetals)':'H is −1 (metal/B/Si hydride)';
+if(e=='O')return o==-2?'O is −2 (usual)':o==-1?'O is −1 (peroxide)':'O is +2 (bonded to F)';
+if(['Cl','Br','I'].includes(e)&&o==-1)return e+' is −1 (halide)';
+return e+' is '+sg(o)+(o<0?' (more electronegative element → negative)':' (less electronegative element → positive)')}
+function expl(q){const d=q.d,e=q.e,c=cnt(d.f),els=Object.keys(c),x=d.m[e];let h;
+if(els.length==1&&!d.c)h='Uncombined element → oxidation state is always <b>0</b>.';
+else if(els.length==1&&c[e]==1)h='Monatomic ion → oxidation state equals the charge, <b>'+sg(x)+'</b>.';
+else{const o=els.filter(k=>k!=e),n=c[e];let s=0;const t=[(n>1?n+'×':'')+e];
+o.forEach(k=>{s+=c[k]*d.m[k];t.push(c[k]+'×('+sg(d.m[k])+')')});
+h='<b>Rules:</b> '+(o.length?o.map(k=>why(k,d.m[k])).join('; ')+'.':'')+'<br>Sum = overall charge ('+sg(d.c)+'):<br>'+t.join(' + ')+' = '+sg(d.c)+'<br>'+e+' = ('+sg(d.c)+' − ('+sg(s)+'))'+(n>1?' ÷ '+n:'')+' = <b>'+sg(x)+'</b>'}
+return h+(d.n?'<br><i>'+d.n+'</i>':'')}
+const cat={all:()=>1,basic:d=>Object.keys(d.m).length==1,comp:d=>!d.c&&Object.keys(d.m).length>1,ion:d=>d.c&&Object.keys(d.m).length>1,sp:d=>d.n};
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+let mode=0,i=0,ok=0,tot=0,streak=0,best=ld('ox_best',0),last=ld('ox_last',null),high=ld('ox_high',null),q,ans=null,fin=false,miss=[],deck=[],isNew=false;
+function nq(){if(!deck.length)deck=shuf(D.filter(cat[$('#ft').value]));const d=deck.pop(),els=Object.keys(d.m),c=els.filter(k=>!fixed(k,d.m[k])),l=c.length?c:els;q={d,e:l[Math.random()*l.length|0]};ans=null;draw()}
+function start(m){mode=m;i=ok=tot=streak=0;miss=[];deck=[];fin=false;seg();nq()}
+function seg(){$('#seg').innerHTML=[[0,'Practice'],[10,'Quiz 10'],[20,'Quiz 20'],[30,'Quiz 30']].map(([m,t])=>`<button class="${m==mode?'on':''}" onclick="start(${m})">${t}</button>`).join('')}
+const pc=r=>r?r.c+'/'+r.n+' ('+Math.round(100*r.c/r.n)+'%)':'—';
+function stats(){$('#stats').innerHTML=`<div class="st"><b>${ok}/${tot}</b><small>Score</small></div><div class="st"><b>${streak}</b><small>Streak · best ${best}</small></div><div class="st"><b style="font-size:.85rem">${pc(last)}</b><small>Last quiz</small></div><div class="st"><b style="font-size:.85rem">${pc(high)}</b><small>High score</small></div>`}
+function draw(){stats();const k=$('#card');
+if(fin){const p=Math.round(100*ok/mode);k.innerHTML=`<div class="pg" style="text-align:center">Quiz complete</div><div class="big">${ok}/${mode}</div><div class="q">${p}% ${isNew?'· 🏆 New high score!':''}</div>`+(miss.length?`<p style="margin:14px 0 0;color:var(--mut)">Review missed:</p><ul class="ms">${miss.map(m=>`<li><span style="font-family:ui-monospace,monospace">${fm(m.d.f,m.d.c)}</span><span>${m.e} = <b>${sg(m.d.m[m.e])}</b></span></li>`).join('')}</ul>`:'<p style="text-align:center">Perfect — every answer correct!</p>')+`<button class="go" onclick="start(${mode})">Try again</button><button class="go s" onclick="start(0)">Back to practice</button>`;return}
+let h=mode?`<div class="pg">Question ${i+1} of ${mode}</div><div class="bar"><i style="width:${100*i/mode}%"></i></div>`:`<div class="pg">Practice · unlimited</div>`;
+h+=`<div class="q">What is the oxidation state of <em>${q.e}</em> in</div><div class="f">${fm(q.d.f,q.d.c)}</div><div class="g">`;
+const a=q.d.m[q.e];
+for(let v=-4;v<=8;v++)h+=`<button ${ans!==null?'disabled':''} class="${ans!==null?(v==a?'c':v==ans?'x':''):''}" onclick="pick(${v})">${sg(v)}</button>`;
+h+='</div>';
+if(ans!==null){const r=ans==a;h+=`<div class="fb"><h3 class="${r?'y':'n'}">${r?'✓ Correct!':'✗ Not quite — answer is '+sg(a)}</h3>${expl(q)}</div><button class="go" onclick="nxt()">${mode&&i+1>=mode?'Finish quiz':'Next question'}</button>`}
+k.innerHTML=h}
+function pick(v){if(ans!==null)return;ans=v;tot++;if(v==q.d.m[q.e]){ok++;streak++;if(streak>best){best=streak;sv('ox_best',best)}}else{streak=0;miss.push(q)}draw()}
+function nxt(){if(mode&&i+1>=mode){fin=true;last={c:ok,n:mode};sv('ox_last',last);const p=ok/mode;isNew=!high||p>high.c/high.n||(p==high.c/high.n&&mode>high.n);if(isNew){high=last;sv('ox_high',high)}draw()}else{if(mode)i++;nq()}}
+function theme(t){document.documentElement.dataset.theme=t;$('#tb').textContent=t=='dark'?'🌙':'☀️';sv('ox_theme',t)}
+$('#tb').onclick=()=>theme(document.documentElement.dataset.theme=='dark'?'light':'dark');
+$('#rb').onclick=()=>$('#ov').hidden=false;$('#cl').onclick=()=>$('#ov').hidden=true;$('#ov').onclick=e=>{if(e.target.id=='ov')$('#ov').hidden=true};
+$('#ft').onchange=()=>start(mode);
+theme(ld('ox_theme','dark'));start(0);
+</script>
+</body>
+</html>
