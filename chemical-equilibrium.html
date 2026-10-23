@@ -720,7 +720,7 @@
         <div id="solutionContent"></div>
     </div>
 
-    <div class="footer">ICE table • quadratic or successive approx.</div>
+    <div class="footer">ICE table • quadratic or successive approx. • Ksp solubility (MX, MX₂, M₂X)</div>
 </div>
 
 <!-- Floating scientific calculator (reusable widget) -->
@@ -728,7 +728,7 @@
 <div class="calc" id="calc" role="dialog" aria-label="Calculator" hidden></div>
 
 <script>
-    // ---------- REACTION STOCK (20 reactions) ----------
+    // ---------- REACTION STOCK (26 reactions) ----------
     const reactions = [
         { eq: "HA ⇌ H⁺ + A⁻", Kname: "Ka", K: 1.8e-5, type: 'acid', reactant: "HA", products: ["H⁺", "A⁻"], coeff: [1,1,1] },
         { eq: "HB ⇌ H⁺ + B⁻", Kname: "Ka", K: 6.3e-5, type: 'acid', reactant: "HB", products: ["H⁺", "B⁻"], coeff: [1,1,1] },
@@ -739,9 +739,17 @@
         { eq: "N + H₂O ⇌ NH⁺ + OH⁻", Kname: "Kb", K: 4.4e-4, type: 'base', reactant: "N", products: ["NH⁺", "OH⁻"], coeff: [1,1,1] },
         { eq: "M + H₂O ⇌ MH⁺ + OH⁻", Kname: "Kb", K: 7.4e-6, type: 'base', reactant: "M", products: ["MH⁺", "OH⁻"], coeff: [1,1,1] },
         { eq: "X + H₂O ⇌ XH⁺ + OH⁻", Kname: "Kb", K: 3.3e-3, type: 'base', reactant: "X", products: ["XH⁺", "OH⁻"], coeff: [1,1,1] },
-        { eq: "MX(s) ⇌ M⁺ + X⁻", Kname: "Ksp", K: 2.5e-9, type: 'salt', reactant: "MX(s)", products: ["M⁺", "X⁻"], coeff: [1,1] },
-        { eq: "MY(s) ⇌ M⁺ + Y⁻", Kname: "Ksp", K: 1.2e-12, type: 'salt', reactant: "MY(s)", products: ["M⁺", "Y⁻"], coeff: [1,1] },
-        { eq: "MZ(s) ⇌ M⁺ + Z⁻", Kname: "Ksp", K: 5.8e-7, type: 'salt', reactant: "MZ(s)", products: ["M⁺", "Z⁻"], coeff: [1,1] },
+        { eq: "MX(s) ⇌ M⁺ + X⁻", Kname: "Ksp", K: 2.5e-9, type: 'salt', reactant: "MX(s)", products: ["M⁺", "X⁻"], coeff: [1,1,1] },
+        { eq: "MY(s) ⇌ M⁺ + Y⁻", Kname: "Ksp", K: 1.2e-12, type: 'salt', reactant: "MY(s)", products: ["M⁺", "Y⁻"], coeff: [1,1,1] },
+        { eq: "MZ(s) ⇌ M⁺ + Z⁻", Kname: "Ksp", K: 5.8e-7, type: 'salt', reactant: "MZ(s)", products: ["M⁺", "Z⁻"], coeff: [1,1,1] },
+        // MX2-type salts:  MX2(s) ⇌ M²⁺ + 2X⁻   (Ksp = [M²⁺][X⁻]² = 4x³)
+        { eq: "MX₂(s) ⇌ M²⁺ + 2X⁻", Kname: "Ksp", K: 3.2e-11, type: 'salt', reactant: "MX₂(s)", products: ["M²⁺", "X⁻"], coeff: [1,1,2] },
+        { eq: "MY₂(s) ⇌ M²⁺ + 2Y⁻", Kname: "Ksp", K: 1.8e-14, type: 'salt', reactant: "MY₂(s)", products: ["M²⁺", "Y⁻"], coeff: [1,1,2] },
+        { eq: "MZ₂(s) ⇌ M²⁺ + 2Z⁻", Kname: "Ksp", K: 6.5e-9, type: 'salt', reactant: "MZ₂(s)", products: ["M²⁺", "Z⁻"], coeff: [1,1,2] },
+        // M2X-type salts:  M2X(s) ⇌ 2M⁺ + X²⁻   (Ksp = [M⁺]²[X²⁻] = 4x³)
+        { eq: "M₂X(s) ⇌ 2M⁺ + X²⁻", Kname: "Ksp", K: 4.0e-12, type: 'salt', reactant: "M₂X(s)", products: ["M⁺", "X²⁻"], coeff: [1,2,1] },
+        { eq: "M₂Y(s) ⇌ 2M⁺ + Y²⁻", Kname: "Ksp", K: 8.5e-10, type: 'salt', reactant: "M₂Y(s)", products: ["M⁺", "Y²⁻"], coeff: [1,2,1] },
+        { eq: "M₂Z(s) ⇌ 2M⁺ + Z²⁻", Kname: "Ksp", K: 1.6e-15, type: 'salt', reactant: "M₂Z(s)", products: ["M⁺", "Z²⁻"], coeff: [1,2,1] },
         { eq: "A ⇌ 2B", Kname: "K", K: 0.045, type: 'general', reactant: "A", products: ["B"], coeff: [1,2] },
         { eq: "C ⇌ 2D", Kname: "K", K: 0.012, type: 'general', reactant: "C", products: ["D"], coeff: [1,2] },
         { eq: "E ⇌ 2F", Kname: "K", K: 1.8, type: 'general', reactant: "E", products: ["F"], coeff: [1,2] },
@@ -816,6 +824,11 @@
         return name.length > 1 && name[0] === 'K' ? `K<sub>${name.slice(1)}</sub>` : name;
     }
 
+    // Salt helpers: cation/anion coefficients a, b  ->  Ksp = (a·x)^a (b·x)^b = a^a·b^b·x^(a+b)
+    function supN(n) { return n > 1 ? `<sup>${n}</sup>` : ''; }      // exponent in a K expression
+    function cx(n) { return (n > 1 ? n : '') + 'x'; }                // "x" or "2x"
+    function saltRootSym(n) { return n === 2 ? '√' : n === 3 ? '∛' : `<sup>${n}</sup>√`; }
+
     // Solve for equilibrium concentrations for ALL species
     function solveAllEquilibrium(reaction, initialConc) {
         const K = reaction.K;
@@ -832,10 +845,9 @@
             reaction.products.forEach(() => result.push(x));
             return result;
         } else if (type === 'salt') {
-            const x = Math.sqrt(K);
-            const result = [0];
-            reaction.products.forEach(() => result.push(x));
-            return result;
+            const a = coeff[1], b = coeff[2];             // 1:1 -> x², MX2 / M2X -> 4x³
+            const x = Math.pow(K / (Math.pow(a, a) * Math.pow(b, b)), 1 / (a + b));
+            return [0, a * x, b * x];
         } else if (type === 'general') {
             const C = initialConc;
             const a = 4, b = K, c = -K * C;
@@ -949,7 +961,7 @@
         if (type === 'acid' || type === 'base') {
             kExpr = `[${products[0]}][${products[1]}] / [${r}]`;
         } else if (type === 'salt') {
-            kExpr = `[${products[0]}][${products[1]}]`;
+            kExpr = `[${products[0]}]${supN(coeff[1])}[${products[1]}]${supN(coeff[2])}`;
         } else if (type === 'general') {
             kExpr = `[${products[0]}]² / [${r}]`;
         } else if (type === 'general2') {
@@ -996,11 +1008,11 @@
         } else if (type === 'salt') {
             changeDesc = `<ul>
                 <li>${r}: solid (no change)</li>
-                ${products.map(p => `<li>${p}: +x</li>`).join('')}
+                ${products.map((p, i) => `<li>${p}: +${cx(coeff[i+1])}</li>`).join('')}
             </ul>`;
             eqDesc = `<ul>
                 <li>[${r}] = solid</li>
-                ${products.map(p => `<li>[${p}] = x</li>`).join('')}
+                ${products.map((p, i) => `<li>[${p}] = ${cx(coeff[i+1])}</li>`).join('')}
             </ul>`;
         } else if (type === 'general') {
             changeDesc = `<ul>
@@ -1039,12 +1051,25 @@
                 <div>x = ${formatSci(correctAnswers[1])} M</div>
             `;
         } else if (type === 'salt') {
-            equation = `${formatK(K)} = x²`;
-            solveSteps = `
-                <div>Take square root of both sides:</div>
-                <div class="math">x = √${kLabel('Ksp')} = √(${formatK(K)})</div>
-                <div>x = ${formatSci(correctAnswers[1])} M</div>
-            `;
+            const a = coeff[1], b = coeff[2], pre = Math.pow(a, a) * Math.pow(b, b), n = a + b;
+            const term = (c) => (c > 1 ? `(${c}x)${supN(c)}` : 'x');
+            const xVal = correctAnswers[1] / a;
+            if (n === 2) {
+                equation = `${formatK(K)} = x²`;
+                solveSteps = `
+                    <div>Take square root of both sides:</div>
+                    <div class="math">x = √${kLabel('Ksp')} = √(${formatK(K)})</div>
+                    <div>x = ${formatSci(xVal)} M</div>
+                `;
+            } else {
+                equation = `${formatK(K)} = ${term(a)}·${term(b)} = ${pre}x<sup>${n}</sup>`;
+                solveSteps = `
+                    <div>Collect the powers of x, then take the cube root:</div>
+                    <div class="math">x = ${saltRootSym(n)}(${kLabel('Ksp')} / ${pre}) = ${saltRootSym(n)}(${formatK(K)} / ${pre})</div>
+                    <div>x = ${formatSci(xVal)} M</div>
+                `;
+            }
+            solveSteps += `<div>Molar solubility of the salt: s = x = ${formatSci(xVal)} mol/L</div>`;
         } else if (type === 'general') {
             equation = `${formatK(K)} = (2x)² / (${C.toFixed(3)} − x) = 4x² / (${C.toFixed(3)} − x)`;
             solveSteps = `
@@ -1095,8 +1120,10 @@
             const den = correctAnswers[0];
             verify = `${kLabel(Kname)} = (${formatSci(correctAnswers[1])} × ${formatSci(correctAnswers[2])}) / ${formatSci(correctAnswers[0])} = ${formatSci(num/den)} ≈ ${formatK(K)} ✓`;
         } else if (type === 'salt') {
-            const num = correctAnswers[1] * correctAnswers[2];
-            verify = `${kLabel('Ksp')} = (${formatSci(correctAnswers[1])})² = ${formatSci(num)} ≈ ${formatK(K)} ✓`;
+            const a = coeff[1], b = coeff[2];
+            const prod = Math.pow(correctAnswers[1], a) * Math.pow(correctAnswers[2], b);
+            verify = `${kLabel('Ksp')} = [${products[0]}]${supN(a)}[${products[1]}]${supN(b)} = ` +
+                `(${formatSci(correctAnswers[1])})${supN(a)}(${formatSci(correctAnswers[2])})${supN(b)} = ${formatSci(prod)} ≈ ${formatK(K)} ✓`;
         } else if (type === 'general') {
             const num = Math.pow(correctAnswers[1], 2);
             const den = correctAnswers[0];
@@ -1458,8 +1485,16 @@
                 `C₀ = ${currentInitialConc.toFixed(3)} M, K = ${formatK(r.K)}. ` +
                 `Then [reactant] = C₀ - x, [products] = x.`;
         } else if (r.type === 'salt') {
-            hintText = `For a 1:1 salt, ${kLabel('Ksp')} = [M⁺][X⁻] = x². So x = √${kLabel('Ksp')}. ${kLabel('Ksp')} = ${formatK(r.K)}. ` +
-                `Both ion concentrations = x.`;
+            const a = r.coeff[1], b = r.coeff[2];
+            if (a === 1 && b === 1) {
+                hintText = `For a 1:1 salt, ${kLabel('Ksp')} = [${r.products[0]}][${r.products[1]}] = x². So x = √${kLabel('Ksp')}. ${kLabel('Ksp')} = ${formatK(r.K)}. ` +
+                    `Both ion concentrations = x.`;
+            } else {
+                const n = a + b, pre = Math.pow(a, a) * Math.pow(b, b);
+                hintText = `Let x = molar solubility. Then [${r.products[0]}] = ${cx(a)} and [${r.products[1]}] = ${cx(b)}, so ` +
+                    `${kLabel('Ksp')} = [${r.products[0]}]${supN(a)}[${r.products[1]}]${supN(b)} = ${pre}x<sup>${n}</sup>. ` +
+                    `${kLabel('Ksp')} = ${formatK(r.K)}, so x = ${saltRootSym(n)}(${kLabel('Ksp')}/${pre}). The solid is not in the expression.`;
+            }
         } else if (r.type === 'general') {
             hintText = `Reaction: A ⇌ 2B. ICE: A: C₀ - x, B: 2x. K = (2x)²/(C₀ - x) = 4x²/(C₀ - x). ` +
                 `Solve 4x² + Kx - K·C₀ = 0. C₀ = ${currentInitialConc.toFixed(3)} M, K = ${formatK(r.K)}. ` +
