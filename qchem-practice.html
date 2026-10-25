@@ -91,6 +91,38 @@
     :root.dark .theme-toggle .icon-sun { display: block; }
     :root.dark .theme-toggle .icon-moon { display: none; }
 
+
+    /* Reference button + sheet */
+    .ref-toggle {
+      position: absolute; top: 50%; left: 0; transform: translateY(-50%);
+      flex: none; width: 40px; height: 40px; padding: 0;
+      display: grid; place-items: center;
+      background: var(--card-bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 10px;
+    }
+    .ref-toggle:hover { background: var(--btn2); }
+    .ref-toggle svg { width: 20px; height: 20px; }
+    .ref-overlay {
+      position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+      padding: 16px; background: rgba(15, 23, 42, 0.6);
+    }
+    .ref-overlay[hidden] { display: none; }
+    .ref-box {
+      background: var(--card-bg); color: var(--text); border: 1px solid var(--border); border-radius: 14px;
+      width: 100%; max-width: 520px; max-height: 86vh; overflow-y: auto; padding: 18px 18px 8px;
+      box-shadow: var(--shadow);
+    }
+    .ref-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .ref-head h2 { font-size: 1.1rem; color: var(--primary); }
+    .ref-head button { flex: none; width: 36px; height: 36px; padding: 0; font-size: 1.5rem; line-height: 1; background: transparent; color: var(--text-muted); }
+    .ref-section { margin-bottom: 16px; }
+    .ref-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px; }
+    .ref-eq { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; font-size: 1.05rem; overflow-x: auto; }
+    .ref-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+    .ref-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .ref-table td { padding: 4px 0; border-bottom: 1px solid var(--border); }
+    .ref-table td:last-child { text-align: right; font-weight: 600; }
+
     /* Scoreboard */
     .scoreboard {
       display: flex;
@@ -265,6 +297,9 @@
 
   <header>
     <h1>Quantum Chem Practice</h1>
+    <button type="button" class="ref-toggle" id="ref-toggle" aria-label="Open formula reference" aria-haspopup="dialog" title="Formula reference">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5A2.5 2.5 0 0 1 6.5 19H20"/><path d="M9 8h7M9 12h5"/></svg>
+    </button>
     <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to dark theme" title="Toggle dark/light theme">
       <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -323,6 +358,24 @@
     <div class="solution" id="solution-box">
       <h4>Step-by-Step Solution:</h4>
       <div id="solution-content"></div>
+    </div>
+  </div>
+
+  <!-- Formula reference sheet -->
+  <div class="ref-overlay" id="ref-overlay" hidden>
+    <div class="ref-box" role="dialog" aria-modal="true" aria-labelledby="ref-title">
+      <div class="ref-head">
+        <h2 id="ref-title">Formulas &amp; Constants</h2>
+        <button type="button" id="ref-close" aria-label="Close reference">&times;</button>
+      </div>
+      <div class="ref-section"><h3>Light as a wave</h3><div class="ref-eq formula"><var>c</var> = &lambda;<var>&nu;</var></div><p class="ref-note"><var>c</var> = 3.00 &times; 10<sup>8</sup> m/s; 1 Hz = 1 s<sup>&minus;1</sup>; 1 nm = 10<sup>&minus;9</sup> m</p></div>
+      <div class="ref-section"><h3>Photon energy</h3><div class="ref-eq formula"><var>E</var> = <var>h</var><var>&nu;</var> = <span class="fraction"><span class="numerator"><var>h</var><var>c</var></span><span class="denominator">&lambda;</span></span></div><p class="ref-note"><var>h</var> = 6.626 &times; 10<sup>&minus;34</sup> J&middot;s</p></div>
+      <div class="ref-section"><h3>Line spectra (Rydberg equation)</h3><div class="ref-eq formula"><span class="fraction"><span class="numerator">1</span><span class="denominator">&lambda;</span></span> = <var>R</var><sub>H</sub> ( <span class="fraction"><span class="numerator">1</span><span class="denominator"><var>n</var><sub>1</sub><sup>2</sup></span></span> &minus; <span class="fraction"><span class="numerator">1</span><span class="denominator"><var>n</var><sub>2</sub><sup>2</sup></span></span> )</div><p class="ref-note"><var>R</var><sub>H</sub> = 1.097 &times; 10<sup>7</sup> m<sup>&minus;1</sup>; Balmer series: <var>n</var><sub>1</sub> = 2 and <var>n</var><sub>2</sub> = 3, 4, 5, &hellip;. Invert 1/&lambda; to get &lambda;.</p></div>
+      <div class="ref-section"><h3>Bohr model (hydrogen)</h3><div class="ref-eq formula"><var>E</var><sub><var>n</var></sub> = &minus;2.18 &times; 10<sup>&minus;18</sup> J <span class="fraction"><span class="numerator">1</span><span class="denominator"><var>n</var><sup>2</sup></span></span></div><div class="ref-eq formula">&Delta;<var>E</var> = <var>E</var><sub>f</sub> &minus; <var>E</var><sub>i</sub> = &minus;2.18 &times; 10<sup>&minus;18</sup> J ( <span class="fraction"><span class="numerator">1</span><span class="denominator"><var>n</var><sub>f</sub><sup>2</sup></span></span> &minus; <span class="fraction"><span class="numerator">1</span><span class="denominator"><var>n</var><sub>i</sub><sup>2</sup></span></span> )</div><div class="ref-eq formula">&lambda;<sub>photon</sub> = <span class="fraction"><span class="numerator"><var>h</var><var>c</var></span><span class="denominator">|&Delta;<var>E</var>|</span></span></div><p class="ref-note">Emission: <var>n</var><sub>i</sub> &gt; <var>n</var><sub>f</sub>, so &Delta;<var>E</var> &lt; 0. Use the magnitude of &Delta;<var>E</var> for the photon.</p></div>
+      <div class="ref-section"><h3>de Broglie wavelength</h3><div class="ref-eq formula">&lambda; = <span class="fraction"><span class="numerator"><var>h</var></span><span class="denominator"><var>m</var><var>v</var></span></span></div><p class="ref-note">Use mass in kg and speed in m/s so &lambda; comes out in meters.</p></div>
+      <div class="ref-section"><h3>Heisenberg uncertainty principle</h3><div class="ref-eq formula">&Delta;<var>x</var> &middot; <var>m</var>&Delta;<var>v</var> &ge; <span class="fraction"><span class="numerator"><var>h</var></span><span class="denominator">4&pi;</span></span></div><div class="ref-eq formula">&Delta;<var>x</var><sub>min</sub> = <span class="fraction"><span class="numerator"><var>h</var></span><span class="denominator">4&pi;<var>m</var>&Delta;<var>v</var></span></span></div><p class="ref-note">The minimum uncertainty in position uses the equality.</p></div>
+      <div class="ref-section"><h3>Particle masses</h3><table class="ref-table"><tr><td>electron, <var>m</var><sub>e</sub></td><td>9.109 &times; 10<sup>&minus;31</sup> kg</td></tr><tr><td>proton, <var>m</var><sub>p</sub></td><td>1.673 &times; 10<sup>&minus;27</sup> kg</td></tr></table><p class="ref-note">1 J = 1 kg&middot;m<sup>2</sup>/s<sup>2</sup></p></div>
+      <div class="ref-section"><h3>Entering answers</h3><p class="ref-note" style="margin-top:0">Use scientific notation such as <b>1.2e3</b> or <b>1.2x10^3</b>. Answers within 3% are marked correct.</p></div>
     </div>
   </div>
 
@@ -589,6 +642,21 @@
     // Event Listeners
     document.getElementById('next-btn').addEventListener('click', loadProblem);
     document.getElementById('topic-select').addEventListener('change', loadProblem);
+
+    // Formula reference sheet
+    (function () {
+      const overlay = document.getElementById('ref-overlay');
+      const openBtn = document.getElementById('ref-toggle');
+      const closeBtn = document.getElementById('ref-close');
+      function setRef(open) {
+        overlay.hidden = !open;
+        if (open) closeBtn.focus(); else openBtn.focus();
+      }
+      openBtn.addEventListener('click', () => setRef(true));
+      closeBtn.addEventListener('click', () => setRef(false));
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) setRef(false); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !overlay.hidden) setRef(false); });
+    })();
 
     // Initial Load
     loadProblem();

@@ -591,6 +591,21 @@
         }
     
         /* ===== THEME TOGGLE ===== */
+
+        /* ===== PROBLEM CATEGORY PICKER ===== */
+        .category-row { margin: 0 0 14px; }
+        .category-label { font-size: 0.78rem; font-weight: 600; color: var(--muted2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .category-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .cat-btn {
+            padding: 9px 4px; font-size: 0.88rem; font-weight: 600; font-family: inherit;
+            border: 1px solid var(--border3); border-radius: 10px; cursor: pointer;
+            background: var(--btn-bg); color: var(--blue-text); transition: background 0.15s, color 0.15s;
+        }
+        .cat-btn:hover { border-color: var(--accent); }
+        .cat-btn.active { background: var(--accent-solid); border-color: var(--accent-solid); color: var(--on-accent); }
+        .cat-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        @media (max-width: 380px) { .category-group { grid-template-columns: repeat(2, 1fr); } }
+
         .title-row {
             display: flex;
             align-items: flex-start;
@@ -664,6 +679,17 @@
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Switch to dark theme" aria-pressed="false" title="Toggle dark / light theme"></button>
     </div>
     <div class="subhead">Fill the ICE table and enter equilibrium concentration for <strong>every species</strong>.</div>
+
+    <!-- Problem category -->
+    <div class="category-row">
+        <div class="category-label" id="categoryLabel">Problem type</div>
+        <div class="category-group" id="categoryGroup" role="radiogroup" aria-labelledby="categoryLabel">
+            <button type="button" class="cat-btn active" data-cat="mixed" role="radio" aria-checked="true">Mixed</button>
+            <button type="button" class="cat-btn" data-cat="general" role="radio" aria-checked="false">General</button>
+            <button type="button" class="cat-btn" data-cat="acidbase" role="radio" aria-checked="false">Acid/Base</button>
+            <button type="button" class="cat-btn" data-cat="solubility" role="radio" aria-checked="false">Solubility</button>
+        </div>
+    </div>
 
     <!-- Stats -->
     <div class="stats-grid">
@@ -759,6 +785,16 @@
         { eq: "HY ⇌ H⁺ + Y⁻", Kname: "Ka", K: 7.9e-6, type: 'acid', reactant: "HY", products: ["H⁺","Y⁻"], coeff: [1,1,1] },
         { eq: "HZ ⇌ H⁺ + Z⁻", Kname: "Ka", K: 2.1e-4, type: 'acid', reactant: "HZ", products: ["H⁺","Z⁻"], coeff: [1,1,1] }
     ];
+
+    // ---------- PROBLEM CATEGORIES ----------
+    // Mixed = every reaction; the others filter by reaction type.
+    const CATEGORY_TYPES = {
+        mixed: null,
+        general: ['general', 'general2'],
+        acidbase: ['acid', 'base'],
+        solubility: ['salt']
+    };
+    let currentCategory = 'mixed';   // default: Mixed
 
     // ---------- STATE ----------
     let currentReaction = null;
@@ -1172,8 +1208,9 @@
         showSolutionBtn.disabled = true;
         submitBtn.disabled = false;
 
-        const idx = Math.floor(Math.random() * reactions.length);
-        currentReaction = JSON.parse(JSON.stringify(reactions[idx]));
+        const allowed = CATEGORY_TYPES[currentCategory];
+        const pool = allowed ? reactions.filter(r => allowed.includes(r.type)) : reactions;
+        currentReaction = JSON.parse(JSON.stringify(pool[Math.floor(Math.random() * pool.length)]));
 
         let initConc = 0;
         if (currentReaction.type !== 'salt') {
@@ -1730,6 +1767,19 @@
     document.addEventListener('input', (e) => { if (e.target && e.target.matches && e.target.matches('.ice-table input, .answer-item input')) blankWarned = false; });
     hintBtn.addEventListener('click', showHint);
     newProblemBtn.addEventListener('click', newProblem);
+
+    // category picker
+    document.getElementById('categoryGroup').addEventListener('click', (e) => {
+        const btn = e.target.closest('.cat-btn');
+        if (!btn || btn.dataset.cat === currentCategory) return;
+        currentCategory = btn.dataset.cat;
+        document.querySelectorAll('#categoryGroup .cat-btn').forEach(b => {
+            const on = b === btn;
+            b.classList.toggle('active', on);
+            b.setAttribute('aria-checked', String(on));
+        });
+        newProblem();
+    });
     showSolutionBtn.addEventListener('click', renderSolution);
 
     // ---------- THEME TOGGLE ----------
