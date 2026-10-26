@@ -4301,6 +4301,14 @@ window.addEventListener('load', function(){
     useServices: false, oneMolecule: false, floatDrawTools: false, isMobile: /Mobi|Android/i.test(navigator.userAgent)
   });
   window.sketcher = sketcher;
+
+  /* Toolbar defaults: the "Attributes" button starts as "Add Lone Pair" and the
+     "Shapes" button starts as "Bracket" (set before ChemDoodle wires up the toolbar). */
+  (function(){
+    var tm = sketcher.toolbarManager;
+    if (tm.attributeSet && tm.attributeSet.dropDown && tm.buttonPairPlus) tm.attributeSet.dropDown.defaultButton = tm.buttonPairPlus;
+    if (tm.shapeSet && tm.shapeSet.dropDown && tm.buttonBracket) tm.shapeSet.dropDown.defaultButton = tm.buttonBracket;
+  })();
   sketcher.specs.atoms_displayAllCarbonLabels_2D = true;
   sketcher.specs.atoms_implicitHydrogens_2D = false;
   sketcher.specs.bonds_lewisStyle_2D = false;
